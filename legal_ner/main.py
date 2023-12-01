@@ -153,14 +153,7 @@ if __name__ == "__main__":
 
     ## Define the models
     model_paths = [
-        "studio-ousia/luke-base",                   # LUKE base
-        "dslim/bert-large-NER",                     # ft on NER
-        "Jean-Baptiste/roberta-large-ner-english",  # ft on NER
-        "nlpaueb/legal-bert-base-uncased",          # ft on Legal Domain
-        "saibo/legal-roberta-base",                 # ft on Legal Domain
-        "nlpaueb/bert-base-uncased-eurlex",         # ft on Eurlex
-        "nlpaueb/bert-base-uncased-echr",           # ft on ECHR
-        "studio-ousia/luke-large",                  # LUKE large
+        "opennyaiorg/en_legal_ner_trf",                   # LUKE base
     ]
 
     for model_path in model_paths:
@@ -225,7 +218,7 @@ if __name__ == "__main__":
             dataloader_num_workers=4,
             dataloader_pin_memory=True,
             report_to="wandb",
-            logging_steps=10,  # how often to log to W&B
+            logging_steps=50,  # how often to log to W&B
 
         )
 
