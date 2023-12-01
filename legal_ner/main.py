@@ -153,8 +153,8 @@ if __name__ == "__main__":
 
     ## Define the models
     model_paths = [
-        "studio-ousia/luke-base",                   # LUKE base
-        "dslim/bert-large-NER",                     # ft on NER
+        #"studio-ousia/luke-base",                   # LUKE base
+        #"dslim/bert-large-NER",                     # ft on NER
         "Jean-Baptiste/roberta-large-ner-english",  # ft on NER
         "nlpaueb/legal-bert-base-uncased",          # ft on Legal Domain
         "saibo/legal-roberta-base",                 # ft on Legal Domain
