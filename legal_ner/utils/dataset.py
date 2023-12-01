@@ -18,6 +18,7 @@ class LegalNERTokenDataset(Dataset):
     
     def __init__(self, dataset_path, model_path, labels_list=None, split="train", use_roberta=False):
         self.data = json.load(open(dataset_path))
+        print(self.data)
         self.split = split
         self.use_roberta = use_roberta
         if self.use_roberta:     ## Load the right tokenizer
