@@ -153,7 +153,7 @@ if __name__ == "__main__":
 
     ## Define the models
     model_paths = [
-        "opennyaiorg/en_legal_ner_trf",                   # LUKE base
+        'lexlms/legal-roberta-base'    
     ]
 
     for model_path in model_paths:
