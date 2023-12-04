@@ -153,6 +153,7 @@ if __name__ == "__main__":
 
     ## Define the models
     model_paths = [
+        'guishe/span-marker-generic-ner-v1-fewnerd-fine-super',
         'phjhk/hklegal-xlm-r-base-t',
         'phjhk/hklegal-xlm-r-base'    
     ]
@@ -163,7 +164,7 @@ if __name__ == "__main__":
 
         ## Define the train and test datasets
         use_roberta = False
-        if "luke" in model_path or "roberta" in model_path:
+        if "luke" in model_path or "roberta" in model_path or "xlm" in model_path:
             use_roberta = True
 
         train_ds = LegalNERTokenDataset(
@@ -171,7 +172,7 @@ if __name__ == "__main__":
             model_path, 
             labels_list=labels_list, 
             split="train", 
-            use_roberta=True
+            use_roberta=use_roberta
         )
 
         val_ds = LegalNERTokenDataset(
@@ -179,7 +180,7 @@ if __name__ == "__main__":
             model_path, 
             labels_list=labels_list, 
             split="val", 
-            use_roberta=True
+            use_roberta=use_roberta
         )
 
         ## Define the model
