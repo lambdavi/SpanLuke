@@ -170,7 +170,7 @@ if __name__ == "__main__":
             model_path, 
             labels_list=labels_list, 
             split="train", 
-            use_roberta=use_roberta
+            use_roberta=True
         )
 
         val_ds = LegalNERTokenDataset(
