@@ -179,7 +179,7 @@ if __name__ == "__main__":
             model_path, 
             labels_list=labels_list, 
             split="val", 
-            use_roberta=use_roberta
+            use_roberta=True
         )
 
         ## Define the model
