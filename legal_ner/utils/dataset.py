@@ -70,7 +70,9 @@ class LegalNERTokenDataset(Dataset):
         aligned_labels = [self.labels_to_idx[l] for l in aligned_labels]
         inputs["input_ids"] = inputs["input_ids"].squeeze(0).long()
         inputs["attention_mask"] = inputs["attention_mask"].squeeze(0).long()
+        
         if not self.use_roberta:
+            print(self.use_roberta)
             inputs["token_type_ids"] = inputs["token_type_ids"].squeeze(0).long()
 
         ## Get the labels
