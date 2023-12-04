@@ -153,6 +153,7 @@ if __name__ == "__main__":
 
     ## Define the models
     model_paths = [
+        'phjhk/hklegal-xlm-r-base-t',
         'phjhk/hklegal-xlm-r-base'    
     ]
 
