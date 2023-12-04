@@ -153,7 +153,7 @@ if __name__ == "__main__":
 
     ## Define the models
     model_paths = [
-        'lexlms/legal-roberta-base'    
+        'phjhk/hklegal-xlm-r-base'    
     ]
 
     for model_path in model_paths:
