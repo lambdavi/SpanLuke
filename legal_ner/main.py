@@ -187,6 +187,7 @@ if __name__ == "__main__":
         ## Define the model
         if "span" in model_path:
             # Download from the 🤗 Hub
+
             model = SpanMarkerModel.from_pretrained(
                 model_path,
                 num_labels=num_labels,

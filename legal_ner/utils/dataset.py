@@ -14,6 +14,7 @@ nlp = spacy.load("en_core_web_sm")
 #                      DATASET CLASS                       #
 #                                                          #
 ############################################################ 
+# TODO: Add support for the SpanMarker model, needed columns: --
 class LegalNERTokenDataset(Dataset):
     
     def __init__(self, dataset_path, model_path, labels_list=None, split="train", use_roberta=False):
@@ -85,5 +86,4 @@ class LegalNERTokenDataset(Dataset):
                 inputs["labels"] = aligned_labels
             else:
                 inputs["labels"] = labels[: inputs["attention_mask"].shape[0]]
-        print(inputs)
         return inputs
