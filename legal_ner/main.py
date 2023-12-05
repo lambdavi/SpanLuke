@@ -3,6 +3,7 @@ import json
 import numpy as np
 from argparse import ArgumentParser
 from nervaluate import Evaluator
+from span_marker import SpanMarkerModel
 
 from transformers import AutoModelForTokenClassification
 from transformers import Trainer, DefaultDataCollator, TrainingArguments
@@ -184,11 +185,18 @@ if __name__ == "__main__":
         )
 
         ## Define the model
-        model = AutoModelForTokenClassification.from_pretrained(
-            model_path, 
-            num_labels=num_labels, 
-            ignore_mismatched_sizes=True
-        )
+        if "span" in model_path:
+            # Download from the 🤗 Hub
+            model = SpanMarkerModel.from_pretrained(
+                model_path
+            )
+        else:
+            # Run inference
+            model = AutoModelForTokenClassification.from_pretrained(
+                model_path, 
+                num_labels=num_labels, 
+                ignore_mismatched_sizes=True
+            )
 
         ## Map the labels
         idx_to_labels = {v[1]: v[0] for v in train_ds.labels_to_idx.items()}
