@@ -108,7 +108,7 @@ base_dir = "results/all"
     'studio-ousia/luke-large'),                 # LUKE large
 ]"""
 all_model_path = [        # ft on Legal Domain
-    (f'{base_dir}/saibo/legal-roberta-base/checkpoint-27', 'saibo/legal-roberta-base'),                # ft on Legal Domain                 # LUKE large
+    (f'{base_dir}/saibo/legal-roberta-base/checkpoint-2752', 'saibo/legal-roberta-base'),                # ft on Legal Domain                 # LUKE large
 ]
 
 ## Loop over the models
