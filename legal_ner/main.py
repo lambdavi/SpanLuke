@@ -154,11 +154,11 @@ if __name__ == "__main__":
 
     ## Define the models
     model_paths = [
-        'nickprock/distilbert-finetuned-ner-ontonotes',
         'saibo/legal-roberta-base',
         'joelniklaus/legal-xlm-longformer-base',
         'guishe/span-marker-generic-ner-v1-fewnerd-fine-super',
         'phjhk/hklegal-xlm-r-base-t',
+        'nickprock/distilbert-finetuned-ner-ontonotes',
         'phjhk/hklegal-xlm-r-base'    
     ]
 
