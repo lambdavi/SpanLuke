@@ -85,5 +85,5 @@ class LegalNERTokenDataset(Dataset):
                 inputs["labels"] = aligned_labels
             else:
                 inputs["labels"] = labels[: inputs["attention_mask"].shape[0]]
-
+        print(inputs)
         return inputs
