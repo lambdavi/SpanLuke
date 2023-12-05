@@ -38,7 +38,7 @@ class LegalNERTokenDataset(Dataset):
     def __getitem__(self, idx):
         item = self.data[idx]
         text = item["data"]["text"]
-
+        print(item, text)
         ## Get the annotations
         annotations = [
             {
@@ -86,4 +86,6 @@ class LegalNERTokenDataset(Dataset):
                 inputs["labels"] = aligned_labels
             else:
                 inputs["labels"] = labels[: inputs["attention_mask"].shape[0]]
+            
+        print(inputs)
         return inputs

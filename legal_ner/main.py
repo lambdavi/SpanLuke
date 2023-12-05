@@ -191,12 +191,23 @@ if __name__ == "__main__":
         if "span" in model_path:
             # Download from the 🤗 Hub
 
+            encoder_id = "bert-base-cased"
             model = SpanMarkerModel.from_pretrained(
+                # Required arguments
+                encoder_id,
+                labels=original_label_list,
+                # Optional arguments
+                model_max_length=256,
+                entity_max_length=8,
+                ignore_mismatched_sizes=True
+                # To improve the generated model card
+            )
+            """model = SpanMarkerModel.from_pretrained(
                 model_path,
                 num_labels=num_labels,
                 labels=original_label_list,
                 ignore_mismatched_sizes=True
-            )
+            )"""
         else:
             # Run inference
             model = AutoModelForTokenClassification.from_pretrained(
