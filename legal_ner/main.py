@@ -260,7 +260,6 @@ if __name__ == "__main__":
             args=training_args,
             train_dataset=train_ds,
             eval_dataset=val_ds,
-            compute_metrics=compute_metrics,
             data_collator=data_collator,
         )
 
