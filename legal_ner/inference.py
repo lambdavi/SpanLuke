@@ -88,7 +88,7 @@ class NERExtractor:
 ############################################################                    
 
 ## Define the models to use with the corresponding checkpoint and tokenizer
-base_dir = "results"
+base_dir = "results/all/"
 """all_model_path = [
     (f'{base_dir}/bert-large-NER/checkpoint-65970',
     'dslim/bert-large-NER'),                    # ft on NER
