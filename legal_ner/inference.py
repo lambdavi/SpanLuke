@@ -179,4 +179,4 @@ for model_path in sorted(all_model_path):
         data[i]['annotations'][0]['result'] = results_output
     
     ## Save the results
-    json.dump(data, open(f'{base_dir}/all/{model_path[0].split("/")[-2]}_predictions.json', 'w'))
+    json.dump(data, open(f'{base_dir}/{model_path[0].split("/")[-2]}_predictions.json', 'w'))
