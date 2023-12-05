@@ -116,7 +116,7 @@ all_model_path = [        # ft on Legal Domain
 for model_path in sorted(all_model_path):
 
     ## Load the test data
-    test_data = 'data/NER_TEST/NER_TEST_DEV_ALL.json'
+    test_data = 'data/NER_DEV/NER_DEV_ALL.json'
     data = json.load(open(test_data)) 
 
     ## Load the tokenizer
