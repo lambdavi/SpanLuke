@@ -190,7 +190,8 @@ if __name__ == "__main__":
             model = SpanMarkerModel.from_pretrained(
                 model_path,
                 num_labels=num_labels,
-                labels=original_label_list
+                labels=original_label_list,
+                ignore_mismatched_sizes=True
             )
         else:
             # Run inference
