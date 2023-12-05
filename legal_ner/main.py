@@ -195,7 +195,7 @@ if __name__ == "__main__":
             model = SpanMarkerModel.from_pretrained(
                 # Required arguments
                 encoder_id,
-                labels=original_label_list,
+                labels=['O']+original_label_list,
                 # Optional arguments
                 model_max_length=256,
                 entity_max_length=8,
