@@ -79,7 +79,7 @@ class LegalNERTokenDataset(Dataset):
         ## Get the labels
         if self.labels_list:
             labels = torch.tensor(aligned_labels).squeeze(-1).long()
-            column_name = "labels" if "span" not in self.model_path else: "ner_tags"
+            column_name = "labels" if "span" not in self.model_path else "ner_tags"
             if labels.shape[0] < inputs["attention_mask"].shape[0]:
                 pad_x = torch.zeros((inputs["input_ids"].shape[0],))
                 pad_x[: labels.size(0)] = labels
