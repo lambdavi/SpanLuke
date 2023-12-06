@@ -65,7 +65,7 @@ class LegalNERTokenDataset(Dataset):
                 verbose=False, 
                 padding='max_length'
             )
-        print("Inputs out of the tokenizer: ", input)    
+        print("Inputs out of the tokenizer: ", inputs, text, sep=" ||| ")    
 
         ## Match the labels
         aligned_labels = match_labels(inputs, annotations)
