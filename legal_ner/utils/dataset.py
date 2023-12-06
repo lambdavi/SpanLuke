@@ -88,6 +88,6 @@ class LegalNERTokenDataset(Dataset):
             else:
                 inputs[column_name] = labels[: inputs["attention_mask"].shape[0]]
     
-        print(inputs["tokens"], inputs[column_name])
+        #print(inputs["tokens"], inputs[column_name])
         #print(inputs)
         return inputs
