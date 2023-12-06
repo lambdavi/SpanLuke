@@ -3,7 +3,7 @@ import json
 import numpy as np
 from argparse import ArgumentParser
 from nervaluate import Evaluator
-from span_marker import SpanMarkerModel
+from span_marker import SpanMarkerModel, Trainer as SpanTrainer
 
 from transformers import AutoModelForTokenClassification
 from transformers import Trainer, DefaultDataCollator, TrainingArguments
@@ -255,13 +255,22 @@ if __name__ == "__main__":
         data_collator = DefaultDataCollator()
 
         ## Trainer
-        trainer = Trainer(
+        if "span" in model_path:
+            trainer = Trainer(
+                model=model,
+                args=training_args,
+                train_dataset=train_ds,
+                eval_dataset=val_ds,
+                data_collator=data_collator,
+            )
+        else:
+            trainer = SpanTrainer(
             model=model,
             args=training_args,
             train_dataset=train_ds,
             eval_dataset=val_ds,
             data_collator=data_collator,
-        )
+            )
 
         ## Train the model and save it
         trainer.train()
