@@ -3,7 +3,6 @@ import json
 from torch.utils.data import Dataset
 import numpy as np
 from transformers import AutoTokenizer, RobertaTokenizerFast
-
 from utils.utils import match_labels
 
 import spacy
@@ -23,6 +22,7 @@ class LegalNERTokenDataset(Dataset):
         self.split = split
         self.use_roberta = use_roberta
         if self.use_roberta:     ## Load the right tokenizer
+            if self.
             self.tokenizer = RobertaTokenizerFast.from_pretrained("roberta-base")
         else:
             self.tokenizer = AutoTokenizer.from_pretrained(model_path) 
@@ -77,6 +77,8 @@ class LegalNERTokenDataset(Dataset):
             print(self.use_roberta)
             inputs["token_type_ids"] = inputs["token_type_ids"].squeeze(0).long()
 
+        if "span" in self.model_path:
+            inputs["tokens"] = self.tokenizer.decode(inputs["input_ids"])
         ## Get the labels
         if self.labels_list:
             labels = torch.tensor(aligned_labels).squeeze(-1).long()
@@ -88,5 +90,5 @@ class LegalNERTokenDataset(Dataset):
             else:
                 inputs[column_name] = labels[: inputs["attention_mask"].shape[0]]
             
-        print(inputs)
+        #print(inputs)
         return inputs
