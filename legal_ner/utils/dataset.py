@@ -37,7 +37,10 @@ class LegalNERTokenDataset(Dataset):
         return len(self.data)
 
     def remove_columns(self, column):
-        self.column_names.remove(column)
+        try:
+            self.column_names.remove(column)
+        except:
+            pass
     def __getitem__(self, idx):
         item = self.data[idx]
         text = item["data"]["text"]
