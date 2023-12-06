@@ -191,7 +191,7 @@ if __name__ == "__main__":
         if "span" in model_path:
             # Download from the 🤗 Hub
 
-            encoder_id = "bert-base-cased"
+            encoder_id = "roberta-base"
             model = SpanMarkerModel.from_pretrained(
                 # Required arguments
                 encoder_id,
