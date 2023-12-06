@@ -22,7 +22,6 @@ class LegalNERTokenDataset(Dataset):
         self.split = split
         self.use_roberta = use_roberta
         if self.use_roberta:     ## Load the right tokenizer
-            if self.
             self.tokenizer = RobertaTokenizerFast.from_pretrained("roberta-base")
         else:
             self.tokenizer = AutoTokenizer.from_pretrained(model_path) 
