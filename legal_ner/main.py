@@ -255,7 +255,7 @@ if __name__ == "__main__":
         data_collator = DefaultDataCollator()
 
         ## Trainer
-        if "span" in model_path:
+        if "span" not in model_path:
             trainer = Trainer(
                 model=model,
                 args=training_args,
