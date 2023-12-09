@@ -51,6 +51,13 @@ if __name__ == "__main__":
         type=int,
     )
     parser.add_argument(
+        "--w",
+        help="Number of workers",
+        default=4,
+        required=False,
+        type=int,
+    )
+    parser.add_argument(
         "--num_epochs",
         help="Number of training epochs",
         default=5,
@@ -90,6 +97,7 @@ if __name__ == "__main__":
     lr = args.lr                        # e.g., 1e-4 for luke-based, 1e-5 for bert-based
     weight_decay = args.weight_decay    # e.g., 0.01
     warmup_ratio = args.warmup_ratio    # e.g., 0.06
+    w = args.w
 
     ## Define the labels
     original_label_list = [
@@ -249,7 +257,7 @@ if __name__ == "__main__":
             fp16=False,
             fp16_full_eval=False,
             metric_for_best_model="f1-strict",
-            dataloader_num_workers=4,
+            dataloader_num_workers=w,
             dataloader_pin_memory=True,
             report_to="wandb",
             logging_steps=50,  # how often to log to W&B
