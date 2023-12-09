@@ -173,7 +173,7 @@ if __name__ == "__main__":
 
         ## Define the train and test datasets
         use_roberta = False
-        if "luke" in model_path or "roberta" in model_path or "xlm" in model_path or "span" in model_path or "distilbert" in model_path:
+        if "luke" in model_path or "roberta" in model_path or "berta" in model_path or "xlm" in model_path or "span" in model_path or "distilbert" in model_path:
             use_roberta = True
 
         train_ds = LegalNERTokenDataset(
