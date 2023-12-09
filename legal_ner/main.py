@@ -153,15 +153,19 @@ if __name__ == "__main__":
         }
 
     ## Define the models
-    model_paths = [
+    """model_paths = [
+
         'guishe/span-marker-generic-ner-v1-fewnerd-fine-super',
         'saibo/legal-roberta-base',
         'joelniklaus/legal-xlm-longformer-base',
         'phjhk/hklegal-xlm-r-base-t',
         'nickprock/distilbert-finetuned-ner-ontonotes',
         'phjhk/hklegal-xlm-r-base'    
+    ]"""
+    model_paths = [
+        "studio-ousia/luke-base",
+        "studio-ousia/luke-large"    
     ]
-
     for model_path in model_paths:
 
         print("MODEL: ", model_path)
