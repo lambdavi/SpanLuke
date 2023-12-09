@@ -233,7 +233,6 @@ if __name__ == "__main__":
         ## Training Arguments
         training_args = TrainingArguments(
             output_dir=new_output_folder,
-            lr_scheduler_type="polynomial",
             num_train_epochs=num_epochs,
             learning_rate=lr,
             per_device_train_batch_size=batch_size,
