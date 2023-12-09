@@ -163,8 +163,8 @@ if __name__ == "__main__":
         'phjhk/hklegal-xlm-r-base'    
     ]"""
     model_paths = [
-        "studio-ousia/luke-large",
-        #"studio-ousia/luke-base",
+        #"studio-ousia/luke-large",
+        "studio-ousia/luke-base",
     ]
     for model_path in model_paths:
 
