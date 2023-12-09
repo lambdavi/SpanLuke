@@ -163,6 +163,7 @@ if __name__ == "__main__":
         'phjhk/hklegal-xlm-r-base'    
     ]"""
     model_paths = [
+        "alexeyak/deberta-v3-base-ner-B",
         "geckos/deberta-base-fine-tuned-ner",
         #"studio-ousia/luke-large",
         "studio-ousia/luke-base",
