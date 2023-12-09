@@ -265,6 +265,7 @@ if __name__ == "__main__":
                 train_dataset=train_ds,
                 eval_dataset=val_ds,
                 data_collator=data_collator,
+                compute_metrics=compute_metrics
             )
         else:
             trainer = SpanTrainer(
