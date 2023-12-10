@@ -171,10 +171,8 @@ if __name__ == "__main__":
         'phjhk/hklegal-xlm-r-base'    
     ]"""
     model_paths = [
-        'dslim/bert-base-NER',
         'microsoft/deberta-v3-base', # still to try
         'microsoft/deberta-v3-large',
-        "phjhk/hklegal-xlm-r-base",
         "studio-ousia/luke-large-finetuned-conll-2003",
         "geckos/deberta-base-fine-tuned-ner",
         #"studio-ousia/luke-large",
