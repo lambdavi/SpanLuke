@@ -171,7 +171,7 @@ if __name__ == "__main__":
         'phjhk/hklegal-xlm-r-base'    
     ]"""
     model_paths = [
-        "studio-ousia/luke-large-finetuned-conll-2003"
+        "studio-ousia/luke-large-finetuned-conll-2003",
         "geckos/deberta-base-fine-tuned-ner",
         #"studio-ousia/luke-large",
         "studio-ousia/luke-base",
