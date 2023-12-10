@@ -171,7 +171,7 @@ if __name__ == "__main__":
         'phjhk/hklegal-xlm-r-base'    
     ]"""
     model_paths = [
-        'flair/ner-english',
+        'nlpaueb/legal-bert-small-uncased',
         'microsoft/deberta-v3-base',
         'saibo/legal-roberta-base',
         'alexeyak/deberta-v3-base-ner-B',
