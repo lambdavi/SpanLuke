@@ -287,7 +287,7 @@ if __name__ == "__main__":
                 eval_dataset=val_ds,
                 data_collator=data_collator,
                 compute_metrics=compute_metrics,
-                callbacks=[EarlyStoppingCallback(5)]
+                callbacks=[EarlyStoppingCallback(2)]
             )
         else:
             trainer = SpanTrainer(
