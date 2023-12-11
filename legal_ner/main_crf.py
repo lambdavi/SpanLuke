@@ -3,7 +3,7 @@ import json
 import numpy as np
 from argparse import ArgumentParser
 from nervaluate import Evaluator
-from span_marker import SpanMarkerModel, Trainer as SpanTrainer
+from torchcrf import CRF  # Import CRF layer
 from transformers import EarlyStoppingCallback
 from transformers import AutoModelForTokenClassification
 from transformers import Trainer, DefaultDataCollator, TrainingArguments
@@ -13,6 +13,19 @@ from utils.dataset import LegalNERTokenDataset
 import spacy
 nlp = spacy.load("en_core_web_sm")
 
+## Define the model with CRF layer
+class CustomModelWithCRF(AutoModelForTokenClassification):
+    def __init__(self, config):
+        super().__init__(config)
+        self.crf = CRF(config.num_labels, batch_first=True)
+
+    def forward(self, input_ids=None, attention_mask=None, **kwargs):
+        outputs = super().forward(input_ids, attention_mask, **kwargs)
+        logits = outputs.logits
+        # Use CRF layer here
+        tags = self.crf.decode(logits, attention_mask)
+        outputs['tags'] = tags
+        return outputs
 
 ############################################################
 #                                                          #
@@ -213,34 +226,12 @@ if __name__ == "__main__":
             use_roberta=use_roberta
         )
 
-        ## Define the model
-        if "span" in model_path:
-            # Download from the 🤗 Hub
-
-            encoder_id = "roberta-base"
-            model = SpanMarkerModel.from_pretrained(
-                # Required arguments
-                encoder_id,
-                labels=['O']+original_label_list,
-                # Optional arguments
-                model_max_length=256,
-                entity_max_length=8,
-                ignore_mismatched_sizes=True
-                # To improve the generated model card
-            )
-            """model = SpanMarkerModel.from_pretrained(
-                model_path,
-                num_labels=num_labels,
-                labels=original_label_list,
-                ignore_mismatched_sizes=True
-            )"""
-        else:
-            # Run inference
-            model = AutoModelForTokenClassification.from_pretrained(
-                model_path, 
-                num_labels=num_labels, 
-                ignore_mismatched_sizes=True
-            )
+        
+        model = CustomModelWithCRF.from_pretrained(
+            model_path, 
+            num_labels=num_labels, 
+            ignore_mismatched_sizes=True
+        )
 
         ## Map the labels
         idx_to_labels = {v[1]: v[0] for v in train_ds.labels_to_idx.items()}
@@ -280,23 +271,16 @@ if __name__ == "__main__":
         data_collator = DefaultDataCollator()
 
         ## Trainer
-        if "span" not in model_path:
-            trainer = Trainer(
-                model=model,
-                args=training_args,
-                train_dataset=train_ds,
-                eval_dataset=val_ds,
-                data_collator=data_collator,
-                compute_metrics=compute_metrics,
-                callbacks=[EarlyStoppingCallback(2)]
-            )
-        else:
-            trainer = SpanTrainer(
+
+        trainer = Trainer(
             model=model,
             args=training_args,
             train_dataset=train_ds,
             eval_dataset=val_ds,
-            )
+            data_collator=data_collator,
+            compute_metrics=compute_metrics,
+            callbacks=[EarlyStoppingCallback(2)]
+        )
 
         ## Train the model and save it
         trainer.train()
@@ -307,7 +291,7 @@ if __name__ == "__main__":
 
 """python 3.10
 Example of usage:
-python main.py \
+python main_crf.py \
     --ds_train_path data/NER_TRAIN/NER_TRAIN_ALL.json \
     --ds_valid_path data/NER_DEV/NER_DEV_ALL.json \
     --output_folder results/ \
