@@ -180,6 +180,7 @@ if __name__ == "__main__":
         'phjhk/hklegal-xlm-r-base'    
     ]"""
     model_paths = [
+        "studio-ousia/luke-base", # to delete
         "studio-ousia/luke-large",
         'law-ai/InLegalBERT',
         'microsoft/deberta-v3-base',
