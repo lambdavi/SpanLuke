@@ -284,6 +284,7 @@ if __name__ == "__main__":
         )
 
         ## Train the model and save it
+        print("** CRF ON - STARTING **")
         trainer.train()
         trainer.save_model(output_folder)
         trainer.evaluate()
