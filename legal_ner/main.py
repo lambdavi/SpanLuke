@@ -44,6 +44,13 @@ if __name__ == "__main__":
         type=str,
     )
     parser.add_argument(
+        "--model_path",
+        help="The model path from huggingface/local folder",
+        default=None,
+        required=False,
+        type=str,
+    )
+    parser.add_argument(
         "--scheduler",
         help="Scheduler type among: linear, polynomial, reduce_lr_on_plateau, cosine, constant",
         choices=["linear", "polynomial", "reduce_lr_on_plateau", "cosine", "constant"],
@@ -169,15 +176,18 @@ if __name__ == "__main__":
             / (results["exact"]["precision"] + results["exact"]["recall"] + 1e-9),
         }
 
-    model_paths = [
-        "nlpaueb/bert-base-uncased-echr", # to delete
-        "studio-ousia/luke-large",
-        'law-ai/InLegalBERT',
-        'microsoft/deberta-v3-base',
-        'saibo/legal-roberta-base',
-        "geckos/deberta-base-fine-tuned-ner", # not bad, to finetune better
-        "studio-ousia/luke-base",
-    ]
+    if args.model_path:
+        model_paths=[args.model_path]
+    else:
+        model_paths = [
+            "nlpaueb/bert-base-uncased-echr", # to delete
+            "studio-ousia/luke-large",
+            'law-ai/InLegalBERT',
+            'microsoft/deberta-v3-base',
+            'saibo/legal-roberta-base',
+            "geckos/deberta-base-fine-tuned-ner", # not bad, to finetune better
+            "studio-ousia/luke-base",
+        ]
     for model_path in model_paths:
 
         print("MODEL: ", model_path)
@@ -263,7 +273,7 @@ if __name__ == "__main__":
             dataloader_num_workers=workers,
             dataloader_pin_memory=True,
             report_to="wandb",
-            logging_steps=50 if "bert-" not in model_path else 1000,  # how often to log to W&B
+            logging_steps=50 if "bert-" not in model_path else 3000,  # how often to log to W&B
         )
 
         ## Collator
