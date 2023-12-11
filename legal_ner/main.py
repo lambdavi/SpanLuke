@@ -44,6 +44,14 @@ if __name__ == "__main__":
         type=str,
     )
     parser.add_argument(
+        "--scheduler",
+        help="Scheduler type among: linear, polynomial, reduce_lr_on_plateau, cosine, constant",
+        choices=["linear", "polynomial", "reduce_lr_on_plateau", "cosine", "constant"],
+        default="linear",
+        required=False,
+        type=str,
+    )
+    parser.add_argument(
         "--batch",
         help="Batch size",
         default=1,
@@ -51,7 +59,7 @@ if __name__ == "__main__":
         type=int,
     )
     parser.add_argument(
-        "--w",
+        "--workers",
         help="Number of workers",
         default=4,
         required=False,
@@ -97,7 +105,8 @@ if __name__ == "__main__":
     lr = args.lr                        # e.g., 1e-4 for luke-based, 1e-5 for bert-based
     weight_decay = args.weight_decay    # e.g., 0.01
     warmup_ratio = args.warmup_ratio    # e.g., 0.06
-    w = args.w
+    workers = args.workers              # e.g., 4
+    scheduler_type = args.scheduler     # e.g., linear
 
     ## Define the labels
     original_label_list = [
@@ -175,9 +184,7 @@ if __name__ == "__main__":
         'law-ai/InLegalBERT',
         'microsoft/deberta-v3-base',
         'saibo/legal-roberta-base',
-        'alexeyak/deberta-v3-base-ner-B',
-        'microsoft/deberta-v3-large',
-        "geckos/deberta-base-fine-tuned-ner",
+        "geckos/deberta-base-fine-tuned-ner", # not bad, to finetune better
         "studio-ousia/luke-base",
     ]
     for model_path in model_paths:
@@ -248,6 +255,7 @@ if __name__ == "__main__":
             output_dir=new_output_folder,
             num_train_epochs=num_epochs,
             learning_rate=lr,
+            lr_scheduler_type=scheduler_type,
             per_device_train_batch_size=batch_size,
             per_device_eval_batch_size=batch_size,
             gradient_accumulation_steps=1,
@@ -261,7 +269,7 @@ if __name__ == "__main__":
             fp16=False,
             fp16_full_eval=False,
             metric_for_best_model="f1-strict",
-            dataloader_num_workers=w,
+            dataloader_num_workers=workers,
             dataloader_pin_memory=True,
             report_to="wandb",
             logging_steps=50,  # how often to log to W&B

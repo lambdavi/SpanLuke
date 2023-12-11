@@ -36,11 +36,6 @@ class LegalNERTokenDataset(Dataset):
     def __len__(self):
         return len(self.data)
 
-    def remove_columns(self, column):
-        try:
-            self.column_names.remove(column)
-        except:
-            pass
     def __getitem__(self, idx):
         item = self.data[idx]
         text = item["data"]["text"]
@@ -92,7 +87,5 @@ class LegalNERTokenDataset(Dataset):
                 inputs[column_name] = aligned_labels
             else:
                 inputs[column_name] = labels[: inputs["attention_mask"].shape[0]]
-    
-        #print(inputs["tokens"], inputs[column_name])
-        #print(inputs)
+
         return inputs
