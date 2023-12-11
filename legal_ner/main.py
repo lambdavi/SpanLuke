@@ -169,18 +169,8 @@ if __name__ == "__main__":
             / (results["exact"]["precision"] + results["exact"]["recall"] + 1e-9),
         }
 
-    ## Define the models
-    """model_paths = [
-
-        'guishe/span-marker-generic-ner-v1-fewnerd-fine-super',
-        'saibo/legal-roberta-base',
-        'joelniklaus/legal-xlm-longformer-base',
-        'phjhk/hklegal-xlm-r-base-t',
-        'nickprock/distilbert-finetuned-ner-ontonotes',
-        'phjhk/hklegal-xlm-r-base'    
-    ]"""
     model_paths = [
-        "studio-ousia/luke-base", # to delete
+        "nlpaueb/bert-base-uncased-echr", # to delete
         "studio-ousia/luke-large",
         'law-ai/InLegalBERT',
         'microsoft/deberta-v3-base',
