@@ -4,7 +4,7 @@ import numpy as np
 from argparse import ArgumentParser
 from nervaluate import Evaluator
 from span_marker import SpanMarkerModel, Trainer as SpanTrainer
-
+from transformers import EarlyStoppingCallback
 from transformers import AutoModelForTokenClassification
 from transformers import Trainer, DefaultDataCollator, TrainingArguments
 
@@ -278,7 +278,8 @@ if __name__ == "__main__":
                 train_dataset=train_ds,
                 eval_dataset=val_ds,
                 data_collator=data_collator,
-                compute_metrics=compute_metrics
+                compute_metrics=compute_metrics,
+                callbacks=[EarlyStoppingCallback(5)]
             )
         else:
             trainer = SpanTrainer(
