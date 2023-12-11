@@ -256,7 +256,7 @@ if __name__ == "__main__":
             weight_decay=weight_decay,
             evaluation_strategy="epoch",
             save_strategy="epoch",
-            load_best_model_at_end=False,
+            load_best_model_at_end=True,
             save_total_limit=2,
             fp16=False,
             fp16_full_eval=False,
