@@ -14,11 +14,11 @@ nlp = spacy.load("en_core_web_sm")
 
 ## Define the model with CRF layer
 class CustomModelWithCRF(nn.Module):
-    def __init__(self, model_path, num_labels, config):
-        super().__init__(config)
+    def __init__(self, model_path, num_labels, **kwargs):
+        super().__init__(**kwargs)
         self.num_labels = num_labels
         self.cross_entropy = nn.CrossEntropyLoss()
-        self.bert = AutoModel(model_path)
+        self.bert = AutoModelForTokenClassification.from_pretrained(model_path, **kwargs)
         self.dropout = nn.Dropout(0.2)
         self.hidden2label = nn.Linear(self.bert.config.hidden_size, num_labels)
         self.use_crf=True
@@ -346,7 +346,7 @@ if __name__ == "__main__":
         )
 
         
-        model = CustomModelWithCRF.from_pretrained(
+        model = CustomModelWithCRF(
             model_path, 
             num_labels=num_labels, 
             ignore_mismatched_sizes=True
