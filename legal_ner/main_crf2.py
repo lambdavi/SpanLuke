@@ -80,6 +80,7 @@ class CustomModelWithCRF(AutoModelForTokenClassification):
         attention_mask = attention_mask.bool()
 
         if self.use_crf:
+            print("Performing crf..")
             features = torch.swapaxes(features, 0, 1)
             attention_mask = torch.swapaxes(attention_mask, 0, 1)
             labels = torch.swapaxes(labels, 0, 1)
