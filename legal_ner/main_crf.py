@@ -17,20 +17,19 @@ nlp = spacy.load("en_core_web_sm")
 class CustomTrainer(Trainer):
     def __init__(self, num_labels, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.crf = CRF(num_labels, batch_first=True)
+        self.crf = CRF(num_labels, batch_first=True).to(self.device)
     def compute_loss(self, model, inputs, return_outputs=False):
         labels = inputs.pop("labels")
         # forward pass
         outputs = model(**inputs)
         logits = outputs.get("logits")
         # compute custom loss (suppose one has 3 labels with different weights)
-        emissions = outputs.logits  # Extract logits from the BERT model
         print("Using crf!")
         # Calculate the CRF loss if labels are provided
-        crf_loss = -self.crf.forward(emissions, labels, mask=inputs["attention_mask"].bool())
+        crf_loss = -self.crf.forward(logits, labels, mask=inputs["attention_mask"].bool())
         if return_outputs:
             # If no labels provided, decode using Viterbi algorithm
-            decoded_tags = self.crf.decode(emissions, inputs["attention_mask"].bool())
+            decoded_tags = self.crf.decode(logits, inputs["attention_mask"].bool())
             return (crf_loss, decoded_tags)
         
         return crf_loss
