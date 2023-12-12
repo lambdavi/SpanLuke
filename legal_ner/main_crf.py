@@ -30,8 +30,10 @@ class CustomTrainer(Trainer):
             labels = inputs.pop("labels")
             crf_loss = -self.crf(logits, labels, mask=inputs["attention_mask"].bool(), reduction="token_mean") # if not mean, it is sum by default
         else:
+            print("Decoding")
             outputs = self.crf.decode(logits, inputs["attention_mask"].bool())
 
+        print(return_outputs)
         if return_outputs:
             # If no labels provided, decode using Viterbi algorithm
             return (crf_loss, outputs) # maybe decoded_tags -> logits
@@ -67,6 +69,13 @@ if __name__ == "__main__":
         default="results/",
         required=False,
         type=str,
+    )
+    parser.add_argument(
+        "--use_crf",
+        help="Use Conditional Random Field",
+        action="store_false",
+        default=False,
+        required=False,
     )
     parser.add_argument(
         "--model_path",
@@ -139,7 +148,8 @@ if __name__ == "__main__":
     warmup_ratio = args.warmup_ratio    # e.g., 0.06
     workers = args.workers              # e.g., 4
     scheduler_type = args.scheduler     # e.g., linear
-
+    single_model_path = args.model_path        # e.g. bert-base-uncased
+    use_crf = args.use_crf
     ## Define the labels
     original_label_list = [
         "COURT",
@@ -163,7 +173,6 @@ if __name__ == "__main__":
 
     ## Compute metrics
     def compute_metrics(pred):
-
         # Preds
         predictions = np.argmax(pred.predictions, axis=-1)
         predictions = np.concatenate(predictions, axis=0)
@@ -204,7 +213,7 @@ if __name__ == "__main__":
         }
 
     if args.model_path:
-        model_paths=[args.model_path]
+        model_paths=[single_model_path]
     else:
         model_paths = [
             "nlpaueb/bert-base-uncased-echr", # to delete
@@ -215,8 +224,8 @@ if __name__ == "__main__":
             "geckos/deberta-base-fine-tuned-ner", # not bad, to finetune better
             "studio-ousia/luke-base",
         ]
-    for model_path in model_paths:
 
+    for model_path in model_paths:
         print("MODEL: ", model_path)
 
         ## Define the train and test datasets
@@ -245,8 +254,7 @@ if __name__ == "__main__":
                 num_labels=num_labels, 
                 ignore_mismatched_sizes=True
             )
-
-
+        
         ## Map the labels
         idx_to_labels = {v[1]: v[0] for v in train_ds.labels_to_idx.items()}
 
@@ -265,6 +273,7 @@ if __name__ == "__main__":
             per_device_train_batch_size=batch_size,
             per_device_eval_batch_size=batch_size,
             gradient_accumulation_steps=1,
+            gradient_checkpointing=(not use_crf),
             warmup_ratio=warmup_ratio,
             weight_decay=weight_decay,
             evaluation_strategy="epoch",
@@ -285,27 +294,38 @@ if __name__ == "__main__":
         data_collator = DefaultDataCollator()
 
         ## Trainer
-
-        trainer = CustomTrainer(
-            model=model,
-            num_labels=num_labels,
-            args=training_args,
-            train_dataset=train_ds,
-            eval_dataset=val_ds,
-            data_collator=data_collator,
-            compute_metrics=compute_metrics,
-            callbacks=[EarlyStoppingCallback(2)]
-        )
-
+        if use_crf:
+            trainer = CustomTrainer(
+                model=model,
+                num_labels=num_labels,
+                args=training_args,
+                train_dataset=train_ds,
+                eval_dataset=val_ds,
+                data_collator=data_collator,
+                compute_metrics=compute_metrics,
+                callbacks=[EarlyStoppingCallback(2)]
+            )
+        else:
+            trainer = Trainer(
+                model=model,
+                args=training_args,
+                train_dataset=train_ds,
+                eval_dataset=val_ds,
+                data_collator=data_collator,
+                compute_metrics=compute_metrics,
+                callbacks=[EarlyStoppingCallback(2)]
+            )
         ## Train the model and save it
-        print("** CRF ON - STARTING **")
+        if use_crf:
+            print("**\tCRF ON\t**")
+        else:
+            print("**\tSTANDARD TRAINING\t**")
         trainer.train()
         trainer.save_model(output_folder)
         trainer.evaluate()
 
-
-
-"""python 3.10
+"""
+python 3.10
 Example of usage:
 python main_crf.py \
     --ds_train_path data/NER_TRAIN/NER_TRAIN_ALL.json \
@@ -315,5 +335,6 @@ python main_crf.py \
     --num_epochs 5 \
     --lr 1e-4 \
     --weight_decay 0.01 \
-    --warmup_ratio 0.06
+    --warmup_ratio 0.06 \
+    --use_crf
 """
