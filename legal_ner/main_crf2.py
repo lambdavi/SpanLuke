@@ -18,7 +18,11 @@ class CustomModelWithCRF(nn.Module):
         super().__init__(**kwargs)
         self.num_labels = num_labels
         self.cross_entropy = nn.CrossEntropyLoss()
-        self.bert = AutoModelForTokenClassification.from_pretrained(model_path, **kwargs)
+        self.bert = AutoModelForTokenClassification.from_pretrained(
+            model_path, 
+            num_labels=num_labels,
+            ignore_mismatched_sizes=True 
+            )
         self.dropout = nn.Dropout(0.2)
         self.hidden2label = nn.Linear(self.bert.config.hidden_size, num_labels)
         self.use_crf=True
@@ -348,8 +352,7 @@ if __name__ == "__main__":
         
         model = CustomModelWithCRF(
             model_path, 
-            num_labels=num_labels, 
-            ignore_mismatched_sizes=True
+            num_labels=num_labels
         )
 
         ## Map the labels
