@@ -70,7 +70,7 @@ if __name__ == "__main__":
     parser.add_argument(
         "--use_crf",
         help="Use Conditional Random Field",
-        action="store_false",
+        action="store_true",
         default=False,
         required=False,
     )
@@ -290,6 +290,65 @@ if __name__ == "__main__":
         ## Collator
         data_collator = DefaultDataCollator()
 
+import optuna
+
+def objective(trial):
+    # Define the search space for hyperparameters
+    lr = trial.suggest_loguniform('lr', 1e-6, 1e-3)
+    weight_decay = trial.suggest_loguniform('weight_decay', 1e-6, 1e-3)
+    warmup_ratio = trial.suggest_uniform('warmup_ratio', 0.01, 0.1)
+
+    # Set the hyperparameters in the training arguments
+    training_args.lr = lr
+    training_args.weight_decay = weight_decay
+    training_args.warmup_ratio = warmup_ratio
+
+    # Create Trainer
+    if use_crf:
+        trainer = CustomTrainer(
+            model=model,
+            num_labels=num_labels,
+            args=training_args,
+            train_dataset=train_ds,
+            eval_dataset=val_ds,
+            data_collator=data_collator,
+            compute_metrics=compute_metrics,
+            callbacks=[EarlyStoppingCallback(2)]
+        )
+    else:
+        trainer = Trainer(
+            model=model,
+            args=training_args,
+            train_dataset=train_ds,
+            eval_dataset=val_ds,
+            data_collator=data_collator,
+            compute_metrics=compute_metrics,
+            callbacks=[EarlyStoppingCallback(2)]
+        )
+
+    # Train the model
+    trainer.train()
+    
+    # Evaluate the model
+    result = trainer.evaluate()
+
+    # Define the metric to optimize (e.g., f1-strict)
+    metric_to_optimize = 'f1-strict'
+    return result[metric_to_optimize]
+
+# Optuna study
+study = optuna.create_study(direction='maximize')
+study.optimize(objective, n_trials=10)  # You can adjust the number of trials
+
+# Print the best hyperparameters
+print("Best trial:")
+trial = study.best_trial
+print(f"Value: {trial.value}")
+print("Params: ")
+for key, value in trial.params.items():
+    print(f"    {key}: {value}")
+
+"""
         ## Trainer
         if use_crf:
             trainer = CustomTrainer(
@@ -319,7 +378,7 @@ if __name__ == "__main__":
             print("**\tSTANDARD TRAINING\t**")
         trainer.train()
         trainer.save_model(output_folder)
-        trainer.evaluate()
+        trainer.evaluate()"""
 
 """
 python 3.10
