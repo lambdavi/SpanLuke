@@ -223,7 +223,7 @@ if __name__ == "__main__":
         )
 
         config = AutoConfig.from_pretrained(model_path, num_labels=num_labels)
-        model = CustomModelWithCRF(config)
+        model = CustomModelWithCRF(model_path, config)
 
 
         ## Map the labels
