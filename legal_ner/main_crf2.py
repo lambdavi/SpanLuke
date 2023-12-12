@@ -21,6 +21,7 @@ class CustomModelWithCRF(AutoModelForTokenClassification):
         self.bert = AutoModel(model_path)
         self.dropout = nn.Dropout(0.2)
         self.hidden2label = nn.Linear(self.bert.config.hidden_size, num_labels)
+        self.use_crf=True
 
         self.start_transitions = nn.Parameter(torch.empty(num_labels))
         self.end_transitions = nn.Parameter(torch.empty(num_labels))
