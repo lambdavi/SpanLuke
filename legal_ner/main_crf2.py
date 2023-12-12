@@ -13,7 +13,7 @@ import spacy
 nlp = spacy.load("en_core_web_sm")
 
 ## Define the model with CRF layer
-class CustomModelWithCRF(AutoModelForTokenClassification):
+class CustomModelWithCRF(nn.Module):
     def __init__(self, model_path, num_labels, config):
         super().__init__(config)
         self.num_labels = num_labels
