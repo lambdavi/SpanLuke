@@ -27,7 +27,7 @@ class CustomTrainer(Trainer):
         print("Using crf!")
         print(logits, labels, inputs["attention_mask"])
         # Calculate the CRF loss if labels are provided
-        crf_loss = -self.crf.forward(logits, labels, mask=inputs["attention_mask"].bool())
+        crf_loss = -self.crf(logits, labels, mask=inputs["attention_mask"].bool())
         if return_outputs:
             # If no labels provided, decode using Viterbi algorithm
             decoded_tags = self.crf.decode(logits, inputs["attention_mask"].bool())
