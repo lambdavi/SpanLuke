@@ -18,20 +18,9 @@ class CustomModelWithCRF(AutoModelForTokenClassification):
     def __init__(self, config):
         super().__init__(config)
         self.crf = CRF(config.num_labels, batch_first=True)
-
-    @classmethod
-    def from_pretrained(cls, pretrained_model_name_or_path, *model_args, **kwargs):
-        # Load configuration
-        config = AutoConfig.from_pretrained(pretrained_model_name_or_path, *model_args, **kwargs)
-
-        # Instantiate the model
-        model = cls(config)
-
-        # Load the weights
-        model.load_state_dict(torch.load(os.path.join(pretrained_model_name_or_path, 'pytorch_model.bin')))
-
-        return model
-
+        self.model = super().from_pretrained(config.pretrained_model_name_or_path, num_labels=num_labels)
+    def forward(self, tensor):
+        return self.model.forward_features(tensor)
 
 ############################################################
 #                                                          #
@@ -234,8 +223,8 @@ if __name__ == "__main__":
             use_roberta=use_roberta
         )
 
-        
-        model = CustomModelWithCRF.from_pretrained(model_path)
+        config = AutoConfig.from_pretrained(model_path, num_labels=num_labels)
+        model = CustomModelWithCRF(config)
 
 
         ## Map the labels
