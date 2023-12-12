@@ -79,6 +79,7 @@ class CustomModelWithCRF(nn.Module):
         input_ids: torch.Tensor,
         attention_mask: torch.Tensor,
         labels: torch.Tensor,
+        **kwargs,
     ) -> torch.Tensor:
         features, _ = self.get_bert_features(input_ids=input_ids, attention_mask=attention_mask)
         attention_mask = attention_mask.bool()
