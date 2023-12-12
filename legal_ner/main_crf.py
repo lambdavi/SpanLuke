@@ -25,6 +25,7 @@ class CustomModelWithCRF(AutoModelForTokenClassification):
         # Use CRF layer here
         tags = self.crf.decode(logits, attention_mask)
         outputs['tags'] = tags
+        print(tags)
         return outputs
 
 ############################################################
