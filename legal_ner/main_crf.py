@@ -5,7 +5,7 @@ from argparse import ArgumentParser
 from nervaluate import Evaluator
 from torchcrf import CRF  # Import CRF layer
 from transformers import EarlyStoppingCallback
-from transformers import AutoModelForTokenClassification, AutoConfig
+from transformers import AutoModelForTokenClassification, 
 from transformers import Trainer, DefaultDataCollator, TrainingArguments
 import torch
 from utils.dataset import LegalNERTokenDataset
@@ -14,14 +14,14 @@ import spacy
 nlp = spacy.load("en_core_web_sm")
 
 ## Define the model with CRF layer
-class CustomModelWithCRF(AutoModelForTokenClassification):
+class CustomModelWithCRF(torch.nn.Module):
     def __init__(self, model_path, num_labels):
         super().__init__()
         self.model_path = model_path
         self.crf = CRF(num_labels, batch_first=True)
-        self.model = super().from_pretrained(model_path, num_labels=num_labels, ignore_mismatched_sizes=True)
-    def forward(self, tensor):
-        return self.model.forward_features(tensor)
+        self.model = AutoModelForTokenClassification.from_pretrained(model_path, num_labels=num_labels, ignore_mismatched_sizes=True)
+    def forward(self, tensor, **kwargs):
+        return self.model(tensor, **kwargs)
 
 ############################################################
 #                                                          #
