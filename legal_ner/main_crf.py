@@ -25,7 +25,7 @@ class CustomTrainer(Trainer):
         logits = outputs.get("logits")
         # compute custom loss (suppose one has 3 labels with different weights)
         print("Using crf!")
-        print(logits, labels, inputs)
+        print(logits, labels, inputs["attention_mask"])
         # Calculate the CRF loss if labels are provided
         crf_loss = -self.crf.forward(logits, labels, mask=inputs["attention_mask"].bool())
         if return_outputs:
