@@ -18,7 +18,7 @@ class CustomModelWithCRF(nn.Module):
         super().__init__(**kwargs)
         self.num_labels = num_labels
         self.cross_entropy = nn.CrossEntropyLoss()
-        self.bert = AutoModelForTokenClassification.from_pretrained(
+        self.bert = AutoModel.from_pretrained(
             model_path, 
             num_labels=num_labels,
             ignore_mismatched_sizes=True 
