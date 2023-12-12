@@ -25,12 +25,13 @@ class CustomModelWithCRF(torch.nn.Module):
         outputs = self.model(input_ids=input_ids, attention_mask=attention_mask, token_type_ids=token_type_ids, labels=labels)
 
         logits = outputs.logits  # Extract logits from the BERT model
+        print(logits.shape)
         emissions = logits.permute(0, 2, 1)  # CRF layer expects emissions in (batch_size, seq_len, num_labels) format
 
         if labels is not None:
             print("Using crf!")
             # Calculate the CRF loss if labels are provided
-            crf_loss = -self.crf(emissions, labels, mask=attention_mask.bool())
+            crf_loss = -self.crf.forward(emissions, labels, mask=attention_mask.bool())
             return crf_loss
         else:
             # If no labels provided, decode using Viterbi algorithm
