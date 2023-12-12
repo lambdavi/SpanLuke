@@ -20,8 +20,8 @@ class CustomModelWithCRF(torch.nn.Module):
         self.model_path = model_path
         self.crf = CRF(num_labels, batch_first=True)
         self.model = AutoModelForTokenClassification.from_pretrained(model_path, num_labels=num_labels, ignore_mismatched_sizes=True)
-    def forward(self, tensor):
-        return self.model(tensor)
+    def forward(self, inputs):
+        return self.model(**inputs)
 
 ############################################################
 #                                                          #
