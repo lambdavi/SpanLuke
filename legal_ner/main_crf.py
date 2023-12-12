@@ -30,10 +30,8 @@ class CustomTrainer(Trainer):
             labels = inputs.pop("labels")
             crf_loss = -self.crf(logits, labels, mask=inputs["attention_mask"].bool(), reduction="token_mean") # if not mean, it is sum by default
         else:
-            print("Decoding")
             outputs = self.crf.decode(logits, inputs["attention_mask"].bool())
 
-        print(return_outputs)
         if return_outputs:
             # If no labels provided, decode using Viterbi algorithm
             return (crf_loss, outputs) # maybe decoded_tags -> logits
