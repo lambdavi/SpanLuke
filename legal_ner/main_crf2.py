@@ -18,7 +18,7 @@ class CustomModelWithCRF(AutoModelForTokenClassification):
         super().__init__(config)
         self.num_labels = num_labels
         self.cross_entropy = nn.CrossEntropyLoss()
-        self.model = AutoModel(model_path)
+        self.bert = AutoModel(model_path)
         self.dropout = nn.Dropout(0.2)
         self.hidden2label = nn.Linear(self.bert.config.hidden_size, num_labels)
 
