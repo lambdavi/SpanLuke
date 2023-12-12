@@ -17,7 +17,7 @@ nlp = spacy.load("en_core_web_sm")
 class CustomTrainer(Trainer):
     def __init__(self, num_labels, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.crf = CRF(num_labels, batch_first=True).to("gpu")
+        self.crf = CRF(num_labels, batch_first=True).to("cuda")
     def compute_loss(self, model, inputs, return_outputs=False):
         labels = inputs.pop("labels")
         # forward pass
