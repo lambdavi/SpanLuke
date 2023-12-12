@@ -7,7 +7,7 @@ from torchcrf import CRF  # Import CRF layer
 from transformers import EarlyStoppingCallback
 from transformers import AutoModelForTokenClassification, AutoConfig
 from transformers import Trainer, DefaultDataCollator, TrainingArguments
-
+import torch
 from utils.dataset import LegalNERTokenDataset
 
 import spacy
@@ -28,7 +28,7 @@ class CustomModelWithCRF(AutoModelForTokenClassification):
         model = cls(config)
 
         # Load the weights
-        model.load_state_dict(torch.load(pretrained_model_name_or_path + '/pytorch_model.bin'))
+        model.load_state_dict(torch.load(os.path.join(pretrained_model_name_or_path, 'pytorch_model.bin')))
 
         return model
 
