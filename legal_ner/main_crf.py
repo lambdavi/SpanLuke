@@ -21,16 +21,16 @@ class CustomModelWithCRF(torch.nn.Module):
         self.crf = CRF(num_labels, batch_first=True)
         self.model = AutoModelForTokenClassification.from_pretrained(model_path, num_labels=num_labels, ignore_mismatched_sizes=True)
 
-    def forward(self, input_ids, attention_mask, token_type_ids, ner_tags=None):
+    def forward(self, input_ids, attention_mask, token_type_ids, labels=None):
         outputs = self.model(input_ids=input_ids, attention_mask=attention_mask, token_type_ids=token_type_ids, labels=ner_tags)
 
         logits = outputs.logits  # Extract logits from the BERT model
         emissions = logits.permute(0, 2, 1)  # CRF layer expects emissions in (batch_size, seq_len, num_labels) format
 
-        if ner_tags is not None:
+        if labels is not None:
             print("Using crf!")
             # Calculate the CRF loss if labels are provided
-            crf_loss = -self.crf(emissions, ner_tags, mask=attention_mask.bool())
+            crf_loss = -self.crf(emissions, labels, mask=attention_mask.bool())
             return crf_loss
         else:
             # If no labels provided, decode using Viterbi algorithm
