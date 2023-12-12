@@ -223,7 +223,7 @@ if __name__ == "__main__":
             use_roberta=use_roberta
         )
 
-        model = CustomModelWithCRF(model_path)
+        model = CustomModelWithCRF(model_path, num_labels)
 
 
         ## Map the labels
