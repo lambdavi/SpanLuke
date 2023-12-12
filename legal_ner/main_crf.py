@@ -20,14 +20,18 @@ class CustomTrainer(Trainer):
         self.crf = CRF(num_labels, batch_first=True).to(self.model.device)
 
     def compute_loss(self, model, inputs, return_outputs=False):
-        if "labels" in inputs:
-            labels = inputs.pop("labels")
+        
         # forward pass
         outputs = model(**inputs)
         logits = outputs.get("logits")
         # compute custom loss (suppose one has 3 labels with different weights)
         # Calculate the CRF loss if labels are provided
-        crf_loss = -self.crf(logits, labels, mask=inputs["attention_mask"].bool(), reduction="token_mean") # if not mean, it is sum by default
+        if "labels" in inputs:
+            labels = inputs.pop("labels")
+            crf_loss = -self.crf(logits, labels, mask=inputs["attention_mask"].bool(), reduction="token_mean") # if not mean, it is sum by default
+        else:
+            outputs = self.crf.decode(logits, inputs["attention_mask"].bool())
+            
         if return_outputs:
             # If no labels provided, decode using Viterbi algorithm
             return (crf_loss, outputs) # maybe decoded_tags -> logits
