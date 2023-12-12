@@ -64,7 +64,7 @@ class CustomModelWithCRF(AutoModelForTokenClassification):
 
     def get_bert_features(
         self, input_ids: torch.Tensor, attention_mask: torch.Tensor
-    ) -> Tuple[torch.Tensor, torch.Tensor]:
+    ):
         hidden = self.bert(input_ids, attention_mask=attention_mask)["last_hidden_state"]
         hidden = self.dropout(hidden)
         return self.hidden2label(hidden), hidden
@@ -93,7 +93,7 @@ class CustomModelWithCRF(AutoModelForTokenClassification):
                 torch.where(attention_mask.bool(), labels, -100).flatten(end_dim=1),
             )
 
-    def _viterbi_decode(self, features: torch.Tensor, mask: torch.Tensor) -> List[List[int]]:
+    def _viterbi_decode(self, features: torch.Tensor, mask: torch.Tensor):
         seq_len, bs, _ = features.shape
 
         log_score_over_all_seq = self.start_transitions + features[0]
@@ -132,7 +132,7 @@ class CustomModelWithCRF(AutoModelForTokenClassification):
 
         return best_paths
 
-    def decode(self, input_ids: torch.Tensor, attention_mask: torch.Tensor) -> List[List[int]]:
+    def decode(self, input_ids: torch.Tensor, attention_mask: torch.Tensor):
         features, _ = self.get_bert_features(input_ids=input_ids, attention_mask=attention_mask)
         attention_mask = attention_mask.bool()
 
