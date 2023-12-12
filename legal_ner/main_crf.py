@@ -25,36 +25,13 @@ class CustomTrainer(Trainer):
         logits = outputs.get("logits")
         # compute custom loss (suppose one has 3 labels with different weights)
         # Calculate the CRF loss if labels are provided
-        crf_loss = -self.crf(logits, labels, mask=inputs["attention_mask"].bool())
+        crf_loss = -self.crf(logits, labels, mask=inputs["attention_mask"].bool(), reduction="mean") # if not mean, it is sum by default
         if return_outputs:
             # If no labels provided, decode using Viterbi algorithm
-            decoded_tags = self.crf.decode(logits, inputs["attention_mask"].bool())
-            return (crf_loss, decoded_tags)
+            return (crf_loss, logits) # maybe decoded_tags -> logits
         
         return crf_loss
-    
-"""class CustomModelWithCRF(torch.nn.Module):
-    def __init__(self, model_path, num_labels):
-        super().__init__()
-        self.model_path = model_path
-        self.crf = CRF(num_labels, batch_first=True)
-        self.model = AutoModelForTokenClassification.from_pretrained(model_path, num_labels=num_labels, ignore_mismatched_sizes=True)
 
-    def forward(self, input_ids, attention_mask, token_type_ids, labels=None):
-        outputs = self.model(input_ids=input_ids, attention_mask=attention_mask, token_type_ids=token_type_ids, labels=labels)
-
-        emissions = outputs.logits  # Extract logits from the BERT model
-
-
-        if labels is not None:
-            print("Using crf!")
-            # Calculate the CRF loss if labels are provided
-            crf_loss = -self.crf.forward(emissions, labels, mask=attention_mask.bool())
-            return crf_loss
-        else:
-            # If no labels provided, decode using Viterbi algorithm
-            decoded_tags = self.crf.decode(emissions, attention_mask.bool())
-            return decoded_tags"""
 
 ############################################################
 #                                                          #
