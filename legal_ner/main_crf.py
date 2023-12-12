@@ -15,10 +15,10 @@ nlp = spacy.load("en_core_web_sm")
 
 ## Define the model with CRF layer
 class CustomModelWithCRF(AutoModelForTokenClassification):
-    def __init__(self, model_path, config):
+    def __init__(self, model_path, num_labels):
         self.model_path = model_path
-        self.crf = CRF(config.num_labels, batch_first=True)
-        self.model = super().from_pretrained(model_path, num_labels=num_labels, config=config)
+        self.crf = CRF(num_labels, batch_first=True)
+        self.model = super().from_pretrained(model_path, num_labels=num_labels, ignore_mismatched_sizes=True)
     def forward(self, tensor):
         return self.model.forward_features(tensor)
 
@@ -223,8 +223,7 @@ if __name__ == "__main__":
             use_roberta=use_roberta
         )
 
-        config = AutoConfig.from_pretrained(model_path, num_labels=num_labels)
-        model = CustomModelWithCRF(model_path, config)
+        model = CustomModelWithCRF(model_path)
 
 
         ## Map the labels
