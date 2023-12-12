@@ -25,7 +25,7 @@ class CustomTrainer(Trainer):
         logits = outputs.get("logits")
         # compute custom loss (suppose one has 3 labels with different weights)
         # Calculate the CRF loss if labels are provided
-        crf_loss = -self.crf(logits, labels, mask=inputs["attention_mask"].bool(), reduction="mean") # if not mean, it is sum by default
+        crf_loss = -self.crf(logits, labels, mask=inputs["attention_mask"].bool(), reduction="token_mean") # if not mean, it is sum by default
         if return_outputs:
             # If no labels provided, decode using Viterbi algorithm
             return (crf_loss, logits) # maybe decoded_tags -> logits
