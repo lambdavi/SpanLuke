@@ -5,7 +5,7 @@ from argparse import ArgumentParser
 from nervaluate import Evaluator
 from torchcrf import CRF  # Import CRF layer
 from transformers import EarlyStoppingCallback
-from transformers import AutoModelForTokenClassification, 
+from transformers import AutoModelForTokenClassification
 from transformers import Trainer, DefaultDataCollator, TrainingArguments
 import torch
 from utils.dataset import LegalNERTokenDataset
