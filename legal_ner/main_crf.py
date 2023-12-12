@@ -235,7 +235,7 @@ if __name__ == "__main__":
         )
 
         
-        model = CustomModelWithCRF.from_pretrained(model_path, num_labels=num_labels)
+        model = CustomModelWithCRF.from_pretrained(model_path)
 
 
         ## Map the labels
