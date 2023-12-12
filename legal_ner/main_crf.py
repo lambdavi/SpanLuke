@@ -230,11 +230,9 @@ if __name__ == "__main__":
         )
 
         
-        model = CustomModelWithCRF.from_pretrained(
-            model_path, 
-            num_labels=num_labels, 
-            ignore_mismatched_sizes=True
-        )
+        pretrained_model = CustomModelWithCRF.from_pretrained(model_path, num_labels=num_labels, ignore_mismatched_sizes=True)
+        model = CustomModelWithCRF(config=pretrained_model.config)
+        model.load_state_dict(pretrained_model.state_dict())
 
         ## Map the labels
         idx_to_labels = {v[1]: v[0] for v in train_ds.labels_to_idx.items()}
