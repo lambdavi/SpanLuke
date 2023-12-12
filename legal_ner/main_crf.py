@@ -15,8 +15,9 @@ nlp = spacy.load("en_core_web_sm")
 
 ## Define the model with CRF layer
 class CustomTrainer(Trainer):
-    def __init__(self, *args, **kwargs):
+    def __init__(self, num_labels, *args, **kwargs):
         super().__init__(*args, **kwargs)
+        self.crf = CRF(num_labels, batch_first=True)
     def compute_loss(self, model, inputs, return_outputs=False):
         labels = inputs.pop("labels")
         # forward pass
@@ -305,6 +306,7 @@ if __name__ == "__main__":
 
         trainer = CustomTrainer(
             model=model,
+            num_labels=num_labels,
             args=training_args,
             train_dataset=train_ds,
             eval_dataset=val_ds,
