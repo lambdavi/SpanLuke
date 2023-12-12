@@ -14,7 +14,27 @@ import spacy
 nlp = spacy.load("en_core_web_sm")
 
 ## Define the model with CRF layer
-class CustomModelWithCRF(torch.nn.Module):
+class CustomTrainer(Trainer):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+    def compute_loss(self, model, inputs, return_outputs=False):
+        labels = inputs.pop("labels")
+        # forward pass
+        outputs = model(**inputs)
+        logits = outputs.get("logits")
+        # compute custom loss (suppose one has 3 labels with different weights)
+        emissions = outputs.logits  # Extract logits from the BERT model
+        print("Using crf!")
+        # Calculate the CRF loss if labels are provided
+        crf_loss = -self.crf.forward(emissions, labels, mask=inputs["attention_mask"].bool())
+        if return_outputs:
+            # If no labels provided, decode using Viterbi algorithm
+            decoded_tags = self.crf.decode(emissions, inputs["attention_mask"].bool())
+            return (crf_loss, decoded_tags)
+        
+        return crf_loss
+    
+"""class CustomModelWithCRF(torch.nn.Module):
     def __init__(self, model_path, num_labels):
         super().__init__()
         self.model_path = model_path
@@ -26,6 +46,7 @@ class CustomModelWithCRF(torch.nn.Module):
 
         emissions = outputs.logits  # Extract logits from the BERT model
 
+
         if labels is not None:
             print("Using crf!")
             # Calculate the CRF loss if labels are provided
@@ -34,7 +55,7 @@ class CustomModelWithCRF(torch.nn.Module):
         else:
             # If no labels provided, decode using Viterbi algorithm
             decoded_tags = self.crf.decode(emissions, attention_mask.bool())
-            return decoded_tags
+            return decoded_tags"""
 
 ############################################################
 #                                                          #
@@ -237,7 +258,11 @@ if __name__ == "__main__":
             use_roberta=use_roberta
         )
 
-        model = CustomModelWithCRF(model_path, num_labels)
+        model = AutoModelForTokenClassification.from_pretrained(
+                model_path, 
+                num_labels=num_labels, 
+                ignore_mismatched_sizes=True
+            )
 
 
         ## Map the labels
@@ -278,7 +303,7 @@ if __name__ == "__main__":
 
         ## Trainer
 
-        trainer = Trainer(
+        trainer = CustomTrainer(
             model=model,
             args=training_args,
             train_dataset=train_ds,
