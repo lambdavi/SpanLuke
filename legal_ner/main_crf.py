@@ -20,7 +20,7 @@ class CustomTrainer(Trainer):
         self.crf = CRF(num_labels, batch_first=True).to(self.model.device)
 
     def compute_loss(self, model, inputs, return_outputs=False):
-        if labels in inputs:
+        if "labels" in inputs:
             labels = inputs.pop("labels")
         # forward pass
         outputs = model(**inputs)
