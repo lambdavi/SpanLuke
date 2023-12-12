@@ -316,7 +316,7 @@ if __name__ == "__main__":
         model_paths=[args.model_path]
     else:
         model_paths = [
-            "bert-base"
+            "bert-base-cased"
         ]
     for model_path in model_paths:
 
