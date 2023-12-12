@@ -169,6 +169,7 @@ if __name__ == "__main__":
             labels_ids, prediction_ids, tags=unique_labels, loader="list"
         )
         results, results_per_tag = evaluator.evaluate()
+        print("")
         for k,v in results_per_tag.items():
             print(f"{k}: {v['ent_type']['f1']}")
         return {
@@ -265,7 +266,7 @@ if __name__ == "__main__":
             dataloader_num_workers=workers,
             dataloader_pin_memory=True,
             report_to="wandb",
-            logging_steps=50 if "bert-" not in model_path else 3000,  # how often to log to W&B
+            logging_steps=50 if ("bert-" not in model_path or "BERT" not in model_path) else 3000,  # how often to log to W&B
         )
 
         ## Collator

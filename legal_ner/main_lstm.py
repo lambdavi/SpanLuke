@@ -3,16 +3,47 @@ import json
 import numpy as np
 from argparse import ArgumentParser
 from nervaluate import Evaluator
-from span_marker import SpanMarkerModel, Trainer as SpanTrainer
+from torchcrf import CRF  # Import CRF layer
 from transformers import EarlyStoppingCallback
 from transformers import AutoModelForTokenClassification
 from transformers import Trainer, DefaultDataCollator, TrainingArguments
-
+from torch import nn
 from utils.dataset import LegalNERTokenDataset
 
 import spacy
 nlp = spacy.load("en_core_web_sm")
 
+# Define the model with BiLSTM layer
+class CustomModelWithBiLSTM(nn.Module):
+    def __init__(self, model_path, num_labels, hidden_size=768, lstm_hidden_size=256, num_lstm_layers=1, bidirectional=True, dropout=0.1):
+        super(CustomModelWithBiLSTM, self).__init__()
+        self.bert = AutoModelForTokenClassification.from_pretrained(model_path)
+        self.dropout = nn.Dropout(dropout)
+        self.bilstm = nn.LSTM(
+            input_size=hidden_size,
+            hidden_size=lstm_hidden_size,
+            num_layers=num_lstm_layers,
+            bidirectional=bidirectional,
+            batch_first=True,
+            dropout=dropout if num_lstm_layers > 1 else 0,
+        )
+        self.linear = nn.Linear(lstm_hidden_size * 2 if bidirectional else lstm_hidden_size, num_labels)
+        self.crf = CRF(num_labels, batch_first=True)
+
+    def forward(self, input_ids, attention_mask, labels=None):
+        outputs = self.bert(input_ids=input_ids, attention_mask=attention_mask)
+        last_hidden_states = outputs.last_hidden_state
+        lstm_out, _ = self.bilstm(last_hidden_states)
+        logits = self.linear(self.dropout(lstm_out))
+
+        if labels is not None:
+            # Compute CRF loss
+            loss = -self.crf(logits, labels, mask=attention_mask.byte(), reduction='mean')
+            return loss
+        else:
+            # Use CRF layer during inference
+            tags = self.crf.decode(logits, attention_mask)
+            return tags
 
 ############################################################
 #                                                          #
@@ -159,7 +190,6 @@ if __name__ == "__main__":
         print("")
         for k,v in results_per_tag.items():
             print(f"{k}: {v['ent_type']['f1']}")
-
         return {
             "f1-type-match": 2
             * results["ent_type"]["precision"]
@@ -183,7 +213,6 @@ if __name__ == "__main__":
         model_paths=[args.model_path]
     else:
         model_paths = [
-            "nlpaueb/bert-base-uncased-echr", # to delete
             "studio-ousia/luke-large",
             'law-ai/InLegalBERT',
             'microsoft/deberta-v3-base',
@@ -216,34 +245,9 @@ if __name__ == "__main__":
             use_roberta=use_roberta
         )
 
-        ## Define the model
-        if "span" in model_path:
-            # Download from the 🤗 Hub
+        
+        model = CustomModelWithBiLSTM(model_path, num_labels=num_labels)
 
-            encoder_id = "roberta-base"
-            model = SpanMarkerModel.from_pretrained(
-                # Required arguments
-                encoder_id,
-                labels=['O']+original_label_list,
-                # Optional arguments
-                model_max_length=256,
-                entity_max_length=8,
-                ignore_mismatched_sizes=True
-                # To improve the generated model card
-            )
-            """model = SpanMarkerModel.from_pretrained(
-                model_path,
-                num_labels=num_labels,
-                labels=original_label_list,
-                ignore_mismatched_sizes=True
-            )"""
-        else:
-            # Run inference
-            model = AutoModelForTokenClassification.from_pretrained(
-                model_path, 
-                num_labels=num_labels, 
-                ignore_mismatched_sizes=True
-            )
 
         ## Map the labels
         idx_to_labels = {v[1]: v[0] for v in train_ds.labels_to_idx.items()}
@@ -283,25 +287,19 @@ if __name__ == "__main__":
         data_collator = DefaultDataCollator()
 
         ## Trainer
-        if "span" not in model_path:
-            trainer = Trainer(
-                model=model,
-                args=training_args,
-                train_dataset=train_ds,
-                eval_dataset=val_ds,
-                data_collator=data_collator,
-                compute_metrics=compute_metrics,
-                callbacks=[EarlyStoppingCallback(2)]
-            )
-        else:
-            trainer = SpanTrainer(
+
+        trainer = Trainer(
             model=model,
             args=training_args,
             train_dataset=train_ds,
             eval_dataset=val_ds,
-            )
+            data_collator=data_collator,
+            compute_metrics=compute_metrics,
+            callbacks=[EarlyStoppingCallback(2)]
+        )
 
         ## Train the model and save it
+        print("** BILSTM-CRF ON - STARTING **")
         trainer.train()
         trainer.save_model(output_folder)
         trainer.evaluate()
@@ -310,7 +308,7 @@ if __name__ == "__main__":
 
 """python 3.10
 Example of usage:
-python main.py \
+python main_crf.py \
     --ds_train_path data/NER_TRAIN/NER_TRAIN_ALL.json \
     --ds_valid_path data/NER_DEV/NER_DEV_ALL.json \
     --output_folder results/ \
