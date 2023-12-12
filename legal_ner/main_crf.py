@@ -15,8 +15,7 @@ nlp = spacy.load("en_core_web_sm")
 
 ## Define the model with CRF layer
 class CustomModelWithCRF(AutoModelForTokenClassification):
-    def __init__(self, config):
-        super().__init__()
+    def __init__(self, model_path, config):
         self.crf = CRF(config.num_labels, batch_first=True)
         self.model = super().from_pretrained(config.pretrained_model_name_or_path, num_labels=num_labels, config=config)
     def forward(self, tensor):
