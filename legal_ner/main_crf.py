@@ -5,7 +5,7 @@ from argparse import ArgumentParser
 from nervaluate import Evaluator
 from torchcrf import CRF  # Import CRF layer
 from transformers import EarlyStoppingCallback
-from transformers import AutoModelForTokenClassification
+from transformers import AutoModelForTokenClassification, AutoConfig
 from transformers import Trainer, DefaultDataCollator, TrainingArguments
 
 from utils.dataset import LegalNERTokenDataset
@@ -19,14 +19,19 @@ class CustomModelWithCRF(AutoModelForTokenClassification):
         super().__init__(config)
         self.crf = CRF(config.num_labels, batch_first=True)
 
-    def forward(self, input_ids=None, attention_mask=None, **kwargs):
-        outputs = super().forward(input_ids, attention_mask, **kwargs)
-        logits = outputs.logits
-        # Use CRF layer here
-        tags = self.crf.decode(logits, attention_mask)
-        outputs['tags'] = tags
-        print(tags)
-        return outputs
+    @classmethod
+    def from_pretrained(cls, pretrained_model_name_or_path, *model_args, **kwargs):
+        # Load configuration
+        config = AutoConfig.from_pretrained(pretrained_model_name_or_path, *model_args, **kwargs)
+
+        # Instantiate the model
+        model = cls(config)
+
+        # Load the weights
+        model.load_state_dict(torch.load(pretrained_model_name_or_path + '/pytorch_model.bin'))
+
+        return model
+
 
 ############################################################
 #                                                          #
@@ -230,9 +235,8 @@ if __name__ == "__main__":
         )
 
         
-        pretrained_model = CustomModelWithCRF.from_pretrained(model_path, num_labels=num_labels, ignore_mismatched_sizes=True)
-        model = CustomModelWithCRF(config=pretrained_model.config)
-        model.load_state_dict(pretrained_model.state_dict())
+        model = CustomModelWithCRF.from_pretrained(model_path, num_labels=num_labels)
+
 
         ## Map the labels
         idx_to_labels = {v[1]: v[0] for v in train_ds.labels_to_idx.items()}
