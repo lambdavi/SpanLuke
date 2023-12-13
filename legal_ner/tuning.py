@@ -336,7 +336,7 @@ def objective(trial):
 
 # Optuna study
 study = optuna.create_study(direction='maximize')
-study.optimize(objective, n_trials=1)  # You can adjust the number of trials
+study.optimize(objective, n_trials=10)  # You can adjust the number of trials
 
 # Print the best hyperparameters
 print("Best trial:")
