@@ -289,12 +289,11 @@ if __name__ == "__main__":
         data_collator = DefaultDataCollator()
 
 
-
 def objective(trial):
     # Define the search space for hyperparameters
-    lr = trial.suggest_loguniform('lr', 1e-6, 1e-3)
-    weight_decay = trial.suggest_float('weight_decay', 1e-6, 1e-3, log=True)
-    warmup_ratio = trial.suggest_float('warmup_ratio', 0.01, 0.1, log=True)
+    lr = trial.suggest_float('lr', 1e-6, 1e-3, log=True)
+    weight_decay = trial.suggest_float('weight_decay', 1e-6, 1e-3)
+    warmup_ratio = trial.suggest_float('warmup_ratio', 0.01, 0.1)
 
     # Set the hyperparameters in the training arguments
     training_args.lr = lr
@@ -334,14 +333,16 @@ def objective(trial):
     metric_to_optimize = 'f1-strict'
     return result[metric_to_optimize]
 
-    # Optuna study
-    study = optuna.create_study(direction='maximize')
-    study.optimize(objective, n_trials=10)  # You can adjust the number of trials
+# Optuna study
+study = optuna.create_study(direction='maximize')
+study.optimize(objective, n_trials=10)  # You can adjust the number of trials
 
-    # Print the best hyperparameters
-    print("Best trial:")
-    trial = study.best_trial
-    print(f"Value: {trial.value}")
-    print("Params: ")
-    for key, value in trial.params.items():
-        print(f"    {key}: {value}")
+# Print the best hyperparameters
+print("Best trial:")
+trial = study.best_trial
+print(f"Value: {trial.value}")
+print("Params: ")
+for key, value in trial.params.items():
+    print(f"    {key}: {value}")
+
+print(study.best_param)
