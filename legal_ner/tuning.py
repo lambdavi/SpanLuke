@@ -190,7 +190,7 @@ if __name__ == "__main__":
         results, results_per_tag = evaluator.evaluate()
         print("")
         for k,v in results_per_tag.items():
-            print(f"{k}: {v['ent_type']['f1']}")
+            print(f'{k}: {2 * v["strict"]["precision"] * v["strict"]["recall"] / (v["strict"]["precision"] + v["strict"]["recall"] + 1e-9)}')
         return {
             "f1-type-match": 2
             * results["ent_type"]["precision"]
@@ -247,11 +247,7 @@ if __name__ == "__main__":
             use_roberta=use_roberta
         )
 
-        model = AutoModelForTokenClassification.from_pretrained(
-                model_path, 
-                num_labels=num_labels, 
-                ignore_mismatched_sizes=True
-            )
+        
         
         ## Map the labels
         idx_to_labels = {v[1]: v[0] for v in train_ds.labels_to_idx.items()}
@@ -300,6 +296,11 @@ def objective(trial):
     training_args.weight_decay = weight_decay
     training_args.warmup_ratio = warmup_ratio
 
+    model = AutoModelForTokenClassification.from_pretrained(
+                model_path, 
+                num_labels=num_labels, 
+                ignore_mismatched_sizes=True
+            )
     # Create Trainer
     if use_crf:
         trainer = CustomTrainer(
