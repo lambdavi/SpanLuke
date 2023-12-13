@@ -264,7 +264,7 @@ if __name__ == "__main__":
         ## Training Arguments
         training_args = TrainingArguments(
             output_dir=new_output_folder,
-            num_train_epochs=num_epochs,
+            num_train_epochs=1,
             learning_rate=lr,
             lr_scheduler_type=scheduler_type,
             per_device_train_batch_size=batch_size,
@@ -331,12 +331,12 @@ def objective(trial):
     print(result)
 
     # Define the metric to optimize (e.g., f1-strict)
-    metric_to_optimize = 'f1-strict'
+    metric_to_optimize = 'eval_f1-strict'
     return result[metric_to_optimize]
 
 # Optuna study
 study = optuna.create_study(direction='maximize')
-study.optimize(objective, n_trials=10)  # You can adjust the number of trials
+study.optimize(objective, n_trials=1)  # You can adjust the number of trials
 
 # Print the best hyperparameters
 print("Best trial:")
