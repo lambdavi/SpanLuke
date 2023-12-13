@@ -288,13 +288,11 @@ if __name__ == "__main__":
 def objective(trial):
     # Define the search space for hyperparameters
     lr = trial.suggest_float('lr', 1e-6, 1e-3, log=True)
-    weight_decay = trial.suggest_float('weight_decay', 1e-6, 1e-3)
-    warmup_ratio = trial.suggest_float('warmup_ratio', 0.01, 0.1)
+    optim = trial.suggest_categorical('optim', ['adafactor', 'adamw_torch', 'sgd', 'rmsprop'])
 
     # Set the hyperparameters in the training arguments
     training_args.lr = lr
-    training_args.weight_decay = weight_decay
-    training_args.warmup_ratio = warmup_ratio
+    training_args.optim = optim
 
     model = AutoModelForTokenClassification.from_pretrained(
                 model_path, 
