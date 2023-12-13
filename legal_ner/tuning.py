@@ -346,4 +346,4 @@ print("Params: ")
 for key, value in trial.params.items():
     print(f"    {key}: {value}")
 
-print(study.best_param)
+print(study.best_params)
