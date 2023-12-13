@@ -9,6 +9,7 @@ from transformers import AutoModelForTokenClassification
 from transformers import Trainer, DefaultDataCollator, TrainingArguments
 import torch
 from utils.dataset import LegalNERTokenDataset
+import optuna
 
 import spacy
 nlp = spacy.load("en_core_web_sm")
@@ -281,57 +282,66 @@ if __name__ == "__main__":
             metric_for_best_model="f1-strict",
             dataloader_num_workers=workers,
             dataloader_pin_memory=True,
-            report_to="wandb",
             logging_steps=3000 if batch_size==1 else 100,
-            #logging_steps=50 if ("bert-" not in model_path and "albert" not in model_path) else 3000,  # how often to log to W&B
         )
 
         ## Collator
         data_collator = DefaultDataCollator()
 
 
-        ## Trainer
-        if use_crf:
-            trainer = CustomTrainer(
-                model=model,
-                num_labels=num_labels,
-                args=training_args,
-                train_dataset=train_ds,
-                eval_dataset=val_ds,
-                data_collator=data_collator,
-                compute_metrics=compute_metrics,
-                callbacks=[EarlyStoppingCallback(2)]
-            )
-        else:
-            trainer = Trainer(
-                model=model,
-                args=training_args,
-                train_dataset=train_ds,
-                eval_dataset=val_ds,
-                data_collator=data_collator,
-                compute_metrics=compute_metrics,
-                callbacks=[EarlyStoppingCallback(2)]
-            )
-        ## Train the model and save it
-        if use_crf:
-            print("**\tCRF ON\t**")
-        else:
-            print("**\tSTANDARD TRAINING\t**")
-        trainer.train()
-        trainer.save_model(output_folder)
-        trainer.evaluate()
 
-"""
-python 3.10
-Example of usage:
-python main_crf.py \
-    --ds_train_path data/NER_TRAIN/NER_TRAIN_ALL.json \
-    --ds_valid_path data/NER_DEV/NER_DEV_ALL.json \
-    --output_folder results/ \
-    --batch 256 \
-    --num_epochs 5 \
-    --lr 1e-4 \
-    --weight_decay 0.01 \
-    --warmup_ratio 0.06 \
-    --use_crf
-"""
+def objective(trial):
+    # Define the search space for hyperparameters
+    lr = trial.suggest_loguniform('lr', 1e-6, 1e-3)
+    weight_decay = trial.suggest_float('weight_decay', 1e-6, 1e-3, log=True)
+    warmup_ratio = trial.suggest_float('warmup_ratio', 0.01, 0.1, log=True)
+
+    # Set the hyperparameters in the training arguments
+    training_args.lr = lr
+    training_args.weight_decay = weight_decay
+    training_args.warmup_ratio = warmup_ratio
+
+    # Create Trainer
+    if use_crf:
+        trainer = CustomTrainer(
+            model=model,
+            num_labels=num_labels,
+            args=training_args,
+            train_dataset=train_ds,
+            eval_dataset=val_ds,
+            data_collator=data_collator,
+            compute_metrics=compute_metrics,
+            callbacks=[EarlyStoppingCallback(2)]
+        )
+    else:
+        trainer = Trainer(
+            model=model,
+            args=training_args,
+            train_dataset=train_ds,
+            eval_dataset=val_ds,
+            data_collator=data_collator,
+            compute_metrics=compute_metrics,
+            callbacks=[EarlyStoppingCallback(2)]
+        )
+
+    # Train the model
+    trainer.train()
+    
+    # Evaluate the model
+    result = trainer.evaluate()
+
+    # Define the metric to optimize (e.g., f1-strict)
+    metric_to_optimize = 'f1-strict'
+    return result[metric_to_optimize]
+
+    # Optuna study
+    study = optuna.create_study(direction='maximize')
+    study.optimize(objective, n_trials=10)  # You can adjust the number of trials
+
+    # Print the best hyperparameters
+    print("Best trial:")
+    trial = study.best_trial
+    print(f"Value: {trial.value}")
+    print("Params: ")
+    for key, value in trial.params.items():
+        print(f"    {key}: {value}")
