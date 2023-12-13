@@ -328,6 +328,7 @@ def objective(trial):
     
     # Evaluate the model
     result = trainer.evaluate()
+    print(result)
 
     # Define the metric to optimize (e.g., f1-strict)
     metric_to_optimize = 'f1-strict'
