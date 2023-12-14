@@ -26,7 +26,7 @@ class CustomTrainer(Trainer):
         # compute custom loss (suppose one has 3 labels with different weights)
         # Calculate the CRF loss if labels are provided
         if "labels" in inputs:
-            labels = inputs.pop("labels")
+            labels = inputs["labels"]
             crf_loss = -self.crf(logits, labels, mask=inputs["attention_mask"].bool(), reduction="mean" if batch_size!=1 else "token_mean") # if not mean, it is sum by default
         else:
             outputs = self.crf.decode(logits, inputs["attention_mask"].bool())

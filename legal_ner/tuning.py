@@ -10,6 +10,7 @@ from transformers import Trainer, DefaultDataCollator, TrainingArguments
 import torch
 from utils.dataset import LegalNERTokenDataset
 import optuna
+import wandb
 
 import spacy
 nlp = spacy.load("en_core_web_sm")
@@ -276,6 +277,7 @@ if __name__ == "__main__":
             fp16=False,
             fp16_full_eval=False,
             metric_for_best_model="f1-strict",
+            report_to="wandb",
             dataloader_num_workers=workers,
             dataloader_pin_memory=True,
             logging_steps=3000 if batch_size==1 else 100,
@@ -300,27 +302,30 @@ def objective(trial):
                 ignore_mismatched_sizes=True
             )
     # Create Trainer
-    if use_crf:
-        trainer = CustomTrainer(
-            model=model,
-            num_labels=num_labels,
-            args=training_args,
-            train_dataset=train_ds,
-            eval_dataset=val_ds,
-            data_collator=data_collator,
-            compute_metrics=compute_metrics,
-            callbacks=[EarlyStoppingCallback(2)]
-        )
-    else:
-        trainer = Trainer(
-            model=model,
-            args=training_args,
-            train_dataset=train_ds,
-            eval_dataset=val_ds,
-            data_collator=data_collator,
-            compute_metrics=compute_metrics,
-            callbacks=[EarlyStoppingCallback(2)]
-        )
+    # Create WandB run for each trial
+    with wandb.init(project="finetuning", config=trial.params):
+        # Create Trainer
+        if use_crf:
+            trainer = CustomTrainer(
+                model=model,
+                num_labels=num_labels,
+                args=training_args,
+                train_dataset=train_ds,
+                eval_dataset=val_ds,
+                data_collator=data_collator,
+                compute_metrics=compute_metrics,
+                callbacks=[EarlyStoppingCallback(2)]
+            )
+        else:
+            trainer = Trainer(
+                model=model,
+                args=training_args,
+                train_dataset=train_ds,
+                eval_dataset=val_ds,
+                data_collator=data_collator,
+                compute_metrics=compute_metrics,
+                callbacks=[EarlyStoppingCallback(2)]
+            )
 
     # Train the model
     trainer.train()
