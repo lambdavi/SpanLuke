@@ -23,6 +23,7 @@ class CustomTrainer(Trainer):
         # forward pass
         outputs = model(**inputs)
         logits = outputs.get("logits")
+        print(logits.shape, outputs.shape)
         # compute custom loss (suppose one has 3 labels with different weights)
         # Calculate the CRF loss if labels are provided
         if "labels" in inputs:
