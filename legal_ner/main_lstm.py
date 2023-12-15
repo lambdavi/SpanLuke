@@ -36,7 +36,7 @@ class CustomModelWithBiLSTM(nn.Module):
         lstm_out, _ = self.bilstm(last_hidden_states)
         logits = self.linear(self.dropout(lstm_out))
         out = dict()
-        if labels:
+        if labels != None:
             out["labels"]=labels
         out["logits"]=logits
         return out
