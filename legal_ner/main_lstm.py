@@ -312,6 +312,7 @@ if __name__ == "__main__":
             eval_dataset=val_ds,
             data_collator=data_collator,
             compute_metrics=compute_metrics,
+            num_labels=num_labels
         )
 
         ## Train the model and save it
