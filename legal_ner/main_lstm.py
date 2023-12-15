@@ -32,7 +32,7 @@ class CustomModelWithBiLSTM(nn.Module):
 
     def forward(self, input_ids, attention_mask, labels=None):
         outputs = self.bert(input_ids=input_ids, attention_mask=attention_mask)
-        last_hidden_states = outputs.last_hidden_state
+        last_hidden_states = outputs.hidden_states[-1]
         lstm_out, _ = self.bilstm(last_hidden_states)
         logits = self.linear(self.dropout(lstm_out))
 
