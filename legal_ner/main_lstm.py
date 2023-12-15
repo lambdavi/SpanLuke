@@ -15,10 +15,17 @@ nlp = spacy.load("en_core_web_sm")
 
 # Define the model with BiLSTM layer
 class CustomModelWithBiLSTM(nn.Module):
-    def __init__(self, model_path, num_labels, hidden_size=768, lstm_hidden_size=256, num_lstm_layers=1, bidirectional=True, dropout=0.1):
+    def __init__(self, model_path, num_labels, freeze=False, hidden_size=768, lstm_hidden_size=256, num_lstm_layers=1, bidirectional=True, dropout=0.1):
         super(CustomModelWithBiLSTM, self).__init__()
         self.device = "cpu" if not cuda.is_available() else "cuda"
         self.bert = AutoModelForTokenClassification.from_pretrained(model_path, output_hidden_states=True)
+
+        if freeze:
+            for param in self.bert.named_parameters():
+                param.requires_grad = False
+                print(f"Froze layer: {param}")
+
+        # https://github.com/huggingface/transformers/issues/1431
         self.dropout = nn.Dropout(dropout)
         self.bilstm = nn.LSTM(
             input_size=hidden_size,
@@ -50,6 +57,7 @@ class CustomTrainer(Trainer):
         # forward pass
         outputs = model(**inputs)
         logits = outputs.get("logits")
+        print(logits.shape, logits)
         # compute custom loss (suppose one has 3 labels with different weights)
         # Calculate the CRF loss if labels are provided
         if "labels" in inputs:
@@ -148,6 +156,12 @@ if __name__ == "__main__":
         default=0.06,
         required=False,
         type=float,
+    )
+    parser.add_argument(
+        "--freeze",
+        help="Freeze the encoder layers",
+        action="store_true",
+        default=False
     )
 
     args = parser.parse_args()
@@ -264,7 +278,7 @@ if __name__ == "__main__":
         )
 
         
-        model = CustomModelWithBiLSTM(model_path, num_labels=num_labels)
+        model = CustomModelWithBiLSTM(model_path, num_labels=num_labels, freeze=args.freeze)
 
 
         ## Map the labels
