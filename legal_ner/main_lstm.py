@@ -22,7 +22,7 @@ class CustomModelWithBiLSTM(nn.Module):
         print(self.bert)
         if freeze:
             self.bert.roberta.requires_grad_(False)
-        self.bert.classifier = None
+        del self.bert.classifier
         print(self.bert)
 
         # https://github.com/huggingface/transformers/issues/1431
