@@ -22,9 +22,8 @@ class CustomModelWithBiLSTM(nn.Module):
 
         if freeze:
             for param in self.bert.named_parameters():
-                param.requires_grad = False
                 print(f"Froze layer: {param}")
-
+                param.requires_grad = False
         # https://github.com/huggingface/transformers/issues/1431
         self.dropout = nn.Dropout(dropout)
         self.bilstm = nn.LSTM(
