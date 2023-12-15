@@ -19,7 +19,7 @@ class CustomModelWithBiLSTM(nn.Module):
         super(CustomModelWithBiLSTM, self).__init__()
         self.device = "cpu" if not cuda.is_available() else "cuda"
         self.bert = AutoModelForTokenClassification.from_pretrained(model_path, output_hidden_states=True)
-
+        print(self.bert)
         if freeze:
             for param in list(self.bert.embeddings.parameters()):
                  param.requires_grad = False
