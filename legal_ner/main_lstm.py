@@ -21,7 +21,7 @@ class CustomModelWithBiLSTM(nn.Module):
         self.bert = AutoModelForTokenClassification.from_pretrained(model_path, output_hidden_states=True)
 
         if freeze:
-            for param in self.bert.named_parameters():
+            for param in self.bert.parameters():
                 print(f"Froze layer: {param}")
                 param.requires_grad = False
         # https://github.com/huggingface/transformers/issues/1431
