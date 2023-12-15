@@ -21,9 +21,7 @@ class CustomModelWithBiLSTM(nn.Module):
         self.bert = AutoModel.from_pretrained(model_path, output_hidden_states=True)
         print(self.bert)
         if freeze:
-            self.bert.roberta.requires_grad_(False)
-        del self.bert.classifier
-        print(self.bert)
+            self.bert.encoder.requires_grad_(False)
 
         # https://github.com/huggingface/transformers/issues/1431
         self.dropout = nn.Dropout(dropout)
