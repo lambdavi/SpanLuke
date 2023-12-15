@@ -21,8 +21,8 @@ class CustomModelWithBiLSTM(nn.Module):
         self.bert = AutoModelForTokenClassification.from_pretrained(model_path, output_hidden_states=True)
         print(self.bert)
         if freeze:
-            for param in list(self.bert.embeddings.parameters()):
-                 param.requires_grad = False
+            self.bert.roberta.requires_grad_(False)
+
         # https://github.com/huggingface/transformers/issues/1431
         self.dropout = nn.Dropout(dropout)
         self.bilstm = nn.LSTM(
