@@ -17,7 +17,7 @@ nlp = spacy.load("en_core_web_sm")
 class CustomModelWithBiLSTM(nn.Module):
     def __init__(self, model_path, num_labels, hidden_size=768, lstm_hidden_size=256, num_lstm_layers=1, bidirectional=True, dropout=0.1):
         super(CustomModelWithBiLSTM, self).__init__()
-        self.device = "cpu" if cuda.is_available() else "cuda"
+        self.device = "cpu" if not cuda.is_available() else "cuda"
         self.bert = AutoModelForTokenClassification.from_pretrained(model_path, output_hidden_states=True)
         self.dropout = nn.Dropout(dropout)
         self.bilstm = nn.LSTM(
