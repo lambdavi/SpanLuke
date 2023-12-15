@@ -28,23 +28,40 @@ class CustomModelWithBiLSTM(nn.Module):
             dropout=dropout if num_lstm_layers > 1 else 0,
         )
         self.linear = nn.Linear(lstm_hidden_size * 2 if bidirectional else lstm_hidden_size, num_labels)
-        self.crf = CRF(num_labels, batch_first=True)
 
     def forward(self, input_ids, attention_mask, labels=None):
         outputs = self.bert(input_ids=input_ids, attention_mask=attention_mask)
         last_hidden_states = outputs.hidden_states[-1]
         lstm_out, _ = self.bilstm(last_hidden_states)
         logits = self.linear(self.dropout(lstm_out))
+        out = dict()
+        if labels:
+            out["labels"]=labels
+        out["logits"]=logits
+        return out
+    
+class CustomTrainer(Trainer):
+    def __init__(self, num_labels, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.crf = CRF(num_labels, batch_first=True).to(self.model.device)
 
-        if labels is not None:
-            # Compute CRF loss
-            loss = -self.crf(logits, labels, mask=attention_mask.byte(), reduction='mean')
-            return loss
+    def compute_loss(self, model, inputs, return_outputs=False):
+        # forward pass
+        outputs = model(**inputs)
+        logits = outputs.get("logits")
+        # compute custom loss (suppose one has 3 labels with different weights)
+        # Calculate the CRF loss if labels are provided
+        if "labels" in inputs:
+            labels = inputs["labels"]
+            crf_loss = -self.crf(logits, labels, mask=inputs["attention_mask"].bool(), reduction="mean" if batch_size!=1 else "token_mean") # if not mean, it is sum by default
         else:
-            # Use CRF layer during inference
-            tags = self.crf.decode(logits, attention_mask)
-            return tags
+            outputs = self.crf.decode(logits, inputs["attention_mask"].bool())
 
+        if return_outputs:
+            # If no labels provided, decode using Viterbi algorithm
+            return (crf_loss, outputs) # maybe decoded_tags -> logits
+        
+        return crf_loss
 ############################################################
 #                                                          #
 #                           MAIN                           #
@@ -288,14 +305,13 @@ if __name__ == "__main__":
 
         ## Trainer
 
-        trainer = Trainer(
+        trainer = CustomTrainer(
             model=model,
             args=training_args,
             train_dataset=train_ds,
             eval_dataset=val_ds,
             data_collator=data_collator,
             compute_metrics=compute_metrics,
-            callbacks=[EarlyStoppingCallback(2)]
         )
 
         ## Train the model and save it
