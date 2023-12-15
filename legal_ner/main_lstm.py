@@ -42,11 +42,7 @@ class CustomModelWithBiLSTM(nn.Module):
         last_hidden_states = outputs.hidden_states[-1]
         lstm_out, _ = self.bilstm(last_hidden_states)
         logits = self.linear(self.dropout(lstm_out))
-        out = dict()
-        if labels != None:
-            out["labels"]=labels
-        out["logits"]=logits
-        return out
+        return {"logits":logits}
     
 class CustomTrainer(Trainer):
     def __init__(self, num_labels, *args, **kwargs):
@@ -65,7 +61,7 @@ class CustomTrainer(Trainer):
             crf_loss = -self.crf(logits, labels, mask=inputs["attention_mask"].bool(), reduction="mean" if batch_size!=1 else "token_mean") # if not mean, it is sum by default
         else:
             outputs = self.crf.decode(logits, inputs["attention_mask"].bool())
-
+        outputs["loss"]=crf_loss
         if return_outputs:
             # If no labels provided, decode using Viterbi algorithm
             return (crf_loss, outputs) # maybe decoded_tags -> logits
