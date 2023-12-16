@@ -33,17 +33,17 @@ class CustomModelWithBiLSTM(nn.Module):
             batch_first=True,
             dropout=dropout if num_lstm_layers > 1 else 0,
         )
-        #self.linear = nn.Linear(lstm_hidden_size * 2 if bidirectional else lstm_hidden_size, num_labels)
+        self.linear = nn.Linear(lstm_hidden_size * 2 if bidirectional else lstm_hidden_size, num_labels)
         self.crf = CRF(num_labels, batch_first=True)
 
     def forward(self, input_ids, attention_mask, labels=None):
         outputs = self.bert(input_ids=input_ids, attention_mask=attention_mask)
         last_hidden_states = outputs.hidden_states[-1]
         lstm_out, _ = self.bilstm(last_hidden_states)
-        logits = self.dropout(lstm_out)
+        logits = self.linear(self.dropout(lstm_out))
         if labels != None:
             crf_loss = -self.crf(logits, labels, mask=attention_mask.bool(), reduction="mean" if batch_size!=1 else "token_mean") # if not mean, it is sum by default
-            return {"logits":logits, "loss": crf_loss}
+            return (crf_loss, logits)
 
         outputs = self.crf.decode(logits, attention_mask.bool())
         return outputs
