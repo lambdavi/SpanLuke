@@ -44,11 +44,10 @@ class CustomModelWithBiLSTM(nn.Module):
         if labels != None:
             crf_loss = -self.crf(logits, labels, mask=attention_mask.bool(), reduction="mean" if batch_size!=1 else "token_mean") # if not mean, it is sum by default
             return (crf_loss, logits)
-
-        outputs = self.crf.decode(logits, attention_mask.bool())
-        return outputs
+        else:
+            outputs = self.crf.decode(logits, attention_mask.bool())
+            return outputs
         
-    
 """class CustomTrainer(Trainer):
     def __init__(self, num_labels, *args, **kwargs):
         super().__init__(*args, **kwargs)
