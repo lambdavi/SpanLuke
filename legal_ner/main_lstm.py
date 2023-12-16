@@ -6,7 +6,7 @@ from nervaluate import Evaluator
 from torchcrf import CRF  # Import CRF layer
 from transformers import EarlyStoppingCallback
 from transformers import AutoModelForTokenClassification, AutoModel
-from transformers import Trainer, DefaultDataCollator, TrainingArguments
+from transformers import Trainer, DefaultDataCollator, TrainingArguments, DataCollatorForTokenClassification
 from torch import nn
 from utils.dataset import LegalNERTokenDataset
 from torch import cuda
@@ -309,7 +309,7 @@ if __name__ == "__main__":
         )
 
         ## Collator
-        data_collator = DefaultDataCollator()
+        data_collator = DataCollatorForTokenClassification()
 
         ## Trainer
 
