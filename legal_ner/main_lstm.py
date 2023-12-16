@@ -49,7 +49,7 @@ class CustomModelWithBiLSTM(nn.Module):
         return outputs
         
     
-class CustomTrainer(Trainer):
+"""class CustomTrainer(Trainer):
     def __init__(self, num_labels, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.crf = CRF(num_labels, batch_first=True).to(self.model.device)
@@ -70,7 +70,7 @@ class CustomTrainer(Trainer):
             # If no labels provided, decode using Viterbi algorithm
             return (crf_loss, outputs) # maybe decoded_tags -> logits
         
-        return crf_loss
+        return crf_loss"""
 ############################################################
 #                                                          #
 #                           MAIN                           #
@@ -320,14 +320,13 @@ if __name__ == "__main__":
 
         ## Trainer
 
-        trainer = CustomTrainer(
+        trainer = Trainer(
             model=model,
             args=training_args,
             train_dataset=train_ds,
             eval_dataset=val_ds,
             data_collator=data_collator,
             compute_metrics=compute_metrics,
-            num_labels=num_labels
         )
 
         ## Train the model and save it
