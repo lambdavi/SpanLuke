@@ -249,7 +249,7 @@ if __name__ == "__main__":
             use_roberta=use_roberta
         )
 
-        model = CustomModelEnsemble(model_path, num_labels=num_labels, hidden_size=args.lstm_hidden, freeze=args.freeze)
+        model = CustomModelEnsemble(model_path, num_labels=num_labels, freeze=args.freeze)
         print("Final Model: ", model, sep="\n")
 
         ## Map the labels
