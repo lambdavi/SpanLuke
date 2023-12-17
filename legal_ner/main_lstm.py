@@ -35,8 +35,8 @@ class CustomModelWithBiLSTM(nn.Module):
         self.linear = nn.Linear(lstm_hidden_size * 2 if bidirectional else lstm_hidden_size, num_labels)
         self.crf = CRF(num_labels, batch_first=True)
 
-    def forward(self, input_ids, attention_mask, labels=None):
-        outputs = self.bert(input_ids=input_ids, attention_mask=attention_mask)
+    def forward(self, input_ids, attention_mask, token_type_ids=None, labels=None):
+        outputs = self.bert(input_ids=input_ids, token_type_ids=token_type_ids, attention_mask=attention_mask)
         last_hidden_states = outputs.hidden_states[-1]
         lstm_out, _ = self.bilstm(last_hidden_states)
         logits = self.linear(self.dropout(lstm_out))
@@ -261,7 +261,6 @@ if __name__ == "__main__":
             use_roberta=use_roberta
         )
 
-        
         model = CustomModelWithBiLSTM(model_path, num_labels=num_labels, hidden_size=args.lstm_hidden, freeze=args.freeze)
         print("Final Model: ", model, sep="\n")
 
