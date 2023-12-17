@@ -21,6 +21,7 @@ class LegalNERTokenDataset(Dataset):
         self.data = json.load(open(dataset_path))
         self.split = split
         self.use_roberta = use_roberta
+        print("Using roberta config" if use_roberta else "Not using Roberta config")
         self.column_names = ["tokens", "ner_tags"]
         if self.use_roberta:     ## Load the right tokenizer
             self.tokenizer = RobertaTokenizerFast.from_pretrained("roberta-base")
