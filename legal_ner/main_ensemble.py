@@ -36,13 +36,13 @@ class CustomModelWithCRF(nn.Module):
         # CRF layer
         self.crf = CRF(num_labels, batch_first=True)
 
-    def forward(self, bert_input_ids, bert_attention_mask, roberta_input_ids, roberta_attention_mask, labels=None):
+    def forward(self, input_ids, attention_mask, token_type_ids=None, labels=None):
         # BERT
-        bert_outputs = self.bert(input_ids=bert_input_ids, attention_mask=bert_attention_mask)
+        bert_outputs = self.bert(input_ids=input_ids, token_type_ids=token_type_ids, attention_mask=attention_mask)
         bert_last_hidden_states = bert_outputs.hidden_states[-1]
 
         # RoBERTa
-        roberta_outputs = self.roberta(input_ids=roberta_input_ids, attention_mask=roberta_attention_mask)
+        roberta_outputs = self.roberta(input_ids=input_ids, attention_mask=attention_mask)
         roberta_last_hidden_states = roberta_outputs.hidden_states[-1]
 
         # Combine BERT and RoBERTa outputs
@@ -246,9 +246,9 @@ if __name__ == "__main__":
 
     
     model_paths = [
-            "roberta-base",
             "bert-base-cased",
-        ]
+            "roberta-base",
+    ]
     for model_path in model_paths:
 
         print("MODEL: ", model_path)
