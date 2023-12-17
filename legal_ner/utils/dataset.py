@@ -56,7 +56,8 @@ class LegalNERTokenDataset(Dataset):
             return_tensors="pt", 
             truncation=True, 
             verbose=False,
-            padding='max_length',
+            padding='max_length'
+            max_length=self.tokenizer.model_max_length,
         )
 
         ## Match the labels
