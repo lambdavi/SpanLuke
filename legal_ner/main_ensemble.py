@@ -23,13 +23,14 @@ class CustomModelEnsemble(nn.Module):
             self.bert.encoder.requires_grad_(False)
 
         self.dropout = nn.Dropout(dropout)
+        self.linear = nn.Linear(768, num_labels)
         self.crf_layers = nn.ModuleList([CRF(num_labels, batch_first=True) for _ in range(num_crf_layers)])
 
     def forward(self, input_ids, attention_mask, token_type_ids=None, labels=None):
         outputs = self.bert(input_ids=input_ids, token_type_ids=token_type_ids, attention_mask=attention_mask)
         last_hidden_states = outputs.hidden_states[-1]
         logits = last_hidden_states
-        logits = self.dropout(logits)
+        logits = self.linear(self.dropout(logits))
 
         if labels is not None:
             crf_losses = [-crf(logits, labels, mask=attention_mask.bool(), reduction="mean") for crf in self.crf_layers]
