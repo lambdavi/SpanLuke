@@ -15,7 +15,7 @@ nlp = spacy.load("en_core_web_sm")
 
 # Define the model with BiLSTM layer
 class CustomModelWithBiLSTM(nn.Module):
-    def __init__(self, model_path, num_labels, freeze=False, hidden_size=768, lstm_hidden_size=256, num_lstm_layers=1, bidirectional=True, dropout=0.1):
+    def __init__(self, model_path, num_labels, freeze=False, hidden_size=1024, lstm_hidden_size=256, num_lstm_layers=1, bidirectional=True, dropout=0.1):
         super(CustomModelWithBiLSTM, self).__init__()
         self.device = "cpu" if not cuda.is_available() else "cuda"
         self.bert = AutoModel.from_pretrained(model_path, output_hidden_states=True)
@@ -48,28 +48,6 @@ class CustomModelWithBiLSTM(nn.Module):
             outputs = self.crf.decode(logits, attention_mask.bool())
             return outputs
         
-"""class CustomTrainer(Trainer):
-    def __init__(self, num_labels, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.crf = CRF(num_labels, batch_first=True).to(self.model.device)
-
-    def compute_loss(self, model, inputs, return_outputs=False):
-        # forward pass
-        outputs = model(**inputs)
-        logits = outputs.get("logits")
-        # compute custom loss (suppose one has 3 labels with different weights)
-        # Calculate the CRF loss if labels are provided
-        if "labels" in inputs:
-            labels = inputs["labels"]
-            crf_loss = -self.crf(logits, labels, mask=inputs["attention_mask"].bool(), reduction="mean" if batch_size!=1 else "token_mean") # if not mean, it is sum by default
-        else:
-            outputs = self.crf.decode(logits, inputs["attention_mask"].bool())
-        outputs["loss"]=crf_loss
-        if return_outputs:
-            # If no labels provided, decode using Viterbi algorithm
-            return (crf_loss, outputs) # maybe decoded_tags -> logits
-        
-        return crf_loss"""
 ############################################################
 #                                                          #
 #                           MAIN                           #
