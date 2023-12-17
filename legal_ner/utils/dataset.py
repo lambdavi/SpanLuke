@@ -51,20 +51,12 @@ class LegalNERTokenDataset(Dataset):
         ]
 
         ## Tokenize the text
-        if not self.use_roberta:
-            inputs = self.tokenizer(
-                text, 
-                return_tensors="pt", 
-                truncation=True, 
-                verbose=False
-                )
-        else:
-            inputs = self.tokenizer(
-                text, 
-                return_tensors="pt", 
-                truncation=True, 
-                verbose=False, 
-                padding='max_length'
+        inputs = self.tokenizer(
+            text, 
+            return_tensors="pt", 
+            truncation=True, 
+            verbose=False,
+            padding='max_length'
             )
 
         ## Match the labels
