@@ -54,10 +54,10 @@ class CustomModelWithCRF(nn.Module):
         # CRF layer
         logits = self.linear(combined_hidden_states)  # You may add a linear layer here if necessary
         if labels is not None:
-            crf_loss = -self.crf(logits, labels, mask=bert_attention_mask.bool(), reduction="mean")
+            crf_loss = -self.crf(logits, labels, mask=attention_mask.bool(), reduction="mean")
             return (crf_loss, logits)
         else:
-            outputs = self.crf.decode(logits, bert_attention_mask.bool())
+            outputs = self.crf.decode(logits, attention_mask.bool())
             return outputs
 
 ############################################################
@@ -246,8 +246,8 @@ if __name__ == "__main__":
 
     
     model_paths = [
-            "bert-base-cased",
-            "roberta-base",
+        "bert-base-cased",
+        "roberta-base",
     ]
     for model_path in model_paths:
 
