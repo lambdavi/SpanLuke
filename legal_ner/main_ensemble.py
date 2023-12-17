@@ -260,7 +260,7 @@ if __name__ == "__main__":
 
         train_ds = LegalNERTokenDataset(
             ds_train_path, 
-            model_path, 
+            model_paths[1], 
             labels_list=labels_list, 
             split="train", 
             use_roberta=use_roberta
@@ -268,7 +268,7 @@ if __name__ == "__main__":
 
         val_ds = LegalNERTokenDataset(
             ds_valid_path, 
-            model_path, 
+            model_paths[1], 
             labels_list=labels_list, 
             split="val", 
             use_roberta=use_roberta

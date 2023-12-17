@@ -21,12 +21,8 @@ class LegalNERTokenDataset(Dataset):
         self.data = json.load(open(dataset_path))
         self.split = split
         self.use_roberta = use_roberta
-        print("Using roberta config" if use_roberta else "Not using Roberta config")
-        self.column_names = ["tokens", "ner_tags"]
-        if self.use_roberta:     ## Load the right tokenizer
-            self.tokenizer = RobertaTokenizerFast.from_pretrained("roberta-base")
-        else:
-            self.tokenizer = AutoTokenizer.from_pretrained(model_path) 
+        self.rob_tokenizer = RobertaTokenizerFast.from_pretrained("roberta-base")
+        self.ber_tokenizer = AutoTokenizer.from_pretrained(model_path) 
         self.labels_list = sorted(labels_list + ["O"])[::-1]
 
         if self.labels_list is not None:
@@ -51,13 +47,14 @@ class LegalNERTokenDataset(Dataset):
         ]
 
         ## Tokenize the text
-        inputs = self.tokenizer(
+        inputs_ber = self.tokenizer(
             text, 
             return_tensors="pt", 
             truncation=True, 
             verbose=False,
             padding='max_length'
         )
+        
 
         ## Match the labels
         aligned_labels = match_labels(inputs, annotations)
@@ -65,7 +62,8 @@ class LegalNERTokenDataset(Dataset):
         inputs["input_ids"] = inputs["input_ids"].squeeze(0).long()
         inputs["attention_mask"] = inputs["attention_mask"].squeeze(0).long()
         #print(self.use_roberta)
-        inputs["token_type_ids"] = inputs["token_type_ids"].squeeze(0).long()
+        if not self.use_roberta: # to adjust
+            inputs["token_type_ids"] = inputs["token_type_ids"].squeeze(0).long()
 
         if "span" in self.model_path:
             inputs["tokens"] = self.tokenizer.decode(inputs["input_ids"])
