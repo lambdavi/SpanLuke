@@ -15,7 +15,7 @@ nlp = spacy.load("en_core_web_sm")
 
 # Define the model with BiLSTM layer
 class CustomModelWithBiLSTM(nn.Module):
-    def __init__(self, model_path, num_labels, freeze=False, hidden_size=768, lstm_hidden_size=256, num_lstm_layers=1, bidirectional=True, dropout=0.1):
+    def __init__(self, model_path, num_labels, freeze=False, hidden_size=1024, lstm_hidden_size=256, num_lstm_layers=1, bidirectional=True, dropout=0.1):
         super(CustomModelWithBiLSTM, self).__init__()
         self.device = "cpu" if not cuda.is_available() else "cuda"
         self.bert = AutoModel.from_pretrained(model_path, output_hidden_states=True)
@@ -133,6 +133,13 @@ if __name__ == "__main__":
         default=0.06,
         required=False,
         type=float,
+    )
+    parser.add_argument(
+        "--lstm_hidden",
+        help="lstm hidden size",
+        default=768,
+        required=False,
+        type=int,
     )
     parser.add_argument(
         "--freeze",
@@ -255,7 +262,7 @@ if __name__ == "__main__":
         )
 
         
-        model = CustomModelWithBiLSTM(model_path, num_labels=num_labels, freeze=args.freeze)
+        model = CustomModelWithBiLSTM(model_path, num_labels=num_labels, hidden_size=args.lstm_hidden, freeze=args.freeze)
         print("Final Model: ", model, sep="\n")
 
         ## Map the labels
