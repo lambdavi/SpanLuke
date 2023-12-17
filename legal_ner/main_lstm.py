@@ -300,7 +300,7 @@ if __name__ == "__main__":
         )
 
         ## Collator
-        data_collator = DataCollatorForTokenClassification()
+        data_collator = DefaultDataCollator()
 
         ## Trainer
 
