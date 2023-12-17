@@ -1,19 +1,12 @@
 import torch
 import json
 from torch.utils.data import Dataset
-import numpy as np
 from transformers import AutoTokenizer, RobertaTokenizerFast
 from utils.utils import match_labels
 
 import spacy
 nlp = spacy.load("en_core_web_sm")
 
-############################################################
-#                                                          #
-#                      DATASET CLASS                       #
-#                                                          #
-############################################################ 
-# TODO: Add support for the SpanMarker model, needed columns: --
 class LegalNERTokenDataset(Dataset):
     
     def __init__(self, dataset_path, model_path, labels_list=None, split="train", use_roberta=False):
@@ -36,7 +29,6 @@ class LegalNERTokenDataset(Dataset):
     def __getitem__(self, idx):
         item = self.data[idx]
         text = item["data"]["text"]
-        ## Get the annotations
         annotations = [
             {
                 "start": v["value"]["start"],
@@ -46,36 +38,45 @@ class LegalNERTokenDataset(Dataset):
             for v in item["annotations"][0]["result"]
         ]
 
-        ## Tokenize the text
-        inputs_ber = self.tokenizer(
-            text, 
-            return_tensors="pt", 
-            truncation=True, 
-            verbose=False,
-            padding='max_length'
-        )
-        
+        if self.use_roberta:
+            inputs = self.rob_tokenizer(
+                text, 
+                return_tensors="pt", 
+                truncation=True, 
+                padding='max_length'
+            )
+        else:
+            inputs = self.ber_tokenizer(
+                text, 
+                return_tensors="pt", 
+                truncation=True, 
+                padding='max_length'
+            )
 
-        ## Match the labels
         aligned_labels = match_labels(inputs, annotations)
         aligned_labels = [self.labels_to_idx[l] for l in aligned_labels]
-        inputs["input_ids"] = inputs["input_ids"].squeeze(0).long()
-        inputs["attention_mask"] = inputs["attention_mask"].squeeze(0).long()
-        #print(self.use_roberta)
-        if not self.use_roberta: # to adjust
-            inputs["token_type_ids"] = inputs["token_type_ids"].squeeze(0).long()
 
-        if "span" in self.model_path:
-            inputs["tokens"] = self.tokenizer.decode(inputs["input_ids"])
-        ## Get the labels
+        # Extract tensors from the tokenizer output
+        input_ids = inputs["input_ids"].squeeze(0).long()
+        attention_mask = inputs["attention_mask"].squeeze(0).long()
+
+        if not self.use_roberta:
+            token_type_ids = inputs["token_type_ids"].squeeze(0).long()
+        else:
+            token_type_ids = None
+
         if self.labels_list:
             labels = torch.tensor(aligned_labels).squeeze(-1).long()
-            column_name = "labels" if "span" not in self.model_path else "ner_tags"
-            if labels.shape[0] < inputs["attention_mask"].shape[0]:
-                pad_x = torch.zeros((inputs["input_ids"].shape[0],))
+            if labels.shape[0] < attention_mask.shape[0]:
+                pad_x = torch.zeros((attention_mask.shape[0],))
                 pad_x[: labels.size(0)] = labels
-                inputs[column_name] = aligned_labels
+                target = aligned_labels
             else:
-                inputs[column_name] = labels[: inputs["attention_mask"].shape[0]]
+                target = labels[: attention_mask.shape[0]]
 
-        return inputs
+        return {
+            "input_ids": input_ids,
+            "attention_mask": attention_mask,
+            "token_type_ids": token_type_ids,
+            "labels": target if self.labels_list else None
+        }

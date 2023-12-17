@@ -8,7 +8,7 @@ from transformers import EarlyStoppingCallback
 from transformers import AutoModelForTokenClassification, AutoModel
 from transformers import Trainer, DefaultDataCollator, TrainingArguments, DataCollatorForTokenClassification
 from torch import nn
-from utils.dataset import LegalNERTokenDataset
+from utils.dataset_br import LegalNERTokenDataset
 from torch import cuda
 import spacy
 import torch
@@ -260,7 +260,7 @@ if __name__ == "__main__":
 
         train_ds = LegalNERTokenDataset(
             ds_train_path, 
-            model_paths[1], 
+            model_paths, 
             labels_list=labels_list, 
             split="train", 
             use_roberta=use_roberta
@@ -268,7 +268,7 @@ if __name__ == "__main__":
 
         val_ds = LegalNERTokenDataset(
             ds_valid_path, 
-            model_paths[1], 
+            model_paths, 
             labels_list=labels_list, 
             split="val", 
             use_roberta=use_roberta
