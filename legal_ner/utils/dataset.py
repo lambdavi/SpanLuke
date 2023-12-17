@@ -57,7 +57,7 @@ class LegalNERTokenDataset(Dataset):
             truncation=True, 
             verbose=False,
             padding='max_length'
-            )
+        )
 
         ## Match the labels
         aligned_labels = match_labels(inputs, annotations)
