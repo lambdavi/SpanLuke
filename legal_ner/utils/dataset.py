@@ -65,8 +65,8 @@ class LegalNERTokenDataset(Dataset):
         inputs["input_ids"] = inputs["input_ids"].squeeze(0).long()
         inputs["attention_mask"] = inputs["attention_mask"].squeeze(0).long()
         #print(self.use_roberta)
-        if not self.use_roberta:
-            inputs["token_type_ids"] = inputs["token_type_ids"].squeeze(0).long()
+        #if not self.use_roberta: # to adjust
+        inputs["token_type_ids"] = inputs["token_type_ids"].squeeze(0).long()
 
         if "span" in self.model_path:
             inputs["tokens"] = self.tokenizer.decode(inputs["input_ids"])

@@ -14,32 +14,51 @@ import spacy
 import torch
 nlp = spacy.load("en_core_web_sm")
 
-class CustomModelEnsemble(nn.Module):
-    def __init__(self, model_path, num_labels, freeze=False, dropout=0.1, num_crf_layers=3):
-        super(CustomModelEnsemble, self).__init__()
+class CustomModelWithCRF(nn.Module):
+    def __init__(self, bert_model_path, roberta_model_path, num_labels, freeze=False, hidden_size=1024, lstm_hidden_size=256, num_lstm_layers=1, bidirectional=True, dropout=0.1):
+        super(CustomModelWithCRF, self).__init__()
+
         self.device = "cpu" if not cuda.is_available() else "cuda"
-        self.bert = AutoModel.from_pretrained(model_path, output_hidden_states=True)
+
+        # BERT model
+        self.bert = AutoModel.from_pretrained(bert_model_path, output_hidden_states=True)
         if freeze:
             self.bert.encoder.requires_grad_(False)
 
+        # RoBERTa model
+        self.roberta = AutoModel.from_pretrained(roberta_model_path, output_hidden_states=True)
+        if freeze:
+            self.roberta.encoder.requires_grad_(False)
+
         self.dropout = nn.Dropout(dropout)
-        self.linear = nn.Linear(768, num_labels)
-        self.crf_layers = nn.ModuleList([CRF(num_labels, batch_first=True) for _ in range(num_crf_layers)])
+        self.linear = nn.Linear(768*2, num_labels)
 
-    def forward(self, input_ids, attention_mask, token_type_ids=None, labels=None):
-        outputs = self.bert(input_ids=input_ids, token_type_ids=token_type_ids, attention_mask=attention_mask)
-        last_hidden_states = outputs.hidden_states[-1]
-        logits = last_hidden_states
-        logits = self.linear(self.dropout(logits))
+        # CRF layer
+        self.crf = CRF(num_labels, batch_first=True)
 
+    def forward(self, bert_input_ids, bert_attention_mask, roberta_input_ids, roberta_attention_mask, labels=None):
+        # BERT
+        bert_outputs = self.bert(input_ids=bert_input_ids, attention_mask=bert_attention_mask)
+        bert_last_hidden_states = bert_outputs.hidden_states[-1]
+
+        # RoBERTa
+        roberta_outputs = self.roberta(input_ids=roberta_input_ids, attention_mask=roberta_attention_mask)
+        roberta_last_hidden_states = roberta_outputs.hidden_states[-1]
+
+        # Combine BERT and RoBERTa outputs
+        combined_hidden_states = torch.cat((bert_last_hidden_states, roberta_last_hidden_states), dim=-1)
+
+        # Apply dropout
+        combined_hidden_states = self.dropout(combined_hidden_states)
+
+        # CRF layer
+        logits = self.linear(combined_hidden_states)  # You may add a linear layer here if necessary
         if labels is not None:
-            crf_losses = [-crf(logits, labels, mask=attention_mask.bool(), reduction="mean") for crf in self.crf_layers]
-            ensemble_loss = sum(crf_losses) / len(crf_losses)
-            return (ensemble_loss, logits)
+            crf_loss = -self.crf(logits, labels, mask=bert_attention_mask.bool(), reduction="mean")
+            return (crf_loss, logits)
         else:
-            crf_decodings = [crf.decode(logits, attention_mask.bool()) for crf in self.crf_layers]
-            ensemble_decodings = torch.stack(crf_decodings, dim=0).mode(dim=0).values  # Majority vote
-            return ensemble_decodings
+            outputs = self.crf.decode(logits, bert_attention_mask.bool())
+            return outputs
 
 ############################################################
 #                                                          #
@@ -71,7 +90,14 @@ if __name__ == "__main__":
         type=str,
     )
     parser.add_argument(
-        "--model_path",
+        "--model_path_bert",
+        help="The model path from huggingface/local folder",
+        default=None,
+        required=False,
+        type=str,
+    )
+    parser.add_argument(
+        "--model_path_roberta",
         help="The model path from huggingface/local folder",
         default=None,
         required=False,
@@ -218,12 +244,10 @@ if __name__ == "__main__":
             / (results["exact"]["precision"] + results["exact"]["recall"] + 1e-9),
         }
 
-    if args.model_path:
-        model_paths=[args.model_path]
-    else:
-        model_paths = [
-            "studio-ousia/luke-base",
-            "roberta-base"
+    
+    model_paths = [
+            "roberta-base",
+            "bert-base-cased",
         ]
     for model_path in model_paths:
 
@@ -250,7 +274,7 @@ if __name__ == "__main__":
             use_roberta=use_roberta
         )
 
-        model = CustomModelEnsemble(model_path, num_labels=num_labels, freeze=args.freeze)
+        model = CustomModelWithCRF(model_paths[0], model_paths[1], num_labels=num_labels, freeze=args.freeze)
         print("Final Model: ", model, sep="\n")
 
         ## Map the labels
@@ -302,7 +326,7 @@ if __name__ == "__main__":
         )
 
         ## Train the model and save it
-        print("** BILSTM-CRF ON - STARTING **")
+        print("** ENSEMBLE ON - STARTING **")
         trainer.train()
         trainer.save_model(output_folder)
         trainer.evaluate()
