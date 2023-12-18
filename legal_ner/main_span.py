@@ -9,6 +9,30 @@ from transformers import AutoModelForTokenClassification
 from transformers import Trainer, DefaultDataCollator, TrainingArguments
 
 from utils.dataset_span import LegalNERTokenDataset
+import tensorflow as tf
+from torch.utils.data import DataLoader
+
+class PyTorchToTensorflowDataset:
+    def __init__(self, pytorch_dataset):
+        self.pytorch_dataset = pytorch_dataset
+
+    def generator(self):
+        for i in range(len(self.pytorch_dataset)):
+            yield self.pytorch_dataset[i]
+
+    def get_tf_dataset(self):
+        return tf.data.Dataset.from_generator(
+            self.generator,
+            output_signature={
+                "input_ids": tf.TensorSpec(shape=(None,), dtype=tf.int64),
+                "attention_mask": tf.TensorSpec(shape=(None,), dtype=tf.int64),
+                "token_type_ids": tf.TensorSpec(shape=(None,), dtype=tf.int64),
+                "tokens": tf.TensorSpec(shape=(None,), dtype=tf.string),
+                "labels": tf.TensorSpec(shape=(None,), dtype=tf.int64),
+            }
+        )
+
+# Convert to TensorFlow dataset
 
 import spacy
 nlp = spacy.load("en_core_web_sm")
@@ -207,6 +231,7 @@ if __name__ == "__main__":
             split="train", 
             use_roberta=use_roberta
         )
+        train_ds_tf = PyTorchToTensorflowDataset(train_ds).get_tf_dataset()
 
         val_ds = LegalNERTokenDataset(
             ds_valid_path, 
@@ -215,7 +240,7 @@ if __name__ == "__main__":
             split="val", 
             use_roberta=use_roberta
         )
-
+        val_ds_tf = PyTorchToTensorflowDataset(val_ds).get_tf_dataset()
         ## Define the model
         if "span" in model_path:
             # Download from the 🤗 Hub
@@ -287,8 +312,8 @@ if __name__ == "__main__":
             trainer = Trainer(
                 model=model,
                 args=training_args,
-                train_dataset=train_ds,
-                eval_dataset=val_ds,
+                train_dataset=train_ds_tf,
+                eval_dataset=val_ds_tf,
                 data_collator=data_collator,
                 compute_metrics=compute_metrics,
                 callbacks=[EarlyStoppingCallback(2)]
