@@ -14,6 +14,7 @@ class LegalNERTokenDataset(Dataset):
         self.data = json.load(open(dataset_path))
         self.split = split
         self.use_roberta = use_roberta
+        print(self.model_path)
         print("Using roberta config" if use_roberta else "Not using Roberta config")
         self.column_names = ["tokens", "ner_tags"]
         if self.use_roberta:
@@ -75,9 +76,6 @@ class LegalNERTokenDataset(Dataset):
                 target = labels[: attention_mask.shape[0]]
 
         return {
-            "input_ids": input_ids,
-            "attention_mask": attention_mask,
-            "token_type_ids": token_type_ids,
             "tokens": tokens if "span" in self.model_path else None,
             "ner_tags": target if self.labels_list else None
         }
