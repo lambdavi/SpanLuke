@@ -31,7 +31,7 @@ class CustomModelWithCRF(nn.Module):
         last_hidden_states = outputs.hidden_states[-1]
         logits = self.linear(self.dropout(last_hidden_states))
         if labels != None:
-            crf_loss = -self.crf(logits, labels, mask=attention_mask.bool(), reduction="mean" if batch_size!=1 else "token_mean") # if not mean, it is sum by default
+            crf_loss = -self.crf(nn.functional.log_softmax(logits,2), labels, mask=attention_mask.bool(), reduction="mean" if batch_size!=1 else "token_mean") # if not mean, it is sum by default
             return (crf_loss, logits)
         else:
             outputs = self.crf.decode(logits, attention_mask.bool())
