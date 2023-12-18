@@ -18,11 +18,14 @@ nlp = spacy.load("en_core_web_sm")
 def objective(trial):
     # Define the search space for hyperparameters
     lr = trial.suggest_float('lr', 1e-6, 1e-3, log=True)
-    optim = trial.suggest_categorical('optim', ['adamw_torch', 'sgd', 'rmsprop'])
-
+    optim = trial.suggest_categorical('optim', ['adamw_torch', 'sgd', 'rmsprop'], log=True)
+    weight_decay = trial.suggest_float('weigth_decay', 1e-3, 1e-1, log=True)
+    warmup_ratio = trial.suggest_float('warmup_ratio', 1e-2, 8e-2, log=True)
     # Set the hyperparameters in the training arguments
     training_args.lr = lr
     training_args.optim = optim
+    training_args.weight_decay = weight_decay
+    training_args.warmup_ratio = warmup_ratio
 
     model = CustomModelWithCRF(model_path, num_labels=num_labels)
     # Create Trainer
