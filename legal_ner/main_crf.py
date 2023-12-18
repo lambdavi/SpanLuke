@@ -27,7 +27,7 @@ class CustomModelWithCRF(nn.Module):
 
     def forward(self, input_ids, attention_mask, token_type_ids=None, labels=None):
         outputs = self.bert(input_ids=input_ids, token_type_ids=token_type_ids, attention_mask=attention_mask)
-        logits = self.dropout(outputs)
+        logits = self.dropout(outputs.logits)
         if labels != None:
             crf_loss = -self.crf(logits, labels, mask=attention_mask.bool(), reduction="mean" if batch_size!=1 else "token_mean") # if not mean, it is sum by default
             return (crf_loss, logits)
@@ -238,7 +238,7 @@ if __name__ == "__main__":
         )
 
         model = CustomModelWithCRF(model_path, num_labels=num_labels)
-        
+        print(model)
         ## Map the labels
         idx_to_labels = {v[1]: v[0] for v in train_ds.labels_to_idx.items()}
 
