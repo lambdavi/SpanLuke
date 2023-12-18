@@ -5,38 +5,37 @@ from argparse import ArgumentParser
 from nervaluate import Evaluator
 from torchcrf import CRF  # Import CRF layer
 from transformers import EarlyStoppingCallback
-from transformers import AutoModelForTokenClassification
+from transformers import AutoModelForTokenClassification, AutoModel
 from transformers import Trainer, DefaultDataCollator, TrainingArguments
-import torch
+from torch import nn,cuda
 from utils.dataset import LegalNERTokenDataset
 
 import spacy
 nlp = spacy.load("en_core_web_sm")
 
-## Define the model with CRF layer
-class CustomTrainer(Trainer):
-    def __init__(self, num_labels, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.crf = CRF(num_labels, batch_first=True).to(self.model.device)
+class CustomModelWithCRF(nn.Module):
+    def __init__(self, model_path, num_labels, freeze=False, hidden_size=1024, lstm_hidden_size=256, num_lstm_layers=1, bidirectional=True, dropout=0.1):
+        super(CustomModelWithCRF, self).__init__()
+        self.device = "cpu" if not cuda.is_available() else "cuda"
+        self.bert = AutoModel.from_pretrained(model_path, output_hidden_states=True, ignore_mismatched_sizes=True)
+        if freeze:
+            self.bert.encoder.requires_grad_(False)
 
-    def compute_loss(self, model, inputs, return_outputs=False):
-        # forward pass
-        outputs = model(**inputs)
-        logits = outputs.get("logits")
-        print(logits.shape, outputs.keys())
-        # compute custom loss (suppose one has 3 labels with different weights)
-        # Calculate the CRF loss if labels are provided
-        if "labels" in inputs:
-            labels = inputs["labels"]
-            crf_loss = -self.crf(logits, labels, mask=inputs["attention_mask"].bool(), reduction="mean" if batch_size!=1 else "token_mean") # if not mean, it is sum by default
+        # https://github.com/huggingface/transformers/issues/1431
+        self.dropout = nn.Dropout(dropout)
+        self.linear = nn.Linear(768, num_labels)
+        self.crf = CRF(num_labels, batch_first=True)
+
+    def forward(self, input_ids, attention_mask, token_type_ids=None, labels=None):
+        outputs = self.bert(input_ids=input_ids, token_type_ids=token_type_ids, attention_mask=attention_mask)
+        last_hidden_states = outputs.hidden_states[-1]
+        logits = self.linear(self.dropout(last_hidden_states))
+        if labels != None:
+            crf_loss = -self.crf(logits, labels, mask=attention_mask.bool(), reduction="mean" if batch_size!=1 else "token_mean") # if not mean, it is sum by default
+            return (crf_loss, logits)
         else:
-            outputs = self.crf.decode(logits, inputs["attention_mask"].bool())
-
-        if return_outputs:
-            # If no labels provided, decode using Viterbi algorithm
-            return (crf_loss, outputs) # maybe decoded_tags -> logits
-        
-        return crf_loss
+            outputs = self.crf.decode(logits, attention_mask.bool())
+            return outputs
 
 
 ############################################################
@@ -68,13 +67,7 @@ if __name__ == "__main__":
         required=False,
         type=str,
     )
-    parser.add_argument(
-        "--use_crf",
-        help="Use Conditional Random Field",
-        action="store_true",
-        default=False,
-        required=False,
-    )
+
     parser.add_argument(
         "--model_path",
         help="The model path from huggingface/local folder",
@@ -147,7 +140,6 @@ if __name__ == "__main__":
     workers = args.workers              # e.g., 4
     scheduler_type = args.scheduler     # e.g., linear
     single_model_path = args.model_path        # e.g. bert-base-uncased
-    use_crf = args.use_crf
     ## Define the labels
     original_label_list = [
         "COURT",
@@ -247,11 +239,7 @@ if __name__ == "__main__":
             use_roberta=use_roberta
         )
 
-        model = AutoModelForTokenClassification.from_pretrained(
-                model_path, 
-                num_labels=num_labels, 
-                ignore_mismatched_sizes=True
-            )
+        model = CustomModelWithCRF(model_path, num_labels=num_labels)
         
         ## Map the labels
         idx_to_labels = {v[1]: v[0] for v in train_ds.labels_to_idx.items()}
@@ -270,7 +258,6 @@ if __name__ == "__main__":
             per_device_train_batch_size=batch_size,
             per_device_eval_batch_size=batch_size,
             gradient_accumulation_steps=1,
-            gradient_checkpointing=(not use_crf),
             warmup_ratio=warmup_ratio,
             weight_decay=weight_decay,
             evaluation_strategy="epoch",
@@ -292,32 +279,18 @@ if __name__ == "__main__":
 
 
         ## Trainer
-        if use_crf:
-            trainer = CustomTrainer(
-                model=model,
-                num_labels=num_labels,
-                args=training_args,
-                train_dataset=train_ds,
-                eval_dataset=val_ds,
-                data_collator=data_collator,
-                compute_metrics=compute_metrics,
-                callbacks=[EarlyStoppingCallback(2)]
-            )
-        else:
-            trainer = Trainer(
-                model=model,
-                args=training_args,
-                train_dataset=train_ds,
-                eval_dataset=val_ds,
-                data_collator=data_collator,
-                compute_metrics=compute_metrics,
-                callbacks=[EarlyStoppingCallback(2)]
-            )
+        trainer = Trainer(
+            model=model,
+            args=training_args,
+            train_dataset=train_ds,
+            eval_dataset=val_ds,
+            data_collator=data_collator,
+            compute_metrics=compute_metrics,
+            callbacks=[EarlyStoppingCallback(2)]
+        )
         ## Train the model and save it
-        if use_crf:
-            print("**\tCRF ON\t**")
-        else:
-            print("**\tSTANDARD TRAINING\t**")
+        print("**\tCRF ON\t**")
+        
         trainer.train()
         trainer.save_model(output_folder)
         trainer.evaluate()
