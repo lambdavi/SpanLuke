@@ -17,7 +17,7 @@ class CustomModelWithCRF(nn.Module):
     def __init__(self, model_path, num_labels, freeze=False, hidden_size=1024, lstm_hidden_size=256, num_lstm_layers=1, bidirectional=True, dropout=0.1):
         super(CustomModelWithCRF, self).__init__()
         self.device = "cpu" if not cuda.is_available() else "cuda"
-        self.bert = AutoModel.from_pretrained(model_path, output_hidden_states=True, ignore_mismatched_sizes=True)
+        self.bert = AutoModel.from_pretrained(model_path, ignore_mismatched_sizes=True)
         if freeze:
             self.bert.encoder.requires_grad_(False)
 
@@ -28,8 +28,8 @@ class CustomModelWithCRF(nn.Module):
 
     def forward(self, input_ids, attention_mask, token_type_ids=None, labels=None):
         outputs = self.bert(input_ids=input_ids, token_type_ids=token_type_ids, attention_mask=attention_mask)
-        last_hidden_states = outputs.hidden_states[-1]
-        logits = self.linear(self.dropout(last_hidden_states))
+        sequence_out = outputs[0]
+        logits = self.linear(self.dropout(sequence_out))
         if labels != None:
             crf_loss = -self.crf(nn.functional.log_softmax(logits,2), labels, mask=attention_mask.bool(), reduction="mean" if batch_size!=1 else "token_mean") # if not mean, it is sum by default
             return (crf_loss, logits)
