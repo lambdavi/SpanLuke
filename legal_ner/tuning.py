@@ -11,35 +11,44 @@ import torch
 from utils.dataset import LegalNERTokenDataset
 import optuna
 import wandb
-
+from main_crf import CustomModelWithCRF
 import spacy
 nlp = spacy.load("en_core_web_sm")
 
-## Define the model with CRF layer
-class CustomTrainer(Trainer):
-    def __init__(self, num_labels, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.crf = CRF(num_labels, batch_first=True).to(self.model.device)
+def objective(trial):
+    # Define the search space for hyperparameters
+    lr = trial.suggest_float('lr', 1e-6, 1e-3, log=True)
+    optim = trial.suggest_categorical('optim', ['adamw_torch', 'sgd', 'rmsprop'])
 
-    def compute_loss(self, model, inputs, return_outputs=False):
-        # forward pass
-        outputs = model(**inputs)
-        logits = outputs.get("logits")
-        # compute custom loss (suppose one has 3 labels with different weights)
-        # Calculate the CRF loss if labels are provided
-        if "labels" in inputs:
-            labels = inputs.pop("labels")
-            crf_loss = -self.crf(logits, labels, mask=inputs["attention_mask"].bool(), reduction="token_mean") # if not mean, it is sum by default
-        else:
-            outputs = self.crf.decode(logits, inputs["attention_mask"].bool())
+    # Set the hyperparameters in the training arguments
+    training_args.lr = lr
+    training_args.optim = optim
 
-        if return_outputs:
-            # If no labels provided, decode using Viterbi algorithm
-            return (crf_loss, outputs) # maybe decoded_tags -> logits
-        
-        return crf_loss
+    model = CustomModelWithCRF(model_path, num_labels=num_labels)
+    # Create Trainer
+    # Create WandB run for each trial
+    with wandb.init(project="finetuning", config=trial.params):
+        # Create Trainer
+        trainer = Trainer(
+            model=model,
+            args=training_args,
+            train_dataset=train_ds,
+            eval_dataset=val_ds,
+            data_collator=data_collator,
+            compute_metrics=compute_metrics,
+            callbacks=[EarlyStoppingCallback(2)]
+        )
+    wandb.finish()
+    # Train the model
+    trainer.train()
+    
+    # Evaluate the model
+    result = trainer.evaluate()
+    print(result)
 
-
+    # Define the metric to optimize (e.g., f1-strict)
+    metric_to_optimize = 'eval_f1-strict'
+    return result[metric_to_optimize]
 ############################################################
 #                                                          #
 #                           MAIN                           #
@@ -248,8 +257,6 @@ if __name__ == "__main__":
             use_roberta=use_roberta
         )
 
-        
-        
         ## Map the labels
         idx_to_labels = {v[1]: v[0] for v in train_ds.labels_to_idx.items()}
 
@@ -286,68 +293,16 @@ if __name__ == "__main__":
         ## Collator
         data_collator = DefaultDataCollator()
 
+        # Optuna study
+        study = optuna.create_study(direction='maximize')
+        study.optimize(objective, n_trials=10)  # You can adjust the number of trials
 
-def objective(trial):
-    # Define the search space for hyperparameters
-    lr = trial.suggest_float('lr', 1e-6, 1e-3, log=True)
-    optim = trial.suggest_categorical('optim', ['adafactor', 'adamw_torch', 'sgd', 'rmsprop'])
+        # Print the best hyperparameters
+        print("Best trial:")
+        trial = study.best_trial
+        print(f"Value: {trial.value}")
+        print("Params: ")
+        for key, value in trial.params.items():
+            print(f"    {key}: {value}")
 
-    # Set the hyperparameters in the training arguments
-    training_args.lr = lr
-    training_args.optim = optim
-
-    model = AutoModelForTokenClassification.from_pretrained(
-                model_path, 
-                num_labels=num_labels, 
-                ignore_mismatched_sizes=True
-            )
-    # Create Trainer
-    # Create WandB run for each trial
-    with wandb.init(project="finetuning", config=trial.params):
-        # Create Trainer
-        if use_crf:
-            trainer = CustomTrainer(
-                model=model,
-                num_labels=num_labels,
-                args=training_args,
-                train_dataset=train_ds,
-                eval_dataset=val_ds,
-                data_collator=data_collator,
-                compute_metrics=compute_metrics,
-                callbacks=[EarlyStoppingCallback(2)]
-            )
-        else:
-            trainer = Trainer(
-                model=model,
-                args=training_args,
-                train_dataset=train_ds,
-                eval_dataset=val_ds,
-                data_collator=data_collator,
-                compute_metrics=compute_metrics,
-                callbacks=[EarlyStoppingCallback(2)]
-            )
-
-    # Train the model
-    trainer.train()
-    
-    # Evaluate the model
-    result = trainer.evaluate()
-    print(result)
-
-    # Define the metric to optimize (e.g., f1-strict)
-    metric_to_optimize = 'eval_f1-strict'
-    return result[metric_to_optimize]
-
-# Optuna study
-study = optuna.create_study(direction='maximize')
-study.optimize(objective, n_trials=10)  # You can adjust the number of trials
-
-# Print the best hyperparameters
-print("Best trial:")
-trial = study.best_trial
-print(f"Value: {trial.value}")
-print("Params: ")
-for key, value in trial.params.items():
-    print(f"    {key}: {value}")
-
-print(study.best_params)
+        print(study.best_params)
