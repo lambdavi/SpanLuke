@@ -23,6 +23,7 @@ class CustomModelWithCRF(nn.Module):
 
         # https://github.com/huggingface/transformers/issues/1431
         self.dropout = nn.Dropout(dropout)
+        self.bert.classifier= nn.Linear(768,29)
         self.crf = CRF(num_labels, batch_first=True)
 
     def forward(self, input_ids, attention_mask, token_type_ids=None, labels=None):
