@@ -38,11 +38,11 @@ class CustomModelWithCRF(nn.Module):
         if self.sec is not None:
             logits2 = self.sec(input_ids=input_ids, token_type_ids=token_type_ids, attention_mask=attention_mask)
             # Apply softmax to obtain probabilities
-            print(logits, logits2)
+            print(logits.shape, logits2.shape)
             combined_logits = logits.clone()
             specialized_mask = zeros_like(combined_logits, dtype=bool)
             for label in self.specialized_labels:
-                specialized_mask[:, :, self.sec.labels_to_idx[label]] = True
+                specialized_mask[:, :, labels_to_idx[label]] = True
             combined_logits[specialized_mask] = (1 - self.weight_factor) * logits[specialized_mask] + self.weight_factor * logits2[specialized_mask]
             print(combined_logits)
             final_logits=combined_logits
@@ -300,10 +300,10 @@ if __name__ == "__main__":
         print(label_mask)
         main_model = CustomModelWithCRF(model_path, num_labels=num_labels, hidden_size=args.hidden, sec=sec_model, spec_mask=label_mask)
         print("MAIN MODEL", main_model, sep="\n")
-       
+        
         ## Map the labels
         idx_to_labels = {v[1]: v[0] for v in train_ds.labels_to_idx.items()}
-
+        labels_to_idx = train_ds.labels_to_idx
         ## Output folder
         new_output_folder = os.path.join(output_folder, 'all')
         new_output_folder = os.path.join(new_output_folder, model_path)
