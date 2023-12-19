@@ -6,55 +6,32 @@ from nervaluate import Evaluator
 from torchcrf import CRF  # Import CRF layer
 from transformers import EarlyStoppingCallback
 from transformers import AutoModelForTokenClassification, AutoModel
-from transformers import Trainer, DefaultDataCollator, TrainingArguments, DataCollatorForTokenClassification
-from torch import nn
-from utils.dataset_br import LegalNERTokenDataset
-from torch import cuda
+from transformers import Trainer, DefaultDataCollator, TrainingArguments
+from torch import nn,cuda
+from utils.dataset import LegalNERTokenDataset
+
 import spacy
-import torch
 nlp = spacy.load("en_core_web_sm")
 
 class CustomModelWithCRF(nn.Module):
-    def __init__(self, bert_model_path, roberta_model_path, num_labels, freeze=False, hidden_size=1024, lstm_hidden_size=256, num_lstm_layers=1, bidirectional=True, dropout=0.1):
+    def __init__(self, model_path, num_labels, freeze=False, hidden_size=768, dropout=0.1):
         super(CustomModelWithCRF, self).__init__()
-
         self.device = "cpu" if not cuda.is_available() else "cuda"
-
-        # BERT model
-        self.bert = AutoModel.from_pretrained(bert_model_path, output_hidden_states=True)
+        self.bert = AutoModel.from_pretrained(model_path, ignore_mismatched_sizes=True)
         if freeze:
             self.bert.encoder.requires_grad_(False)
 
-        # RoBERTa model
-        self.roberta = AutoModel.from_pretrained(roberta_model_path, output_hidden_states=True)
-        if freeze:
-            self.roberta.encoder.requires_grad_(False)
-
+        # https://github.com/huggingface/transformers/issues/1431
         self.dropout = nn.Dropout(dropout)
-        self.linear = nn.Linear(768*2, num_labels)
-
-        # CRF layer
+        self.linear = nn.Linear(hidden_size, num_labels)
         self.crf = CRF(num_labels, batch_first=True)
 
     def forward(self, input_ids, attention_mask, token_type_ids=None, labels=None):
-        # BERT
-        bert_outputs = self.bert(input_ids=input_ids, token_type_ids=token_type_ids, attention_mask=attention_mask)
-        bert_last_hidden_states = bert_outputs.hidden_states[-1]
-
-        # RoBERTa
-        roberta_outputs = self.roberta(input_ids=input_ids, attention_mask=attention_mask)
-        roberta_last_hidden_states = roberta_outputs.hidden_states[-1]
-
-        # Combine BERT and RoBERTa outputs
-        combined_hidden_states = torch.cat((bert_last_hidden_states, roberta_last_hidden_states), dim=-1)
-
-        # Apply dropout
-        combined_hidden_states = self.dropout(combined_hidden_states)
-
-        # CRF layer
-        logits = self.linear(combined_hidden_states)  # You may add a linear layer here if necessary
-        if labels is not None:
-            crf_loss = -self.crf(logits, labels, mask=attention_mask.bool(), reduction="mean")
+        outputs = self.bert(input_ids=input_ids, token_type_ids=token_type_ids, attention_mask=attention_mask)
+        sequence_out = outputs[0]
+        logits = self.linear(self.dropout(sequence_out))
+        if labels != None:
+            crf_loss = -self.crf(logits, labels, mask=attention_mask.bool(), reduction="mean" if batch_size!=1 else "token_mean") # if not mean, it is sum by default
             return (crf_loss, logits)
         else:
             outputs = self.crf.decode(logits, attention_mask.bool())
@@ -89,17 +66,18 @@ if __name__ == "__main__":
         required=False,
         type=str,
     )
+
     parser.add_argument(
-        "--model_path_bert",
+        "--model_path",
         help="The model path from huggingface/local folder",
         default=None,
         required=False,
         type=str,
     )
     parser.add_argument(
-        "--model_path_roberta",
-        help="The model path from huggingface/local folder",
-        default=None,
+        "--model_path_secondary",
+        help="The model path from huggingface/local folder (secondary model)",
+        default="roberta-base",
         required=False,
         type=str,
     )
@@ -153,18 +131,13 @@ if __name__ == "__main__":
         required=False,
         type=float,
     )
+
     parser.add_argument(
-        "--lstm_hidden",
-        help="lstm hidden size",
+        "--hidden",
+        help="Warmup ratio",
         default=768,
         required=False,
         type=int,
-    )
-    parser.add_argument(
-        "--freeze",
-        help="Freeze the encoder layers",
-        action="store_true",
-        default=False
     )
 
     args = parser.parse_args()
@@ -180,6 +153,8 @@ if __name__ == "__main__":
     warmup_ratio = args.warmup_ratio    # e.g., 0.06
     workers = args.workers              # e.g., 4
     scheduler_type = args.scheduler     # e.g., linear
+    single_model_path = args.model_path        # e.g. bert-base-uncased
+    model_path_secondary = args.model_path_secondary        # e.g. bert-base-uncased
 
     ## Define the labels
     original_label_list = [
@@ -204,7 +179,6 @@ if __name__ == "__main__":
 
     ## Compute metrics
     def compute_metrics(pred):
-
         # Preds
         predictions = np.argmax(pred.predictions, axis=-1)
         predictions = np.concatenate(predictions, axis=0)
@@ -244,13 +218,20 @@ if __name__ == "__main__":
             / (results["exact"]["precision"] + results["exact"]["recall"] + 1e-9),
         }
 
-    
-    model_paths = [
-        "bert-base-cased",
-        "roberta-base",
-    ]
-    for model_path in model_paths:
+    if args.model_path:
+        model_paths=[single_model_path]
+    else:
+        model_paths = [
+            "nlpaueb/bert-base-uncased-echr", # to delete
+            "studio-ousia/luke-large",
+            'law-ai/InLegalBERT',
+            'microsoft/deberta-v3-base',
+            'saibo/legal-roberta-base',
+            "geckos/deberta-base-fine-tuned-ner", # not bad, to finetune better
+            "studio-ousia/luke-base",
+        ]
 
+    for model_path in model_paths:
         print("MODEL: ", model_path)
 
         ## Define the train and test datasets
@@ -274,9 +255,26 @@ if __name__ == "__main__":
             use_roberta=use_roberta
         )
 
-        model = CustomModelWithCRF(model_paths[0], model_paths[1], num_labels=num_labels, freeze=args.freeze)
-        print("Final Model: ", model, sep="\n")
+        train_ds_small = LegalNERTokenDataset(
+            "data/NER_DEV/NER_TRAIN_SMALL.json", 
+            model_path_secondary, 
+            labels_list=labels_list, 
+            split="train", 
+            use_roberta=use_roberta
+        )
 
+        val_ds_small = LegalNERTokenDataset(
+            "data/NER_DEV/NER_DEV_SMALL.json", 
+            model_path_secondary, 
+            labels_list=labels_list, 
+            split="val", 
+            use_roberta=use_roberta
+        )
+
+        main_model = CustomModelWithCRF(model_path, num_labels=num_labels, hidden_size=args.hidden)
+        print("MAIN MODEL", main_model, sep="\n")
+        sec_model = CustomModelWithCRF(model_path_secondary, num_labels=num_labels, hidden_size=args.hidden)
+        print("SECONDARY MODEL", main_model, sep="\n")
         ## Map the labels
         idx_to_labels = {v[1]: v[0] for v in train_ds.labels_to_idx.items()}
 
@@ -285,7 +283,6 @@ if __name__ == "__main__":
         new_output_folder = os.path.join(new_output_folder, model_path)
         if not os.path.exists(new_output_folder):
             os.makedirs(new_output_folder)
-
         ## Training Arguments
         training_args = TrainingArguments(
             output_dir=new_output_folder,
@@ -295,7 +292,6 @@ if __name__ == "__main__":
             per_device_train_batch_size=batch_size,
             per_device_eval_batch_size=batch_size,
             gradient_accumulation_steps=1,
-            #gradient_checkpointing=True if "span" not in model_path else False,
             warmup_ratio=warmup_ratio,
             weight_decay=weight_decay,
             evaluation_strategy="epoch",
@@ -308,40 +304,40 @@ if __name__ == "__main__":
             dataloader_num_workers=workers,
             dataloader_pin_memory=True,
             report_to="wandb",
-            logging_steps=50,  # how often to log to W&B
+            logging_steps=3000 if batch_size==1 else 100,
+            #logging_steps=50 if ("bert-" not in model_path and "albert" not in model_path) else 3000,  # how often to log to W&B
         )
 
         ## Collator
         data_collator = DefaultDataCollator()
 
         ## Trainer
-
-        trainer = Trainer(
-            model=model,
+        trainer_main = Trainer(
+            model=main_model,
             args=training_args,
             train_dataset=train_ds,
             eval_dataset=val_ds,
             data_collator=data_collator,
             compute_metrics=compute_metrics,
+            callbacks=[EarlyStoppingCallback(2)]
         )
 
+        trainer_sec = Trainer(
+            model=sec_model,
+            args=training_args,
+            train_dataset=train_ds_small,
+            eval_dataset=val_ds_small,
+            data_collator=data_collator,
+            compute_metrics=compute_metrics,
+            callbacks=[EarlyStoppingCallback(2)]
+        )
         ## Train the model and save it
-        print("** ENSEMBLE ON - STARTING **")
-        trainer.train()
-        trainer.save_model(output_folder)
-        trainer.evaluate()
+        print("**\tCRF ON\t**")
+        
+        """trainer_main.train()
+        trainer_main.save_model(output_folder)
+        trainer_main.evaluate()"""
 
-
-
-"""python 3.10
-Example of usage:
-python main_crf.py \
-    --ds_train_path data/NER_TRAIN/NER_TRAIN_ALL.json \
-    --ds_valid_path data/NER_DEV/NER_DEV_ALL.json \
-    --output_folder results/ \
-    --batch 256 \
-    --num_epochs 5 \
-    --lr 1e-4 \
-    --weight_decay 0.01 \
-    --warmup_ratio 0.06
-"""
+        trainer_sec.train()
+        trainer_sec.save_model(output_folder)
+        trainer_sec.evaluate()
