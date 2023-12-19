@@ -13,9 +13,9 @@ from utils.dataset import LegalNERTokenDataset
 import spacy
 nlp = spacy.load("en_core_web_sm")
 
-class CustomModelWithCRF(nn.Module):
-    def __init__(self, model_path, num_labels, freeze=False, hidden_size=768, dropout=0.1, sec=False, spec_mask=None):
-        super(CustomModelWithCRF, self).__init__()
+class Primary(nn.Module):
+    def __init__(self, model_path, num_labels, freeze=False, hidden_size=768, dropout=0.1, spec_mask=None):
+        super(Primary, self).__init__()
         self.device = "cpu" if not cuda.is_available() else "cuda"
         self.bert = AutoModel.from_pretrained(model_path, ignore_mismatched_sizes=True)
         if freeze:
@@ -24,7 +24,6 @@ class CustomModelWithCRF(nn.Module):
         self.dropout = nn.Dropout(dropout)
         self.linear = nn.Linear(hidden_size, num_labels)
         self.crf = CRF(num_labels, batch_first=True)
-        self.sec = sec
         self.weight_factor = 0.5
         self.specialized_labels = spec_mask
 
@@ -33,27 +32,56 @@ class CustomModelWithCRF(nn.Module):
         sequence_out = outputs[0]
         logits = self.linear(self.dropout(sequence_out))
 
-        if self.sec:
-            sec_model.eval()
-            logits2 = sec_model(input_ids=input_ids, token_type_ids=token_type_ids, attention_mask=attention_mask, labels=labels)
-            # Apply softmax to obtain probabilities
-            combined_logits = logits.clone()
-            specialized_mask = zeros_like(combined_logits, dtype=bool)
-            for label in self.specialized_labels:
-                specialized_mask[:, :, labels_to_idx[label]] = True
-            
+        
+        sec_model.eval()
+        logits2 = sec_model(input_ids=input_ids, token_type_ids=token_type_ids, attention_mask=attention_mask, labels=labels)
+        # Apply softmax to obtain probabilities
+        combined_logits = logits.clone()
+        specialized_mask = zeros_like(combined_logits, dtype=bool)
+        for label in self.specialized_labels:
+            specialized_mask[:, :, labels_to_idx[label]] = True
     
-            combined_logits[specialized_mask] = (1 - self.weight_factor) * logits[specialized_mask] + self.weight_factor * logits2[1][specialized_mask]
+        combined_logits[specialized_mask] = (1 - self.weight_factor) * logits[specialized_mask] + self.weight_factor * logits2[1][specialized_mask]
 
-            final_logits=combined_logits
-        else:
-            final_logits=logits
+        final_logits=combined_logits
+        
         if labels != None:
             crf_loss = -self.crf(final_logits, labels, mask=attention_mask.bool(), reduction="mean" if batch_size!=1 else "token_mean") # if not mean, it is sum by default
             return (crf_loss, logits)
         else:
             outputs = self.crf.decode(final_logits, attention_mask.bool())
             return outputs
+        
+class Secondary(nn.Module):
+    def __init__(self, model_path, num_labels, freeze=False, hidden_size=768, dropout=0.1, spec_mask=None):
+        super(Secondary, self).__init__()
+        self.device = "cpu" if not cuda.is_available() else "cuda"
+        self.bert = AutoModelForTokenClassification.from_pretrained(model_path, ignore_mismatched_sizes=True)
+        if freeze:
+            self.bert.encoder.requires_grad_(False)
+        # https://github.com/huggingface/transformers/issues/1431
+        self.dropout = nn.Dropout(dropout)
+        self.linear = nn.Linear(hidden_size, num_labels)
+        self.specialized_labels = spec_mask
+
+    def forward(self, input_ids, attention_mask, token_type_ids=None, labels=None):
+        outputs = self.bert(input_ids=input_ids, token_type_ids=token_type_ids, attention_mask=attention_mask)
+        sequence_out = outputs[0]
+        logits = self.linear(self.dropout(sequence_out))
+
+        if labels is not None:
+            selected_labels = self.specialized_labels
+            selected_mask = zeros_like(logits, dtype=bool)
+            for label in selected_labels:
+                selected_mask[:, :, labels_to_idx[label]] = True
+            
+            # Compute your custom loss only for selected labels
+            custom_loss = nn.functional.cross_entropy(logits[selected_mask], labels[selected_mask], reduction='mean')
+            return (custom_loss, logits)
+        else:
+            # Return logits or any other outputs
+            return outputs
+
     
 ############################################################
 #                                                          #
@@ -290,16 +318,16 @@ if __name__ == "__main__":
             use_roberta=use_roberta
         )
         print("LABELS: ", labels_list)
-        sec_model = CustomModelWithCRF(model_path_secondary, num_labels=num_labels, hidden_size=args.hidden)
-        print("SECONDARY MODEL", sec_model, sep="\n")
-
         # Create label mask
         labels_to_specialize = ["ORG", "GPE", "PRECEDENT"]
         labels_mask = ["B-" + l for l in labels_to_specialize]
         labels_mask += ["I-" + l for l in labels_to_specialize]
-        print(labels_mask)
+        print("LABEL MASK", labels_mask)
+        sec_model = Secondary(model_path_secondary, num_labels=num_labels, hidden_size=args.hidden, spec_mask=labels_mask)
+        print("SECONDARY MODEL", sec_model, sep="\n")
 
-        main_model = CustomModelWithCRF(model_path, num_labels=num_labels, hidden_size=args.hidden, sec=True, spec_mask=labels_mask)
+    
+        main_model = Primary(model_path, num_labels=num_labels, hidden_size=args.hidden, sec=True, spec_mask=labels_mask)
         print("MAIN MODEL", main_model, sep="\n")
         
         ## Map the labels
