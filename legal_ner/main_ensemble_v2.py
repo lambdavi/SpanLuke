@@ -290,7 +290,9 @@ if __name__ == "__main__":
         print("LABELS: ", labels_list)
         sec_model = CustomModelWithCRF(model_path_secondary, num_labels=num_labels, hidden_size=args.hidden)
         print("SECONDARY MODEL", sec_model, sep="\n")
-        main_model = CustomModelWithCRF(model_path, num_labels=num_labels, hidden_size=args.hidden, sec=sec_model, spec_mask=3*[0,0,0,0,0,1,1,0,0,1,0,0,0])
+        label_mask = 3*[0,0,0,0,0,1,1,0,0,1,0,0,0]
+        print(label_mask)
+        main_model = CustomModelWithCRF(model_path, num_labels=num_labels, hidden_size=args.hidden, sec=sec_model, spec_mask=label_mask)
         print("MAIN MODEL", main_model, sep="\n")
        
         ## Map the labels
