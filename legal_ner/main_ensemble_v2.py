@@ -51,27 +51,6 @@ class CustomModelWithCRF(nn.Module):
         else:
             outputs = self.crf.decode(combined_logits, attention_mask.bool())
             return outputs
-    def forward(self, input_ids, attention_mask, token_type_ids=None, labels=None):
-        # Get logits from the main model
-        main_logits = self.main_model(input_ids, attention_mask, token_type_ids, labels)
-
-        # Get logits from the specialized model
-        specialized_logits = self.specialized_model(input_ids, attention_mask, token_type_ids, labels)
-
-        # Apply softmax to obtain probabilities
-        main_probs = F.softmax(main_logits, dim=-1)
-        specialized_probs = F.softmax(specialized_logits, dim=-1)
-
-        # Combine logits using weighted average
-        combined_logits = (1 - self.weight_factor) * main_logits + self.weight_factor * specialized_logits
-
-        if labels is not None:
-            # Calculate the loss using the combined logits
-            crf_loss = -self.main_model.crf(combined_logits, labels, mask=attention_mask.bool(), reduction="mean")
-            return (crf_loss, combined_logits)
-        else:
-            # Return the combined logits
-            return combined_logits
 
 
 ############################################################
@@ -311,7 +290,7 @@ if __name__ == "__main__":
         print("LABELS: ", labels_list)
         sec_model = CustomModelWithCRF(model_path_secondary, num_labels=num_labels, hidden_size=args.hidden)
         print("SECONDARY MODEL", sec_model, sep="\n")
-        main_model = CustomModelWithCRF(model_path, num_labels=num_labels, hidden_size=args.hidden, sec=sec_model, spec_mask=29*[0])
+        main_model = CustomModelWithCRF(model_path, num_labels=num_labels, hidden_size=args.hidden, sec=sec_model, spec_mask=3*[0,0,0,0,0,1,1,0,0,1,0,0,0])
         print("MAIN MODEL", main_model, sep="\n")
        
         ## Map the labels
