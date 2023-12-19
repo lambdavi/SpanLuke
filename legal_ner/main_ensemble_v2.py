@@ -45,11 +45,14 @@ class CustomModelWithCRF(nn.Module):
                 specialized_mask[:, :, self.specialized_model.labels_to_idx[label]] = True
             combined_logits[specialized_mask] = (1 - self.weight_factor) * logits[specialized_mask] + self.weight_factor * logits2[specialized_mask]
             print(combined_logits)
+            final_logits=combined_logits
+        else:
+            final_logits=logits
         if labels != None:
-            crf_loss = -self.crf(combined_logits, labels, mask=attention_mask.bool(), reduction="mean" if batch_size!=1 else "token_mean") # if not mean, it is sum by default
+            crf_loss = -self.crf(final_logits, labels, mask=attention_mask.bool(), reduction="mean" if batch_size!=1 else "token_mean") # if not mean, it is sum by default
             return (crf_loss, logits)
         else:
-            outputs = self.crf.decode(combined_logits, attention_mask.bool())
+            outputs = self.crf.decode(final_logits, attention_mask.bool())
             return outputs
 
 
