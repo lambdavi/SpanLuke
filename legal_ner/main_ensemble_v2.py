@@ -36,6 +36,8 @@ class CustomModelWithCRF(nn.Module):
         if self.sec:
             sec_model.eval()
             logits2 = sec_model(input_ids=input_ids, token_type_ids=token_type_ids, attention_mask=attention_mask, labels=labels)
+            print(type(logits2))
+            logits2= tensor(logits2)
             # Apply softmax to obtain probabilities
             combined_logits = logits.clone()
             specialized_mask = zeros_like(combined_logits, dtype=bool)
