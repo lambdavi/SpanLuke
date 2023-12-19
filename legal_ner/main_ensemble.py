@@ -256,7 +256,7 @@ if __name__ == "__main__":
         )
 
         train_ds_small = LegalNERTokenDataset(
-            "data/NER_DEV/NER_TRAIN_SMALL.json", 
+            "data/NER_TRAIN/NER_TRAIN_SMALL.json", 
             model_path_secondary, 
             labels_list=labels_list, 
             split="train", 
