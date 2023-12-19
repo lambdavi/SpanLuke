@@ -361,9 +361,9 @@ if __name__ == "__main__":
         ## Train the model and save it
         print("**\tCRF ON\t**")
         
-        """trainer_sec.train()
+        trainer_sec.train()
         trainer_sec.save_model(output_folder)
-        trainer_sec.evaluate()"""
+        trainer_sec.evaluate()
 
         trainer_main.train()
         trainer_main.save_model(output_folder)
