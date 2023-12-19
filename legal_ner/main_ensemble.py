@@ -268,7 +268,7 @@ if __name__ == "__main__":
         )
 
         train_ds_small = LegalNERTokenDataset(
-            "data/NER_TRAIN/NER_TRAIN_SMALL.json", 
+            "data/NER_TRAIN/NER_TRAIN_SMALL_T.json", 
             model_path_secondary, 
             labels_list=labels_list_sec, 
             split="train", 
@@ -346,9 +346,11 @@ if __name__ == "__main__":
         ## Train the model and save it
         print("**\tCRF ON\t**")
         
-        trainer_main.train()
+        """trainer_main.train()
         trainer_main.save_model(output_folder)
-        trainer_main.evaluate()
+        trainer_main.evaluate()"""
+
+        data_collator = DefaultDataCollator()
 
         idx_to_labels = {v[1]: v[0] for v in train_ds_small.labels_to_idx.items()}
         print("Done")
