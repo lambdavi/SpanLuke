@@ -25,7 +25,7 @@ class CustomModelWithCRF(nn.Module):
         self.linear = nn.Linear(hidden_size, num_labels)
         self.crf = CRF(num_labels, batch_first=True)
         self.sec = sec
-        self.weight_factor = 0.7
+        self.weight_factor = 0.5
         self.specialized_labels = spec_mask
 
     def forward(self, input_ids, attention_mask, token_type_ids=None, labels=None):
