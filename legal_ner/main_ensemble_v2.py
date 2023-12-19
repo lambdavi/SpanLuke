@@ -7,7 +7,7 @@ from torchcrf import CRF  # Import CRF layer
 from transformers import EarlyStoppingCallback
 from transformers import AutoModelForTokenClassification, AutoModel
 from transformers import Trainer, DefaultDataCollator, TrainingArguments
-from torch import nn,cuda, zeros_like, bool, where, tensor
+from torch import nn,cuda, zeros_like, bool, where, Tensor
 from utils.dataset import LegalNERTokenDataset
 
 import spacy
