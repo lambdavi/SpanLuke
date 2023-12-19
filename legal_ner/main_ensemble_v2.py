@@ -357,6 +357,7 @@ if __name__ == "__main__":
         trainer_sec.evaluate()
 
         training_args.load_best_model_at_end=True
+        training_args.num_train_epochs=num_epochs//2
         trainer_main = Trainer(
             model=main_model,
             args=training_args,
