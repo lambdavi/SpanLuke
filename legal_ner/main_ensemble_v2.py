@@ -327,7 +327,7 @@ if __name__ == "__main__":
         print("SECONDARY MODEL", sec_model, sep="\n")
 
     
-        main_model = Primary(model_path, num_labels=num_labels, hidden_size=args.hidden, sec=True, spec_mask=labels_mask)
+        main_model = Primary(model_path, num_labels=num_labels, hidden_size=args.hidden, spec_mask=labels_mask)
         print("MAIN MODEL", main_model, sep="\n")
         
         ## Map the labels
