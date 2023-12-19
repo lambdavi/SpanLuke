@@ -186,7 +186,7 @@ if __name__ == "__main__":
 
     labels_list_sec = ["B-" + l for l in original_label_list_second]
     labels_list_sec += ["I-" + l for l in original_label_list_second]
-    num_labels_sec = len(labels_list) + 1
+    num_labels_sec = len(original_label_list_second) + 1
 
     ## Compute metrics
     def compute_metrics(pred):
