@@ -70,8 +70,7 @@ class Secondary(nn.Module):
         logits = self.linear(self.dropout(sequence_out))
 
         if labels is not None:
-            selected_labels = ["A", "B", "C"]
-            selected_indices = [labels_to_idx[label] for label in selected_labels]
+            selected_indices = [labels_to_idx[label] for label in self.specialized_labels]
 
             # Index logits and labels to get the selected logits and labels
             selected_logits = logits[:, :, selected_indices]
