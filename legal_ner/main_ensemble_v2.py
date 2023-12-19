@@ -7,7 +7,7 @@ from torchcrf import CRF  # Import CRF layer
 from transformers import EarlyStoppingCallback
 from transformers import AutoModelForTokenClassification, AutoModel
 from transformers import Trainer, DefaultDataCollator, TrainingArguments
-from torch import nn,cuda, zeros_like, bool, where
+from torch import nn,cuda, zeros_like, bool, where, tensor
 from utils.dataset import LegalNERTokenDataset
 
 import spacy
@@ -35,11 +35,10 @@ class CustomModelWithCRF(nn.Module):
 
         if self.sec:
             sec_model.eval()
-            logits2 = sec_model(input_ids=input_ids, token_type_ids=token_type_ids, attention_mask=attention_mask)
+            logits2 = tensor(sec_model(input_ids=input_ids, token_type_ids=token_type_ids, attention_mask=attention_mask))
             # Apply softmax to obtain probabilities
             combined_logits = logits.clone()
             specialized_mask = zeros_like(combined_logits, dtype=bool)
-            print(type(logits), type(logits2))
             for label in self.specialized_labels:
                 specialized_mask[:, :, labels_to_idx[label]] = True
             
