@@ -37,6 +37,7 @@ class CustomModelWithCRF(nn.Module):
             sec_model.eval()
             logits2 = sec_model(input_ids=input_ids, token_type_ids=token_type_ids, attention_mask=attention_mask)
             # Apply softmax to obtain probabilities
+            print(logits[0].shape, logits2[0].shape)
             combined_logits = logits.clone()
             specialized_mask = zeros_like(combined_logits, dtype=bool)
             for label in self.specialized_labels:
@@ -290,9 +291,14 @@ if __name__ == "__main__":
         print("LABELS: ", labels_list)
         sec_model = CustomModelWithCRF(model_path_secondary, num_labels=num_labels, hidden_size=args.hidden)
         print("SECONDARY MODEL", sec_model, sep="\n")
-        label_mask = 3*[0,0,0,0,0,1,1,0,0,1,0,0,0]
-        print(label_mask)
-        main_model = CustomModelWithCRF(model_path, num_labels=num_labels, hidden_size=args.hidden, sec=True, spec_mask=label_mask)
+
+        # Create label mask
+        labels_to_specialize = ["ORG", "GPE", "PRECEDENT"]
+        labels_mask = ["B-" + l for l in labels_to_specialize]
+        labels_mask += ["I-" + l for l in labels_to_specialize]
+        print(labels_mask)
+
+        main_model = CustomModelWithCRF(model_path, num_labels=num_labels, hidden_size=args.hidden, sec=True, spec_mask=labels_mask)
         print("MAIN MODEL", main_model, sep="\n")
         
         ## Map the labels
