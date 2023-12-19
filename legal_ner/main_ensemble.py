@@ -354,8 +354,6 @@ if __name__ == "__main__":
         data_collator = DefaultDataCollator()
 
         idx_to_labels = {v[1]: v[0] for v in train_ds_small.labels_to_idx.items()}
-        print("Done")
         trainer_sec.train()
-        print("Here2")
         trainer_sec.save_model(output_folder)
         trainer_sec.evaluate()
