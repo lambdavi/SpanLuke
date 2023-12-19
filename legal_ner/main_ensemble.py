@@ -351,7 +351,7 @@ if __name__ == "__main__":
         trainer_main.evaluate()"""
 
         idx_to_labels = {v[1]: v[0] for v in train_ds_small.labels_to_idx.items()}
-
+        print("Done")
         trainer_sec.train()
         trainer_sec.save_model(output_folder)
         trainer_sec.evaluate()

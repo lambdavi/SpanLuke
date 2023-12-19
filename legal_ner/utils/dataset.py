@@ -33,6 +33,7 @@ class LegalNERTokenDataset(Dataset):
             self.labels_to_idx = dict(
                 zip(sorted(self.labels_list)[::-1], range(len(self.labels_list)))
             )
+        print(self.labels_list)
 
     def __len__(self):
         return len(self.data)
@@ -61,6 +62,8 @@ class LegalNERTokenDataset(Dataset):
 
         ## Match the labels
         aligned_labels = match_labels(inputs, annotations)
+        print(annotations)
+        print(aligned_labels)
         aligned_labels = [self.labels_to_idx[l] for l in aligned_labels]
         inputs["input_ids"] = inputs["input_ids"].squeeze(0).long()
         inputs["attention_mask"] = inputs["attention_mask"].squeeze(0).long()
