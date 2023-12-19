@@ -7,7 +7,7 @@ from torchcrf import CRF  # Import CRF layer
 from transformers import EarlyStoppingCallback
 from transformers import AutoModelForTokenClassification, AutoModel
 from transformers import Trainer, DefaultDataCollator, TrainingArguments
-from torch import nn,cuda
+from torch import nn,cuda, zeros_like, bool
 from utils.dataset import LegalNERTokenDataset
 
 import spacy
@@ -28,23 +28,52 @@ class CustomModelWithCRF(nn.Module):
         self.sec = sec
         if sec is not None:
             self.sec.eval()
+            self.weigth_factor = 0.7
 
     def forward(self, input_ids, attention_mask, token_type_ids=None, labels=None):
         outputs = self.bert(input_ids=input_ids, token_type_ids=token_type_ids, attention_mask=attention_mask)
         sequence_out = outputs[0]
         logits = self.linear(self.dropout(sequence_out))
+
         if self.sec is not None:
             logits2 = self.sec(input_ids=input_ids, token_type_ids=token_type_ids, attention_mask=attention_mask)
-            print(logits, logits2)
+            # Apply softmax to obtain probabilities
+            main_probs = nn.functional.softmax(logits, dim=-1)
+            specialized_probs = nn.functional.softmax(logits2, dim=-1)
+            print("PROBS: ", main_probs, specialized_probs)
+            combined_logits = logits.clone()
+            specialized_mask = zeros_like(combined_logits, dtype=bool)
+            for label in self.specialized_labels:
+                specialized_mask[:, :, self.specialized_model.labels_to_idx[label]] = True
+            combined_logits[specialized_mask] = (1 - self.weight_factor) * logits[specialized_mask] + self.weight_factor * logits2[specialized_mask]
+            print(combined_logits)
         if labels != None:
-            crf_loss = -self.crf(logits, labels, mask=attention_mask.bool(), reduction="mean" if batch_size!=1 else "token_mean") # if not mean, it is sum by default
+            crf_loss = -self.crf(combined_logits, labels, mask=attention_mask.bool(), reduction="mean" if batch_size!=1 else "token_mean") # if not mean, it is sum by default
             return (crf_loss, logits)
         else:
-            outputs = self.crf.decode(logits, attention_mask.bool())
-            outputs2 = self.sec.crf.decode(logits, attention_mask.bool())
-            print(outputs.shape, outputs2.shape)
-            print(outputs, outputs2)
+            outputs = self.crf.decode(combined_logits, attention_mask.bool())
             return outputs
+    def forward(self, input_ids, attention_mask, token_type_ids=None, labels=None):
+        # Get logits from the main model
+        main_logits = self.main_model(input_ids, attention_mask, token_type_ids, labels)
+
+        # Get logits from the specialized model
+        specialized_logits = self.specialized_model(input_ids, attention_mask, token_type_ids, labels)
+
+        # Apply softmax to obtain probabilities
+        main_probs = F.softmax(main_logits, dim=-1)
+        specialized_probs = F.softmax(specialized_logits, dim=-1)
+
+        # Combine logits using weighted average
+        combined_logits = (1 - self.weight_factor) * main_logits + self.weight_factor * specialized_logits
+
+        if labels is not None:
+            # Calculate the loss using the combined logits
+            crf_loss = -self.main_model.crf(combined_logits, labels, mask=attention_mask.bool(), reduction="mean")
+            return (crf_loss, combined_logits)
+        else:
+            # Return the combined logits
+            return combined_logits
 
 
 ############################################################
@@ -281,6 +310,7 @@ if __name__ == "__main__":
             split="val", 
             use_roberta=use_roberta
         )
+        print("LABELS: ", labels_list)
         sec_model = CustomModelWithCRF(model_path_secondary, num_labels=num_labels, hidden_size=args.hidden)
         print("SECONDARY MODEL", sec_model, sep="\n")
         main_model = CustomModelWithCRF(model_path, num_labels=num_labels, hidden_size=args.hidden, sec=sec_model)
