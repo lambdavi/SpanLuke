@@ -62,7 +62,6 @@ class LegalNERTokenDataset(Dataset):
 
         ## Match the labels
         aligned_labels = match_labels(inputs, annotations)
-        print(annotations)
         print(aligned_labels)
         aligned_labels = [self.labels_to_idx[l] for l in aligned_labels]
         inputs["input_ids"] = inputs["input_ids"].squeeze(0).long()
@@ -83,5 +82,5 @@ class LegalNERTokenDataset(Dataset):
                 inputs[column_name] = aligned_labels
             else:
                 inputs[column_name] = labels[: inputs["attention_mask"].shape[0]]
-
+        print("END 1")
         return inputs
