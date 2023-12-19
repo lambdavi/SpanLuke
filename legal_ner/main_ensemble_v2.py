@@ -42,7 +42,8 @@ class CustomModelWithCRF(nn.Module):
             for label in self.specialized_labels:
                 specialized_mask[:, :, labels_to_idx[label]] = True
             
-            combined_logits = where(specialized_mask, (1 - self.weight_factor) * logits + self.weight_factor * logits2, logits)
+            print(specialized_mask)
+            combined_logits = where(tensor(specialized_mask, bool), (1 - self.weight_factor) * logits + self.weight_factor * logits2, logits)
             print(combined_logits)
             final_logits=combined_logits
         else:
