@@ -59,14 +59,13 @@ class Secondary(nn.Module):
         if freeze:
             self.bert.encoder.requires_grad_(False)
         # https://github.com/huggingface/transformers/issues/1431
-        self.dropout = nn.Dropout(dropout)
         self.bert.classifier = nn.Linear(hidden_size, num_labels)
         self.specialized_labels = spec_mask
 
     def forward(self, input_ids, attention_mask, token_type_ids=None, labels=None):
         outputs = self.bert(input_ids=input_ids, token_type_ids=token_type_ids, attention_mask=attention_mask, output_hidden_states=True)
         logits = outputs[-1]
-
+        print(logits)
         if labels is not None:
             selected_indices = [labels_to_idx[label] for label in self.specialized_labels]
 
