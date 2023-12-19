@@ -70,15 +70,16 @@ class Secondary(nn.Module):
         logits = self.linear(self.dropout(sequence_out))
 
         if labels is not None:
-            selected_labels = self.specialized_labels
-            selected_mask = zeros_like(logits, dtype=bool)
-            for label in selected_labels:
-                selected_mask[:, :, labels_to_idx[label]] = True
-            
+            selected_labels = ["A", "B", "C"]
+            selected_indices = [labels_to_idx[label] for label in selected_labels]
+
+            # Index logits and labels to get the selected logits and labels
+            selected_logits = logits[:, :, selected_indices]
+            selected_labels_batch = labels[:, selected_indices]
+
             # Compute your custom loss only for selected labels
-            custom_loss = nn.functional.cross_entropy(logits[selected_mask], labels[selected_mask], reduction='mean')
+            custom_loss = nn.functional.cross_entropy(selected_logits, selected_labels_batch, reduction='mean')
             return (custom_loss, logits)
-        else:
             # Return logits or any other outputs
             return outputs
 
