@@ -19,7 +19,7 @@ def filter_entries_by_labels(input_json, output_json, target_labels):
             # Update the labels in the entry
             for annotation in entry.get('annotations', []):
                 for result, mapped in zip(annotation.get('result', []), mapped_labels):
-                    result['value']['labels'] = mapped
+                    result['value']['labels'] = [mapped]
 
             filtered_data.append(entry)
     with open(output_json, 'w', encoding='utf-8') as file:
