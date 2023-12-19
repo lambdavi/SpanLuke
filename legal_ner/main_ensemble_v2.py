@@ -14,7 +14,7 @@ import spacy
 nlp = spacy.load("en_core_web_sm")
 
 class CustomModelWithCRF(nn.Module):
-    def __init__(self, model_path, num_labels, freeze=False, hidden_size=768, dropout=0.1, sec=None, spec_mask=None):
+    def __init__(self, model_path, num_labels, freeze=False, hidden_size=768, dropout=0.1, sec=False, spec_mask=None):
         super(CustomModelWithCRF, self).__init__()
         self.device = "cpu" if not cuda.is_available() else "cuda"
         self.bert = AutoModel.from_pretrained(model_path, ignore_mismatched_sizes=True)
@@ -25,18 +25,17 @@ class CustomModelWithCRF(nn.Module):
         self.linear = nn.Linear(hidden_size, num_labels)
         self.crf = CRF(num_labels, batch_first=True)
         self.sec = sec
-        if sec is not None:
-            self.sec.eval()
-            self.weigth_factor = 0.7
-            self.specialized_labels = spec_mask
+        self.weigth_factor = 0.7
+        self.specialized_labels = spec_mask
 
     def forward(self, input_ids, attention_mask, token_type_ids=None, labels=None):
         outputs = self.bert(input_ids=input_ids, token_type_ids=token_type_ids, attention_mask=attention_mask)
         sequence_out = outputs[0]
         logits = self.linear(self.dropout(sequence_out))
 
-        if self.sec is not None:
-            logits2 = self.sec(input_ids=input_ids, token_type_ids=token_type_ids, attention_mask=attention_mask)
+        if self.sec:
+            self.sec_model.eval()
+            logits2 = self.sec_model(input_ids=input_ids, token_type_ids=token_type_ids, attention_mask=attention_mask)
             # Apply softmax to obtain probabilities
             print(logits.shape, logits2.shape)
             combined_logits = logits.clone()
@@ -55,10 +54,6 @@ class CustomModelWithCRF(nn.Module):
             outputs = self.crf.decode(final_logits, attention_mask.bool())
             return outputs
     
-    def return_logits(self):
-        pass
-
-
 ############################################################
 #                                                          #
 #                           MAIN                           #
@@ -298,7 +293,7 @@ if __name__ == "__main__":
         print("SECONDARY MODEL", sec_model, sep="\n")
         label_mask = 3*[0,0,0,0,0,1,1,0,0,1,0,0,0]
         print(label_mask)
-        main_model = CustomModelWithCRF(model_path, num_labels=num_labels, hidden_size=args.hidden, sec=sec_model, spec_mask=label_mask)
+        main_model = CustomModelWithCRF(model_path, num_labels=num_labels, hidden_size=args.hidden, sec=True, spec_mask=label_mask)
         print("MAIN MODEL", main_model, sep="\n")
         
         ## Map the labels
