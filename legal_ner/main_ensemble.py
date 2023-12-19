@@ -346,9 +346,9 @@ if __name__ == "__main__":
         ## Train the model and save it
         print("**\tCRF ON\t**")
         
-        """trainer_main.train()
+        trainer_main.train()
         trainer_main.save_model(output_folder)
-        trainer_main.evaluate()"""
+        trainer_main.evaluate()
 
         idx_to_labels = {v[1]: v[0] for v in train_ds_small.labels_to_idx.items()}
         print("Done")

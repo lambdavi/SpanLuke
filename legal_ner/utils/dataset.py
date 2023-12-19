@@ -20,6 +20,7 @@ class LegalNERTokenDataset(Dataset):
         self.model_path = model_path
         self.data = json.load(open(dataset_path))
         self.split = split
+        print("LABELS_LIST", labels_list)
         self.use_roberta = use_roberta
         print("Using roberta config" if use_roberta else "Not using Roberta config")
         self.column_names = ["tokens", "ner_tags"]
@@ -62,7 +63,6 @@ class LegalNERTokenDataset(Dataset):
 
         ## Match the labels
         aligned_labels = match_labels(inputs, annotations)
-        print(aligned_labels)
         aligned_labels = [self.labels_to_idx[l] for l in aligned_labels]
         inputs["input_ids"] = inputs["input_ids"].squeeze(0).long()
         inputs["attention_mask"] = inputs["attention_mask"].squeeze(0).long()
