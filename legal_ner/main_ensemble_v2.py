@@ -14,13 +14,12 @@ import spacy
 nlp = spacy.load("en_core_web_sm")
 
 class CustomModelWithCRF(nn.Module):
-    def __init__(self, model_path, num_labels, freeze=False, hidden_size=768, dropout=0.1, sec=None):
+    def __init__(self, model_path, num_labels, freeze=False, hidden_size=768, dropout=0.1, sec=None, spec_mask=None):
         super(CustomModelWithCRF, self).__init__()
         self.device = "cpu" if not cuda.is_available() else "cuda"
         self.bert = AutoModel.from_pretrained(model_path, ignore_mismatched_sizes=True)
         if freeze:
             self.bert.encoder.requires_grad_(False)
-
         # https://github.com/huggingface/transformers/issues/1431
         self.dropout = nn.Dropout(dropout)
         self.linear = nn.Linear(hidden_size, num_labels)
@@ -29,6 +28,7 @@ class CustomModelWithCRF(nn.Module):
         if sec is not None:
             self.sec.eval()
             self.weigth_factor = 0.7
+            self.specialized_mask = spec_mask
 
     def forward(self, input_ids, attention_mask, token_type_ids=None, labels=None):
         outputs = self.bert(input_ids=input_ids, token_type_ids=token_type_ids, attention_mask=attention_mask)
@@ -311,7 +311,7 @@ if __name__ == "__main__":
         print("LABELS: ", labels_list)
         sec_model = CustomModelWithCRF(model_path_secondary, num_labels=num_labels, hidden_size=args.hidden)
         print("SECONDARY MODEL", sec_model, sep="\n")
-        main_model = CustomModelWithCRF(model_path, num_labels=num_labels, hidden_size=args.hidden, sec=sec_model)
+        main_model = CustomModelWithCRF(model_path, num_labels=num_labels, hidden_size=args.hidden, sec=sec_model, spec_mask=29*[0])
         print("MAIN MODEL", main_model, sep="\n")
        
         ## Map the labels
