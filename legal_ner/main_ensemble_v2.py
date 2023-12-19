@@ -63,7 +63,8 @@ class Secondary(nn.Module):
         self.specialized_labels = spec_mask
 
     def forward(self, input_ids, attention_mask, token_type_ids=None, labels=None):
-        logits = self.bert(input_ids=input_ids, token_type_ids=token_type_ids, attention_mask=attention_mask)[1]
+        logits = self.bert(input_ids=input_ids, token_type_ids=token_type_ids, attention_mask=attention_mask)
+        print(type(logits))
         if labels is not None:
             selected_indices = [labels_to_idx[label] for label in self.specialized_labels]
 
@@ -76,7 +77,7 @@ class Secondary(nn.Module):
             return (custom_loss, logits)
         else:
             # Return logits or any other outputs
-            return logits
+            return #output_classifier
 
     
 ############################################################
