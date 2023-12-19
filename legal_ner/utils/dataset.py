@@ -3,7 +3,10 @@ import json
 from torch.utils.data import Dataset
 import numpy as np
 from transformers import AutoTokenizer, RobertaTokenizerFast
-from utils import match_labels
+from utils.utils import match_labels
+
+import spacy
+nlp = spacy.load("en_core_web_sm")
 
 ############################################################
 #                                                          #
