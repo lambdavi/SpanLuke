@@ -34,8 +34,8 @@ class CustomModelWithCRF(nn.Module):
         logits = self.linear(self.dropout(sequence_out))
 
         if self.sec:
-            self.sec_model.eval()
-            logits2 = self.sec_model(input_ids=input_ids, token_type_ids=token_type_ids, attention_mask=attention_mask)
+            sec_model.eval()
+            logits2 = sec_model(input_ids=input_ids, token_type_ids=token_type_ids, attention_mask=attention_mask)
             # Apply softmax to obtain probabilities
             print(logits[0].shape, logits2[0].shape)
             combined_logits = logits.clone()
