@@ -191,6 +191,7 @@ if __name__ == "__main__":
 
     ## Compute metrics
     def compute_metrics(pred):
+        print("Here")
         # Preds
         predictions = np.argmax(pred.predictions, axis=-1)
         predictions = np.concatenate(predictions, axis=0)
@@ -355,5 +356,6 @@ if __name__ == "__main__":
         idx_to_labels = {v[1]: v[0] for v in train_ds_small.labels_to_idx.items()}
         print("Done")
         trainer_sec.train()
+        print("Here2")
         trainer_sec.save_model(output_folder)
         trainer_sec.evaluate()
