@@ -32,7 +32,6 @@ class Primary(nn.Module):
         sequence_out = outputs[0]
         logits = self.linear(self.dropout(sequence_out))
 
-        
         sec_model.eval()
         logits2 = sec_model(input_ids=input_ids, token_type_ids=token_type_ids, attention_mask=attention_mask, labels=labels)
         # Apply softmax to obtain probabilities
@@ -81,7 +80,7 @@ class Secondary(nn.Module):
             return (custom_loss, logits)
         else:
             # Return logits or any other outputs
-            return outputs
+            return logits
 
     
 ############################################################
