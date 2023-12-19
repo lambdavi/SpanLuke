@@ -54,6 +54,9 @@ class CustomModelWithCRF(nn.Module):
         else:
             outputs = self.crf.decode(final_logits, attention_mask.bool())
             return outputs
+    
+    def return_logits(self):
+        pass
 
 
 ############################################################
