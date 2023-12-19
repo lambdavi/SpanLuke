@@ -173,9 +173,20 @@ if __name__ == "__main__":
         "OTHER_PERSON",
         "LAWYER"
     ]
+
+    original_label_list_second = [
+        "ORG",
+        "GPE",
+        "PRECEDENT",
+        "OTHER"
+    ]
     labels_list = ["B-" + l for l in original_label_list]
     labels_list += ["I-" + l for l in original_label_list]
     num_labels = len(labels_list) + 1
+
+    labels_list_sec = ["B-" + l for l in original_label_list_second]
+    labels_list_sec += ["I-" + l for l in original_label_list_second]
+    num_labels_sec = len(labels_list) + 1
 
     ## Compute metrics
     def compute_metrics(pred):
@@ -258,7 +269,7 @@ if __name__ == "__main__":
         train_ds_small = LegalNERTokenDataset(
             "data/NER_TRAIN/NER_TRAIN_SMALL.json", 
             model_path_secondary, 
-            labels_list=labels_list, 
+            labels_list=labels_list_sec, 
             split="train", 
             use_roberta=use_roberta
         )
@@ -266,14 +277,14 @@ if __name__ == "__main__":
         val_ds_small = LegalNERTokenDataset(
             "data/NER_DEV/NER_DEV_SMALL.json", 
             model_path_secondary, 
-            labels_list=labels_list, 
+            labels_list=labels_list_sec, 
             split="val", 
             use_roberta=use_roberta
         )
 
         main_model = CustomModelWithCRF(model_path, num_labels=num_labels, hidden_size=args.hidden)
         print("MAIN MODEL", main_model, sep="\n")
-        sec_model = CustomModelWithCRF(model_path_secondary, num_labels=num_labels, hidden_size=args.hidden)
+        sec_model = CustomModelWithCRF(model_path_secondary, num_labels=num_labels_sec, hidden_size=args.hidden)
         print("SECONDARY MODEL", main_model, sep="\n")
         ## Map the labels
         idx_to_labels = {v[1]: v[0] for v in train_ds.labels_to_idx.items()}
