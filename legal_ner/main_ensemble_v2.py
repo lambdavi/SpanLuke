@@ -60,7 +60,7 @@ class Secondary(nn.Module):
             self.bert.encoder.requires_grad_(False)
         # https://github.com/huggingface/transformers/issues/1431
         self.dropout = nn.Dropout(dropout)
-        self.classifier = nn.Linear(hidden_size, num_labels)
+        self.bert.classifier = nn.Linear(hidden_size, num_labels)
         self.specialized_labels = spec_mask
 
     def forward(self, input_ids, attention_mask, token_type_ids=None, labels=None):
@@ -79,7 +79,7 @@ class Secondary(nn.Module):
             return (custom_loss, logits)
         else:
             # Return logits or any other outputs
-            return outputs
+            return logits
 
     
 ############################################################
