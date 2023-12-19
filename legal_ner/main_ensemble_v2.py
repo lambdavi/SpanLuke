@@ -28,7 +28,7 @@ class CustomModelWithCRF(nn.Module):
         if sec is not None:
             self.sec.eval()
             self.weigth_factor = 0.7
-            self.specialized_mask = spec_mask
+            self.specialized_labels = spec_mask
 
     def forward(self, input_ids, attention_mask, token_type_ids=None, labels=None):
         outputs = self.bert(input_ids=input_ids, token_type_ids=token_type_ids, attention_mask=attention_mask)
