@@ -350,7 +350,7 @@ if __name__ == "__main__":
         )
         ## Train the model and save it
         print("**\tCRF ON\t**")
-        
+        print("STARTING THE AUXILIARY MODEL TRAINING")
         trainer_sec.train()
         trainer_sec.save_model(output_folder)
         trainer_sec.evaluate()
@@ -366,6 +366,7 @@ if __name__ == "__main__":
             compute_metrics=compute_metrics,
             callbacks=[EarlyStoppingCallback(2)]
         )
+        print("STARTING THE MAIN MODEL TRAINING")
         trainer_main.train()
         trainer_main.save_model(output_folder)
         trainer_main.evaluate()
