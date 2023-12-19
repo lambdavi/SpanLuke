@@ -286,7 +286,7 @@ if __name__ == "__main__":
         main_model = CustomModelWithCRF(model_path, num_labels=num_labels, hidden_size=args.hidden)
         print("MAIN MODEL", main_model, sep="\n")
         sec_model = CustomModelWithCRF(model_path_secondary, num_labels=num_labels_sec, hidden_size=args.hidden)
-        print("SECONDARY MODEL", main_model, sep="\n")
+        print("SECONDARY MODEL", sec_model, sep="\n")
         ## Map the labels
         idx_to_labels = {v[1]: v[0] for v in train_ds.labels_to_idx.items()}
 
