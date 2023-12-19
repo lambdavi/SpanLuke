@@ -43,7 +43,7 @@ class CustomModelWithCRF(nn.Module):
                 specialized_mask[:, :, labels_to_idx[label]] = True
             
     
-            combined_logits[specialized_mask] = (1 - self.weight_factor) * logits[specialized_mask] + self.weight_factor * logits2[specialized_mask]
+            combined_logits[specialized_mask] = (1 - self.weight_factor) * logits[specialized_mask] + self.weight_factor * logits2[1][specialized_mask]
 
             final_logits=combined_logits
         else:
