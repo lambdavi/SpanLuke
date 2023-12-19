@@ -38,7 +38,7 @@ class CustomModelWithCRF(nn.Module):
         if self.sec is not None:
             logits2 = self.sec(input_ids=input_ids, token_type_ids=token_type_ids, attention_mask=attention_mask)
             # Apply softmax to obtain probabilities
-            print("PROBS: ", main_probs, specialized_probs)
+            print(logits, logits2)
             combined_logits = logits.clone()
             specialized_mask = zeros_like(combined_logits, dtype=bool)
             for label in self.specialized_labels:
