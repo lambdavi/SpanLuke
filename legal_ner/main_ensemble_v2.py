@@ -347,7 +347,6 @@ if __name__ == "__main__":
             eval_dataset=val_ds_small,
             data_collator=data_collator,
             compute_metrics=compute_metrics,
-            callbacks=[EarlyStoppingCallback(2)]
         )
         ## Train the model and save it
         print("**\tCRF ON\t**")
