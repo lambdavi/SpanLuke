@@ -187,11 +187,9 @@ if __name__ == "__main__":
     labels_list_sec = ["B-" + l for l in original_label_list_second]
     labels_list_sec += ["I-" + l for l in original_label_list_second]
     num_labels_sec = len(labels_list_sec) + 1
-    print(labels_list_sec)
 
     ## Compute metrics
     def compute_metrics(pred):
-        print("Here")
         # Preds
         predictions = np.argmax(pred.predictions, axis=-1)
         predictions = np.concatenate(predictions, axis=0)

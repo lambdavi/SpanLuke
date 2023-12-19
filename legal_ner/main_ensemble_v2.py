@@ -311,7 +311,7 @@ if __name__ == "__main__":
         if not os.path.exists(new_output_folder):
             os.makedirs(new_output_folder)
         ## Training Arguments
-        training_args = TrainingArguments(
+        training_args= TrainingArguments(
             output_dir=new_output_folder,
             num_train_epochs=num_epochs,
             learning_rate=lr,
@@ -323,7 +323,7 @@ if __name__ == "__main__":
             weight_decay=weight_decay,
             evaluation_strategy="epoch",
             save_strategy="epoch",
-            load_best_model_at_end=True,
+            load_best_model_at_end=False,
             save_total_limit=2,
             fp16=False,
             fp16_full_eval=False,
@@ -335,20 +335,11 @@ if __name__ == "__main__":
             #logging_steps=50 if ("bert-" not in model_path and "albert" not in model_path) else 3000,  # how often to log to W&B
         )
 
+
         ## Collator
         data_collator = DefaultDataCollator()
 
         ## Trainer
-        trainer_main = Trainer(
-            model=main_model,
-            args=training_args,
-            train_dataset=train_ds,
-            eval_dataset=val_ds,
-            data_collator=data_collator,
-            compute_metrics=compute_metrics,
-            callbacks=[EarlyStoppingCallback(2)]
-        )
-
         trainer_sec = Trainer(
             model=sec_model,
             args=training_args,
@@ -365,6 +356,16 @@ if __name__ == "__main__":
         trainer_sec.save_model(output_folder)
         trainer_sec.evaluate()
 
+        training_args.load_best_model_at_end=True
+        trainer_main = Trainer(
+            model=main_model,
+            args=training_args,
+            train_dataset=train_ds,
+            eval_dataset=val_ds,
+            data_collator=data_collator,
+            compute_metrics=compute_metrics,
+            callbacks=[EarlyStoppingCallback(2)]
+        )
         trainer_main.train()
         trainer_main.save_model(output_folder)
         trainer_main.evaluate()
