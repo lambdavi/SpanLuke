@@ -56,7 +56,7 @@ class Secondary(nn.Module):
     def __init__(self, model_path, num_labels, freeze=False, hidden_size=768, dropout=0.1, spec_mask=None):
         super(Secondary, self).__init__()
         self.device = "cpu" if not cuda.is_available() else "cuda"
-        self.bert = AutoModelForTokenClassification.from_pretrained(model_path, ignore_mismatched_sizes=True)
+        self.bert = AutoModel.from_pretrained(model_path, ignore_mismatched_sizes=True)
         if freeze:
             self.bert.encoder.requires_grad_(False)
         # https://github.com/huggingface/transformers/issues/1431
