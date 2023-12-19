@@ -39,8 +39,10 @@ class CustomModelWithCRF(nn.Module):
             # Apply softmax to obtain probabilities
             combined_logits = logits.clone()
             specialized_mask = zeros_like(combined_logits, dtype=bool)
+            print(type(logits), type(logits2))
             for label in self.specialized_labels:
                 specialized_mask[:, :, labels_to_idx[label]] = True
+            
             combined_logits[specialized_mask] = (1 - self.weight_factor) * logits[specialized_mask] + self.weight_factor * logits2[specialized_mask]
             print(combined_logits)
             final_logits=combined_logits
