@@ -1,0 +1,45 @@
+[
+  {
+    "id": "90d9a97c7b7749ec8a4f460fda6f937e",
+    "annotations": [
+        {
+            "result": [
+                {
+                    "value": {
+                        "start": 90,
+                        "end": 103,
+                        "text": "Hongkong Bank",
+                        "labels": [
+                            "ORG"
+                        ]
+                    },
+                    "id": "C8HPTIM1",
+                    "from_name": "label",
+                    "to_name": "text",
+                    "type": "labels"
+                },
+                {
+                    "value": {
+                        "start": 267,
+                        "end": 278,
+                        "text": "Rahul & Co.",
+                        "labels": [
+                            "ORG"
+                        ]
+                    },
+                    "id": "KOWE3RAM",
+                    "from_name": "label",
+                    "to_name": "text",
+                    "type": "labels"
+                }
+            ]
+        }
+    ],
+    "data": {
+        "text": "\n\n(7) On specific query by the Bench about an entry of Rs. 1,31,37,500 on deposit side of Hongkong Bank account of which a photo copy is appearing at p. 40 of assessee's paper book, learned authorised representative submitted that it was related to loan from broker, Rahul & Co. on the basis of his submission a necessary mark is put by us on that photo copy."
+    },
+    "meta": {
+        "source": "tax_districtcourts judgement https://indiankanoon.org/doc/1556717/"
+    }
+  }
+]

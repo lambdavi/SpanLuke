@@ -277,7 +277,7 @@ if __name__ == "__main__":
         )
 
         val_ds_small = LegalNERTokenDataset(
-            "data/NER_DEV/NER_DEV_SMALL.json", 
+            "data/NER_DEV/NER_DEV_SMALL_T.json", 
             model_path_secondary, 
             labels_list=labels_list_sec, 
             split="val", 
