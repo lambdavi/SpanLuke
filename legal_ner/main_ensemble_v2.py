@@ -79,6 +79,7 @@ class Secondary(nn.Module):
             # Compute your custom loss only for selected labels
             custom_loss = nn.functional.cross_entropy(selected_logits, selected_labels_batch, reduction='mean')
             return (custom_loss, logits)
+        else:
             # Return logits or any other outputs
             return outputs
 
