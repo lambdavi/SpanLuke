@@ -7,7 +7,7 @@ from torchcrf import CRF  # Import CRF layer
 from transformers import EarlyStoppingCallback
 from transformers import AutoModelForTokenClassification, AutoModel
 from transformers import Trainer, DefaultDataCollator, TrainingArguments
-from torch import nn,cuda, zeros_like, bool, where, tensor
+from torch import nn,cuda, zeros_like, bool, where, tensor, BoolTensor
 from utils.dataset import LegalNERTokenDataset
 
 import spacy
@@ -42,8 +42,10 @@ class CustomModelWithCRF(nn.Module):
             for label in self.specialized_labels:
                 specialized_mask[:, :, labels_to_idx[label]] = True
             
-            print(specialized_mask)
-            combined_logits = where(tensor(specialized_mask, bool), (1 - self.weight_factor) * logits + self.weight_factor * logits2, logits)
+            combined_logits = where(BoolTensor(specialized_mask), (1 - self.weight_factor) * logits + self.weight_factor * logits2, logits)
+            print("Done 1")
+            combined_logits[specialized_mask] = (1 - self.weight_factor) * logits[specialized_mask] + self.weight_factor * logits2[specialized_mask]
+
             print(combined_logits)
             final_logits=combined_logits
         else:
