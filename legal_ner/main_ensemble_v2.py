@@ -42,7 +42,7 @@ class CustomModelWithCRF(nn.Module):
             combined_logits = logits.clone()
             specialized_mask = zeros_like(combined_logits, dtype=bool)
             for label in self.specialized_labels:
-                specialized_mask[:, :, self.specialized_model.labels_to_idx[label]] = True
+                specialized_mask[:, :, self.sec.labels_to_idx[label]] = True
             combined_logits[specialized_mask] = (1 - self.weight_factor) * logits[specialized_mask] + self.weight_factor * logits2[specialized_mask]
             print(combined_logits)
             final_logits=combined_logits
