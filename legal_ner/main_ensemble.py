@@ -30,7 +30,6 @@ class Primary(nn.Module):
         sequence_out = outputs[0]
         logits = self.linear(self.dropout(sequence_out))
 
-        sec_model.eval()
         logits2 = sec_model(input_ids=input_ids, token_type_ids=token_type_ids, attention_mask=attention_mask, return_logits_only=True)
         logits2.to(logits.device)
         # Apply softmax to obtain probabilities
