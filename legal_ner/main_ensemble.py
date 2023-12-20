@@ -49,7 +49,7 @@ class Primary(nn.Module):
             outputs = self.crf.decode(combined_logits, attention_mask.bool())
             return outputs
 
-class SecondaryModel(nn.Module):
+"""class SecondaryModel(nn.Module):
     def __init__(self, model_path, num_labels, freeze=False, hidden_size=768, dropout=0.1):
         super(SecondaryModel, self).__init__()
         self.device = "cpu" if not cuda.is_available() else "cuda"
@@ -75,8 +75,38 @@ class SecondaryModel(nn.Module):
             return (crf_loss, logits)
         else:
             outputs = self.crf.decode(logits, attention_mask.bool())
-            return outputs
-        
+            return outputs"""
+class SecondaryModel(nn.Module):
+    def __init__(self, model_path, num_labels, freeze=False, hidden_size=768, dropout=0.1):
+        super(SecondaryModel, self).__init__()
+        self.device = "cpu" if not cuda.is_available() else "cuda"
+        self.bert = AutoModel.from_pretrained(model_path, ignore_mismatched_sizes=True)
+        if freeze:
+            self.bert.encoder.requires_grad_(False)
+
+        self.dropout = nn.Dropout(dropout)
+        self.linear = nn.Linear(hidden_size, num_labels)
+
+    def forward(self, input_ids, attention_mask, token_type_ids=None, labels=None, return_logits_only=False):
+        outputs = self.bert(input_ids=input_ids, token_type_ids=token_type_ids, attention_mask=attention_mask)
+        sequence_out = outputs[0]
+        logits = self.linear(self.dropout(sequence_out))
+
+        if return_logits_only:
+            return logits
+
+        # Compute the loss only for certain labels
+        if labels is not None:
+            # Compute the cross-entropy loss with weights
+            # ['B-ORG', 'B-GPE', 'B-PRECEDENT', 'B-OTHER', 'I-ORG', 'I-GPE', 'I-PRECEDENT', 'I-OTHER']
+            # [0.15, 0.15, 0.15, 0.05, 0.15, 0.15, 0.15, 0.05]
+            ce_loss = nn.CrossEntropyLoss(weight=[0.15, 0.15, 0.15, 0.05, 0.15, 0.15, 0.15, 0.05], reduction="mean")
+            loss = ce_loss(logits, labels)
+            
+            return (loss, logits)
+        else:
+            return logits
+
 
 ############################################################
 #                                                          #
