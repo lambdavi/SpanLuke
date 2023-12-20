@@ -50,8 +50,32 @@ class Primary(nn.Module):
         else:
             outputs = self.crf.decode(final_logits, attention_mask.bool())
             return outputs
+
+class SecondaryTrainer(Trainer):
+    def __init__(self, specialized_mask, *args, **kwargs):
+        super(SecondaryTrainer, self).__init__(*args, **kwargs)
+        self.specialized_labels=specialized_mask
+
+    def compute_loss(self, model, inputs, return_outputs=False):
+        labels = inputs.pop("labels")
+        # forward pass
+        outputs = model(**inputs)
+        logits = outputs.get("logits")
         
-class Secondary(nn.Module):
+        # Get indices of specialized labels
+        selected_indices = [labels_to_idx[label] for label in self.specialized_labels]
+
+        # Index logits and labels to get the selected logits and labels
+        selected_logits = logits[:, :, selected_indices]
+        selected_labels_batch = labels[:, selected_indices]
+
+        # Compute custom loss only for selected labels
+        loss_fct = nn.CrossEntropyLoss()
+        custom_loss = loss_fct(selected_logits.view(-1, selected_logits.size(-1)), selected_labels_batch.view(-1))
+
+        return (custom_loss, outputs) if return_outputs else custom_loss    
+      
+"""class Secondary(nn.Module):
     def __init__(self, model_path, num_labels, freeze=False, hidden_size=768, dropout=0.1, spec_mask=None):
         super(Secondary, self).__init__()
         self.device = "cpu" if not cuda.is_available() else "cuda"
@@ -78,7 +102,7 @@ class Secondary(nn.Module):
             return (custom_loss, seq_out)
         else:
             # Return logits or any other outputs
-            return outputs
+            return outputs"""
 
     
 ############################################################
@@ -321,7 +345,7 @@ if __name__ == "__main__":
         labels_mask = ["B-" + l for l in labels_to_specialize]
         labels_mask += ["I-" + l for l in labels_to_specialize]
         print("LABEL MASK", labels_mask)
-        sec_model = Secondary(model_path_secondary, num_labels=num_labels, hidden_size=args.hidden, spec_mask=labels_mask)
+        sec_model = AutoModelForTokenClassification.from_pretrained(model_path, ignore_mismatched_sizes=True, num_labels=num_labels)       
         print("SECONDARY MODEL", sec_model, sep="\n")
 
     
@@ -364,13 +388,14 @@ if __name__ == "__main__":
         data_collator = DefaultDataCollator()
 
         ## Trainer
-        trainer_sec = Trainer(
+        trainer_sec = SecondaryTrainer(
             model=sec_model,
             args=training_args,
             train_dataset=train_ds_small,
             eval_dataset=val_ds,
             data_collator=data_collator,
             compute_metrics=compute_metrics,
+            specialized_mask=labels_mask
         )
         ## Train the model and save it
         print("**\tCRF ON\t**")
