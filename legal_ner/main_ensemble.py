@@ -87,7 +87,7 @@ class SecondaryModel(nn.Module):
             self.bert.encoder.requires_grad_(False)
         self.dropout = nn.Dropout(dropout)
         self.linear = nn.Linear(hidden_size, num_labels)
-        self.labels_weights = tensor([0, 0.15, 0.15, 0.15, 0.05, 0.15, 0.15, 0.15, 0.05], device=self.device)
+        self.labels_weights = tensor([0.15, 0.15, 0.15, 0.05, 0.15, 0.15, 0.15, 0.05], device=self.device)
         self.ce_loss = nn.CrossEntropyLoss(weight=self.labels_weights, reduction="mean")
         #self.ce_loss = nn.CrossEntropyLoss(reduction="mean")
 
