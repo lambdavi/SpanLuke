@@ -114,7 +114,7 @@ class SecondaryModel(nn.Module):
                     loss = self.ce_loss(logits.view(-1, self.num_labels), labels.view(-1))
             # Compute the cross-entropy loss with weights
             # ['O', 'B-ORG', 'B-GPE', 'B-PRECEDENT', 'B-OTHER', 'I-ORG', 'I-GPE', 'I-PRECEDENT', 'I-OTHER']
-            loss = self.ce_loss(logits.permute(0, 2, 1), labels)
+            #loss = self.ce_loss(logits.permute(0, 2, 1), labels)
             
             return (loss, logits)
         else:
