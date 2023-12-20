@@ -31,7 +31,7 @@ class Primary(nn.Module):
         logits = self.linear(self.dropout(sequence_out))
 
         sec_model.eval()
-        logits2 = sec_model(input_ids=input_ids, token_type_ids=token_type_ids, attention_mask=attention_mask, return_logits_only)
+        logits2 = sec_model(input_ids=input_ids, token_type_ids=token_type_ids, attention_mask=attention_mask, return_logits_only=True)
         print(type(logits), type(logits2))
         print(logits2.shape)
         # Apply softmax to obtain probabilities
