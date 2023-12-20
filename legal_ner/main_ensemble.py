@@ -77,8 +77,6 @@ class SecondaryModel(nn.Module):
             outputs = self.crf.decode(logits, attention_mask.bool())
             return outputs
         
-        
-
 
 ############################################################
 #                                                          #
@@ -357,7 +355,7 @@ if __name__ == "__main__":
             metric_for_best_model="f1-strict",
             dataloader_num_workers=workers,
             dataloader_pin_memory=True,
-            logging_steps=3000 if batch_size==1 else 100,
+            logging_steps=500*batch_size
         )
 
         ## Collator
