@@ -82,9 +82,9 @@ class SecondaryModel(nn.Module):
         super(SecondaryModel, self).__init__()
         self.device = "cpu" if not cuda.is_available() else "cuda"
         self.bert = AutoModel.from_pretrained(model_path, ignore_mismatched_sizes=True)
+        self.num_labels = num_labels
         if freeze:
             self.bert.encoder.requires_grad_(False)
-
         self.dropout = nn.Dropout(dropout)
         self.linear = nn.Linear(hidden_size, num_labels)
         self.labels_weights = tensor([0, 0.15, 0.15, 0.15, 0.05, 0.15, 0.15, 0.15, 0.05], device=self.device)
