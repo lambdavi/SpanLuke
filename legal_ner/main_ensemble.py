@@ -36,7 +36,7 @@ class Primary(nn.Module):
         combined_logits = logits.clone()
         specialized_mask = zeros_like(combined_logits, dtype=bool)
         specialized_mask2 = zeros_like(combined_logits, dtype=bool)
-
+        print(labels_to_idx)
         for label in self.specialized_labels:
             specialized_mask[:, :, labels_to_idx[label]] = True
 
@@ -380,7 +380,7 @@ if __name__ == "__main__":
         idx_to_labels = {v[1]: v[0] for v in train_ds_small.labels_to_idx.items()}
         print("**\tCRF ON\t**")
         print("TRAINING AUXILIARY MODEL")
-        trainer_sec.train()
+        #trainer_sec.train()
         ## Map the labels
         idx_to_labels = {v[1]: v[0] for v in train_ds.labels_to_idx.items()}
         training_args.load_best_model_at_end=True
