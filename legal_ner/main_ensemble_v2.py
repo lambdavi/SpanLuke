@@ -357,7 +357,7 @@ if __name__ == "__main__":
             model=sec_model,
             args=training_args,
             train_dataset=train_ds_small,
-            eval_dataset=val_ds,
+            eval_dataset=val_ds_small,
             data_collator=data_collator,
             compute_metrics=compute_metrics,
             specialized_mask=labels_mask
