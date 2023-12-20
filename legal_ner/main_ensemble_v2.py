@@ -78,7 +78,7 @@ class Secondary(nn.Module):
             return (custom_loss, seq_out)
         else:
             # Return logits or any other outputs
-            return logits
+            return outputs
 
     
 ############################################################
