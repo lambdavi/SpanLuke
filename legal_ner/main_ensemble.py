@@ -7,7 +7,7 @@ from torchcrf import CRF  # Import CRF layer
 from transformers import EarlyStoppingCallback
 from transformers import AutoModelForTokenClassification, AutoModel
 from transformers import Trainer, DefaultDataCollator, TrainingArguments
-from torch import nn,cuda, zeros_like, bool, where, tensor, BoolTensor
+from torch import nn,cuda, zeros_like, bool, where, tensor, BoolTensor, min as m
 from utils.dataset import LegalNERTokenDataset
 
 
@@ -102,9 +102,8 @@ class SecondaryModel(nn.Module):
         # Compute the loss only for certain labels
         if labels is not None:
             # Compute the cross-entropy loss with weights
-            # ['B-ORG', 'B-GPE', 'B-PRECEDENT', 'B-OTHER', 'I-ORG', 'I-GPE', 'I-PRECEDENT', 'I-OTHER']
-            # [0.15, 0.15, 0.15, 0.05, 0.15, 0.15, 0.15, 0.05]
-
+            # ['O', 'B-ORG', 'B-GPE', 'B-PRECEDENT', 'B-OTHER', 'I-ORG', 'I-GPE', 'I-PRECEDENT', 'I-OTHER']
+            print(m(logits), m(labels))
             loss = self.ce_loss(logits.permute(0, 2, 1), labels)
             
             return (loss, logits)
