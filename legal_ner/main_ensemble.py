@@ -321,7 +321,9 @@ if __name__ == "__main__":
             use_roberta=use_roberta
         )
         labels_to_specialize = ["ORG", "GPE", "PRECEDENT"]
-        main_model = Primary(model_path, num_labels=num_labels, hidden_size=args.hidden, spec_mask=labels_to_specialize)
+        labels_mask = ["B-" + l for l in labels_to_specialize]
+        labels_mask += ["I-" + l for l in labels_to_specialize]
+        main_model = Primary(model_path, num_labels=num_labels, hidden_size=args.hidden, spec_mask=labels_mask)
         print("MAIN MODEL", main_model, sep="\n")
         sec_model = SecondaryModel(model_path_secondary, num_labels=num_labels_sec, hidden_size=args.hidden)
         print("SECONDARY MODEL", sec_model, sep="\n")
