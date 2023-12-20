@@ -400,8 +400,6 @@ if __name__ == "__main__":
         print("**\tCRF ON\t**")
         print("STARTING THE AUXILIARY MODEL TRAINING")
         trainer_sec.train()
-        trainer_sec.save_model(output_folder)
-        trainer_sec.evaluate()
 
         training_args.load_best_model_at_end=True
         training_args.num_train_epochs=num_epochs//2
