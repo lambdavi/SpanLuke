@@ -393,6 +393,7 @@ if __name__ == "__main__":
         training_args.load_best_model_at_end=True
         labels_to_idx = train_ds.labels_to_idx
         labels_to_idx_sec = train_ds_small.labels_to_idx
+        sec_model.eval()
         print("TRAINING PRIMARY MODEL")
         trainer_main.train()
         trainer_main.save_model(output_folder)
