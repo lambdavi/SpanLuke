@@ -48,6 +48,7 @@ class Primary(nn.Module):
         else:
             outputs = self.crf.decode(combined_logits, attention_mask.bool())
             return outputs
+
 class SecondaryModel(nn.Module):
     def __init__(self, model_path, num_labels, freeze=False, hidden_size=768, dropout=0.1):
         super(SecondaryModel, self).__init__()
@@ -356,7 +357,6 @@ if __name__ == "__main__":
             metric_for_best_model="f1-strict",
             dataloader_num_workers=workers,
             dataloader_pin_memory=True,
-            report_to="wandb",
             logging_steps=3000 if batch_size==1 else 100,
         )
 
@@ -390,9 +390,11 @@ if __name__ == "__main__":
         ## Map the labels
         idx_to_labels = {v[1]: v[0] for v in train_ds.labels_to_idx.items()}
         training_args.load_best_model_at_end=True
+        training_args.report_to="wandb"
         labels_to_idx = train_ds.labels_to_idx
         labels_to_idx_sec = train_ds_small.labels_to_idx
         sec_model.eval()
+        print(3*"\n")
         print("TRAINING PRIMARY MODEL")
         trainer_main.train()
         trainer_main.save_model(output_folder)
