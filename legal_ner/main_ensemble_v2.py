@@ -41,14 +41,12 @@ class Primary(nn.Module):
             specialized_mask[:, :, labels_to_idx[label]] = True
     
         combined_logits[specialized_mask] = (1 - self.weight_factor) * logits[specialized_mask] + self.weight_factor * logits2[1][specialized_mask]
-
-        final_logits=combined_logits
         
         if labels != None:
-            crf_loss = -self.crf(final_logits, labels, mask=attention_mask.bool(), reduction="mean" if batch_size!=1 else "token_mean") # if not mean, it is sum by default
+            crf_loss = -self.crf(combined_logits, labels, mask=attention_mask.bool(), reduction="mean" if batch_size!=1 else "token_mean") # if not mean, it is sum by default
             return (crf_loss, logits)
         else:
-            outputs = self.crf.decode(final_logits, attention_mask.bool())
+            outputs = self.crf.decode(combined_logits, attention_mask.bool())
             return outputs
 
 """class SecondaryTrainer(Trainer):
@@ -251,19 +249,22 @@ if __name__ == "__main__":
         predictions = np.argmax(pred.predictions, axis=-1)
         predictions = np.concatenate(predictions, axis=0)
         prediction_ids = [[idx_to_labels[p] if p != -100 else "O" for p in predictions]]
-
+        print("Here2")
         # Labels
         labels = pred.label_ids
         labels = np.concatenate(labels, axis=0)
         labels_ids = [[idx_to_labels[p] if p != -100 else "O" for p in labels]]
         unique_labels = list(set([l.split("-")[-1] for l in list(set(labels_ids[0]))]))
         unique_labels.remove("O")
+        print("Here3")
 
         # Evaluator
         evaluator = Evaluator(
             labels_ids, prediction_ids, tags=unique_labels, loader="list"
         )
+        print("Here4")
         results, results_per_tag = evaluator.evaluate()
+        print("Here5")
         print("")
         for k,v in results_per_tag.items():
             print(f"{k}: {v['ent_type']['f1']}")
