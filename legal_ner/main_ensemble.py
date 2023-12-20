@@ -32,8 +32,7 @@ class Primary(nn.Module):
 
         sec_model.eval()
         logits2 = sec_model(input_ids=input_ids, token_type_ids=token_type_ids, attention_mask=attention_mask, return_logits_only=True)
-        print(type(logits), type(logits2))
-        print(logits2.shape)
+        logits2.to(logits.device)
         # Apply softmax to obtain probabilities
         combined_logits = logits.clone()
         specialized_mask = zeros_like(combined_logits, dtype=bool)
