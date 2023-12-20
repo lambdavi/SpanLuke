@@ -31,14 +31,19 @@ class Primary(nn.Module):
         logits = self.linear(self.dropout(sequence_out))
 
         sec_model.eval()
-        logits2 = sec_model(input_ids=input_ids, token_type_ids=token_type_ids, attention_mask=attention_mask, labels=labels)
+        logits2 = sec_model(input_ids=input_ids, token_type_ids=token_type_ids, attention_mask=attention_mask)
         # Apply softmax to obtain probabilities
         combined_logits = logits.clone()
         specialized_mask = zeros_like(combined_logits, dtype=bool)
+        specialized_mask2 = zeros_like(combined_logits, dtype=bool)
+
         for label in self.specialized_labels:
             specialized_mask[:, :, labels_to_idx[label]] = True
+
+        for label in self.specialized_labels:
+            specialized_mask2[:, :, labels_to_idx_sec[label]] = True
     
-        combined_logits[specialized_mask] = (1 - self.weight_factor) * logits[specialized_mask] + self.weight_factor * logits2[1][specialized_mask]
+        combined_logits[specialized_mask] = (1 - self.weight_factor) * logits[specialized_mask] + self.weight_factor * logits2[1][specialized_mask2]
         
         if labels != None:
             crf_loss = -self.crf(combined_logits, labels, mask=attention_mask.bool(), reduction="mean" if batch_size!=1 else "token_mean") # if not mean, it is sum by default
@@ -380,7 +385,7 @@ if __name__ == "__main__":
         idx_to_labels = {v[1]: v[0] for v in train_ds.labels_to_idx.items()}
         training_args.load_best_model_at_end=True
         labels_to_idx = train_ds.labels_to_idx
-
+        labels_to_idx_sec = train_ds_small.labels_to_idx
         print("TRAINING PRIMARY MODEL")
         trainer_main.train()
         trainer_main.save_model(output_folder)
