@@ -40,7 +40,7 @@ class Primary(nn.Module):
             specialized_mask[:, :, labels_to_idx[label]] = True
             specialized_mask2[:, :, labels_to_idx_sec[label]] = True
     
-        combined_logits[specialized_mask] = (1 - self.weight_factor) * logits[specialized_mask] + self.weight_factor * logits2[specialized_mask2]
+        combined_logits[specialized_mask] = (1 - self.weight_factor) * logits[specialized_mask] / 2 + self.weight_factor * logits2[specialized_mask2] / 2
         
         if labels != None:
             crf_loss = -self.crf(combined_logits, labels, mask=attention_mask.bool(), reduction="mean" if batch_size!=1 else "token_mean") # if not mean, it is sum by default
