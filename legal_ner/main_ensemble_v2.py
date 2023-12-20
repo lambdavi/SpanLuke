@@ -51,7 +51,7 @@ class Primary(nn.Module):
             outputs = self.crf.decode(final_logits, attention_mask.bool())
             return outputs
 
-class SecondaryTrainer(Trainer):
+"""class SecondaryTrainer(Trainer):
     def __init__(self, specialized_mask, *args, **kwargs):
         super(SecondaryTrainer, self).__init__(*args, **kwargs)
         self.specialized_labels=specialized_mask
@@ -72,7 +72,7 @@ class SecondaryTrainer(Trainer):
         # Compute custom loss only for selected labels
         custom_loss = nn.functional.cross_entropy(selected_logits, selected_labels_batch, reduction='mean')
 
-        return (custom_loss, outputs) if return_outputs else custom_loss    
+        return (custom_loss, outputs) if return_outputs else custom_loss """   
       
 """class Secondary(nn.Module):
     def __init__(self, model_path, num_labels, freeze=False, hidden_size=768, dropout=0.1, spec_mask=None):
@@ -387,14 +387,14 @@ if __name__ == "__main__":
         data_collator = DefaultDataCollator()
 
         ## Trainer
-        trainer_sec = SecondaryTrainer(
+        trainer_sec = Trainer(
             model=sec_model,
             args=training_args,
             train_dataset=train_ds_small,
             eval_dataset=val_ds,
             data_collator=data_collator,
             compute_metrics=compute_metrics,
-            specialized_mask=labels_mask
+            #specialized_mask=labels_mask
         )
         ## Train the model and save it
         print("**\tCRF ON\t**")
