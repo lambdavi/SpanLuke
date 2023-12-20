@@ -86,6 +86,7 @@ class SecondaryModel(nn.Module):
 
         self.dropout = nn.Dropout(dropout)
         self.linear = nn.Linear(hidden_size, num_labels)
+        self.labels_weights = tensor([0.15, 0.15, 0.15, 0.05, 0.15, 0.15, 0.15, 0.05])
 
     def forward(self, input_ids, attention_mask, token_type_ids=None, labels=None, return_logits_only=False):
         outputs = self.bert(input_ids=input_ids, token_type_ids=token_type_ids, attention_mask=attention_mask)
@@ -100,7 +101,7 @@ class SecondaryModel(nn.Module):
             # Compute the cross-entropy loss with weights
             # ['B-ORG', 'B-GPE', 'B-PRECEDENT', 'B-OTHER', 'I-ORG', 'I-GPE', 'I-PRECEDENT', 'I-OTHER']
             # [0.15, 0.15, 0.15, 0.05, 0.15, 0.15, 0.15, 0.05]
-            ce_loss = nn.CrossEntropyLoss(weight=[0.15, 0.15, 0.15, 0.05, 0.15, 0.15, 0.15, 0.05], reduction="mean")
+            ce_loss = nn.CrossEntropyLoss(weight=self.labels_weights, reduction="mean")
             loss = ce_loss(logits, labels)
             
             return (loss, logits)
