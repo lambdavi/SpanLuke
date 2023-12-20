@@ -41,6 +41,7 @@ class Primary(nn.Module):
         for label in self.specialized_labels:
             specialized_mask[:, :, labels_to_idx[label]] = True
 
+
         for label in self.specialized_labels:
             specialized_mask2[:, :, labels_to_idx_sec[label]] = True
     
@@ -229,7 +230,7 @@ if __name__ == "__main__":
     labels_list = ["B-" + l for l in original_label_list]
     labels_list += ["I-" + l for l in original_label_list]
     num_labels = len(labels_list) + 1
-
+    print(labels_list)
     labels_list_sec = ["B-" + l for l in original_label_list_second]
     labels_list_sec += ["I-" + l for l in original_label_list_second]
     num_labels_sec = len(labels_list_sec) + 1
