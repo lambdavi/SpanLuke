@@ -70,8 +70,7 @@ class SecondaryTrainer(Trainer):
         selected_labels_batch = labels[:, selected_indices]
 
         # Compute custom loss only for selected labels
-        loss_fct = nn.CrossEntropyLoss()
-        custom_loss = loss_fct(selected_logits.view(-1, selected_logits.size(-1)), selected_labels_batch.view(-1))
+        custom_loss = nn.functional.cross_entropy(selected_logits, selected_labels_batch, reduction='mean')
 
         return (custom_loss, outputs) if return_outputs else custom_loss    
       
