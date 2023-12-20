@@ -7,14 +7,12 @@ from torchcrf import CRF  # Import CRF layer
 from transformers import EarlyStoppingCallback
 from transformers import AutoModelForTokenClassification, AutoModel
 from transformers import Trainer, DefaultDataCollator, TrainingArguments
-from torch import nn,cuda
+from torch import nn,cuda, zeros_like, bool, where, tensor, BoolTensor
 from utils.dataset import LegalNERTokenDataset
 
-import spacy
-nlp = spacy.load("en_core_web_sm")
 
 class Primary(nn.Module):
-    def __init__(self, model_path, num_labels, freeze=False, hidden_size=768, dropout=0.1):
+    def __init__(self, model_path, num_labels, freeze=False, hidden_size=768, dropout=0.1, spec_mask=None):
         super(Primary, self).__init__()
         self.device = "cpu" if not cuda.is_available() else "cuda"
         self.bert = AutoModel.from_pretrained(model_path, ignore_mismatched_sizes=True)
@@ -25,50 +23,47 @@ class Primary(nn.Module):
         self.linear = nn.Linear(hidden_size, num_labels)
         self.crf = CRF(num_labels, batch_first=True)
         self.weight_factor = 0.5
+        self.specialized_labels = spec_mask
 
-    def forward(self, input_ids, attention_mask, token_type_ids=None, labels=None, labels_s=None):
+    def forward(self, input_ids, attention_mask, token_type_ids=None, labels=None):
         outputs = self.bert(input_ids=input_ids, token_type_ids=token_type_ids, attention_mask=attention_mask)
         sequence_out = outputs[0]
         logits = self.linear(self.dropout(sequence_out))
 
-        if self.sec:
-            sec_model.eval()
-            logits2 = sec_model(input_ids=input_ids, token_type_ids=token_type_ids, attention_mask=attention_mask, labels=labels_s)
-            # Apply softmax to obtain probabilities
-            combined_logits = logits.clone()
-            specialized_mask = zeros_like(combined_logits, dtype=bool)
-            for label in self.specialized_labels:
-                specialized_mask[:, :, labels_to_idx[label]] = True
+        sec_model.eval()
+        logits2 = sec_model(input_ids=input_ids, token_type_ids=token_type_ids, attention_mask=attention_mask, labels=labels)
+        # Apply softmax to obtain probabilities
+        combined_logits = logits.clone()
+        specialized_mask = zeros_like(combined_logits, dtype=bool)
+        for label in self.specialized_labels:
+            specialized_mask[:, :, labels_to_idx[label]] = True
+    
+        combined_logits[specialized_mask] = (1 - self.weight_factor) * logits[specialized_mask] + self.weight_factor * logits2[1][specialized_mask]
         
-            combined_logits[specialized_mask] = (1 - self.weight_factor) * logits[specialized_mask] + self.weight_factor * logits2[1][specialized_mask]
-
-            final_logits=combined_logits
-        else:
-            final_logits=logits
         if labels != None:
-            crf_loss = -self.crf(final_logits, labels, mask=attention_mask.bool(), reduction="mean" if batch_size!=1 else "token_mean") # if not mean, it is sum by default
+            crf_loss = -self.crf(combined_logits, labels, mask=attention_mask.bool(), reduction="mean" if batch_size!=1 else "token_mean") # if not mean, it is sum by default
             return (crf_loss, logits)
         else:
-            outputs = self.crf.decode(final_logits, attention_mask.bool())
+            outputs = self.crf.decode(combined_logits, attention_mask.bool())
             return outputs
-        
-class Secondary(nn.Module):
+class SecondaryModel(nn.Module):
     def __init__(self, model_path, num_labels, freeze=False, hidden_size=768, dropout=0.1):
-        super(Secondary, self).__init__()
+        super(SecondaryModel, self).__init__()
         self.device = "cpu" if not cuda.is_available() else "cuda"
         self.bert = AutoModel.from_pretrained(model_path, ignore_mismatched_sizes=True)
         if freeze:
             self.bert.encoder.requires_grad_(False)
 
+        # https://github.com/huggingface/transformers/issues/1431
         self.dropout = nn.Dropout(dropout)
         self.linear = nn.Linear(hidden_size, num_labels)
         self.crf = CRF(num_labels, batch_first=True)
 
-    def forward(self, input_ids, attention_mask, token_type_ids=None, labels=None, labels_s=None):
+    def forward(self, input_ids, attention_mask, token_type_ids=None, labels=None):
         outputs = self.bert(input_ids=input_ids, token_type_ids=token_type_ids, attention_mask=attention_mask)
         sequence_out = outputs[0]
         logits = self.linear(self.dropout(sequence_out))
-        if labels_s != None:
+        if labels != None:
             crf_loss = -self.crf(logits, labels, mask=attention_mask.bool(), reduction="mean" if batch_size!=1 else "token_mean") # if not mean, it is sum by default
             return (crf_loss, logits)
         else:
@@ -225,6 +220,7 @@ if __name__ == "__main__":
     labels_list_sec = ["B-" + l for l in original_label_list_second]
     labels_list_sec += ["I-" + l for l in original_label_list_second]
     num_labels_sec = len(labels_list_sec) + 1
+    print(labels_list_sec)
 
     ## Compute metrics
     def compute_metrics(pred):
@@ -292,7 +288,6 @@ if __name__ == "__main__":
             ds_train_path, 
             model_path, 
             labels_list=labels_list, 
-            labels_list_small=labels_list_sec,
             split="train", 
             use_roberta=use_roberta
         )
@@ -300,20 +295,32 @@ if __name__ == "__main__":
         val_ds = LegalNERTokenDataset(
             ds_valid_path, 
             model_path, 
-            labels_list=labels_list,
-            labels_list_small=labels_list_sec,
+            labels_list=labels_list, 
             split="val", 
             use_roberta=use_roberta
         )
 
-        sec_model = Secondary(model_path_secondary, num_labels=num_labels_sec, hidden_size=args.hidden)
-        print("SECONDARY MODEL", sec_model, sep="\n")
-        main_model = Primary(model_path, num_labels=num_labels, hidden_size=args.hidden)
-        print("MAIN MODEL", main_model, sep="\n")
-        
-        ## Map the labels
-        idx_to_labels = {v[1]: v[0] for v in train_ds.labels_to_idx.items()}
+        train_ds_small = LegalNERTokenDataset(
+            "data/NER_TRAIN/NER_TRAIN_SMALL.json", 
+            model_path_secondary, 
+            labels_list=labels_list_sec, 
+            split="train", 
+            use_roberta=use_roberta
+        )
 
+        val_ds_small = LegalNERTokenDataset(
+            "data/NER_DEV/NER_DEV_SMALL.json", 
+            model_path_secondary, 
+            labels_list=labels_list_sec, 
+            split="val", 
+            use_roberta=use_roberta
+        )
+        labels_to_specialize = ["ORG", "GPE", "PRECEDENT"]
+        main_model = Primary(model_path, num_labels=num_labels, hidden_size=args.hidden, spec_mask=labels_to_specialize)
+        print("MAIN MODEL", main_model, sep="\n")
+        sec_model = SecondaryModel(model_path_secondary, num_labels=num_labels_sec, hidden_size=args.hidden)
+        print("SECONDARY MODEL", sec_model, sep="\n")
+        
         ## Output folder
         new_output_folder = os.path.join(output_folder, 'all')
         new_output_folder = os.path.join(new_output_folder, model_path)
@@ -332,7 +339,6 @@ if __name__ == "__main__":
             weight_decay=weight_decay,
             evaluation_strategy="epoch",
             save_strategy="epoch",
-            load_best_model_at_end=True,
             save_total_limit=2,
             fp16=False,
             fp16_full_eval=False,
@@ -341,26 +347,12 @@ if __name__ == "__main__":
             dataloader_pin_memory=True,
             report_to="wandb",
             logging_steps=3000 if batch_size==1 else 100,
-            #logging_steps=50 if ("bert-" not in model_path and "albert" not in model_path) else 3000,  # how often to log to W&B
         )
 
         ## Collator
         data_collator = DefaultDataCollator()
 
         ## Trainer
-        trainer_sec = Trainer(
-            model=sec_model,
-            args=training_args,
-            train_dataset=train_ds,
-            eval_dataset=val_ds,
-            data_collator=data_collator,
-            compute_metrics=compute_metrics,
-        )
-        idx_to_labels = {v[1]: v[0] for v in train_ds.labels_to_idx.items()}
-        trainer_sec.train()
-        trainer_sec.save_model(output_folder)
-        trainer_sec.evaluate()
-
         trainer_main = Trainer(
             model=main_model,
             args=training_args,
@@ -371,13 +363,29 @@ if __name__ == "__main__":
             callbacks=[EarlyStoppingCallback(2)]
         )
 
-        
-        ## Train the model and save it
-        print("**\tCRF ON\t**")
-        
-        """trainer_main.train()
-        trainer_main.save_model(output_folder)
-        trainer_main.evaluate()"""
+        trainer_sec = Trainer(
+            model=sec_model,
+            args=training_args,
+            train_dataset=train_ds_small,
+            eval_dataset=val_ds_small,
+            data_collator=data_collator,
+            compute_metrics=compute_metrics,
+        )
 
+        idx_to_labels = {v[1]: v[0] for v in train_ds_small.labels_to_idx.items()}
+        print("**\tCRF ON\t**")
+        print("TRAINING AUXILIARY MODEL")
+        trainer_sec.train()
+        ## Map the labels
+        idx_to_labels = {v[1]: v[0] for v in train_ds.labels_to_idx.items()}
+        training_args.load_best_model_at_end=True
+        labels_to_idx = train_ds.labels_to_idx
+
+        print("TRAINING PRIMARY MODEL")
+        trainer_main.train()
+        trainer_main.save_model(output_folder)
+        trainer_main.evaluate()
+
+        data_collator = DefaultDataCollator()
 
         
