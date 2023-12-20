@@ -22,7 +22,7 @@ class Primary(nn.Module):
         self.dropout = nn.Dropout(dropout)
         self.linear = nn.Linear(hidden_size, num_labels)
         self.crf = CRF(num_labels, batch_first=True)
-        self.weight_factor = 0.5
+        self.weight_factor = 0.2
         self.specialized_labels = spec_mask
 
     def forward(self, input_ids, attention_mask, token_type_ids=None, labels=None):
@@ -40,7 +40,7 @@ class Primary(nn.Module):
             specialized_mask[:, :, labels_to_idx[label]] = True
             specialized_mask2[:, :, labels_to_idx_sec[label]] = True
     
-        combined_logits[specialized_mask] = (1 - self.weight_factor) * logits[specialized_mask] / 2 + self.weight_factor * logits2[specialized_mask2] / 2
+        combined_logits[specialized_mask] = (1 - self.weight_factor) * logits[specialized_mask] + self.weight_factor * logits2[specialized_mask2]
         
         if labels != None:
             crf_loss = -self.crf(combined_logits, labels, mask=attention_mask.bool(), reduction="mean" if batch_size!=1 else "token_mean") # if not mean, it is sum by default
