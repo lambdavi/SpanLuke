@@ -37,12 +37,9 @@ class Primary(nn.Module):
         # Apply softmax to obtain probabilities
         combined_logits = logits.clone()
         specialized_mask = zeros_like(combined_logits, dtype=bool)
-        specialized_mask2 = zeros_like(combined_logits, dtype=bool)
+        specialized_mask2 = zeros_like(logits2, dtype=bool)
         for label in self.specialized_labels:
             specialized_mask[:, :, labels_to_idx[label]] = True
-
-
-        for label in self.specialized_labels:
             specialized_mask2[:, :, labels_to_idx_sec[label]] = True
     
         combined_logits[specialized_mask] = (1 - self.weight_factor) * logits[specialized_mask] + self.weight_factor * logits2[specialized_mask2]
