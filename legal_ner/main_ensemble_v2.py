@@ -72,35 +72,6 @@ class SecondaryTrainer(Trainer):
 
         return (custom_loss, outputs) if return_outputs else custom_loss
       
-"""class Secondary(nn.Module):
-    def __init__(self, model_path, num_labels, freeze=False, hidden_size=768, dropout=0.1, spec_mask=None):
-        super(Secondary, self).__init__()
-        self.device = "cpu" if not cuda.is_available() else "cuda"
-        self.bert = AutoModelForTokenClassification.from_pretrained(model_path, ignore_mismatched_sizes=True)
-        if freeze:
-            self.bert.encoder.requires_grad_(False)
-        # https://github.com/huggingface/transformers/issues/1431
-        self.bert.classifier = nn.Linear(hidden_size, num_labels)
-        self.specialized_labels = spec_mask
-
-    def forward(self, input_ids, attention_mask, token_type_ids=None, labels=None):
-        outputs = self.bert(input_ids=input_ids, token_type_ids=token_type_ids, attention_mask=attention_mask, output_hidden_states=True)
-        logits = outputs.get("logits")
-        seq_out = outputs.get("hidden_states")[-1]
-        if labels is not None:
-            selected_indices = [labels_to_idx[label] for label in self.specialized_labels]
-
-            # Index logits and labels to get the selected logits and labels
-            selected_logits = seq_out[:, :, selected_indices]
-            selected_labels_batch = labels[:, selected_indices]
-
-            # Compute your custom loss only for selected labels
-            custom_loss = nn.functional.cross_entropy(selected_logits, selected_labels_batch, reduction='mean')
-            return (custom_loss, seq_out)
-        else:
-            # Return logits or any other outputs
-            return outputs"""
-
     
 ############################################################
 #                                                          #
@@ -244,27 +215,22 @@ if __name__ == "__main__":
 
     ## Compute metrics
     def compute_metrics(pred):
-        print("Here")
         # Preds
         predictions = np.argmax(pred.predictions, axis=-1)
         predictions = np.concatenate(predictions, axis=0)
         prediction_ids = [[idx_to_labels[p] if p != -100 else "O" for p in predictions]]
-        print("Here2")
         # Labels
         labels = pred.label_ids
         labels = np.concatenate(labels, axis=0)
         labels_ids = [[idx_to_labels[p] if p != -100 else "O" for p in labels]]
         unique_labels = list(set([l.split("-")[-1] for l in list(set(labels_ids[0]))]))
         unique_labels.remove("O")
-        print("Here3")
 
         # Evaluator
         evaluator = Evaluator(
             labels_ids, prediction_ids, tags=unique_labels, loader="list"
         )
-        print("Here4")
         results, results_per_tag = evaluator.evaluate()
-        print("Here5")
         print("")
         for k,v in results_per_tag.items():
             print(f"{k}: {v['ent_type']['f1']}")
