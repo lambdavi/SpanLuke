@@ -28,7 +28,6 @@ class LegalNERTokenDataset(Dataset):
         else:
             self.tokenizer = AutoTokenizer.from_pretrained(model_path) 
         self.labels_list = sorted(labels_list + ["O"])[::-1]
-        print(self.labels_list)
         if self.labels_list is not None:
             self.labels_to_idx = dict(
                 zip(sorted(self.labels_list)[::-1], range(len(self.labels_list)))
