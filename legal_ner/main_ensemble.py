@@ -76,6 +76,7 @@ class Primary(nn.Module):
         else:
             outputs = self.crf.decode(logits, attention_mask.bool())
             return outputs"""
+
 class SecondaryModel(nn.Module):
     def __init__(self, model_path, num_labels, freeze=False, hidden_size=768, dropout=0.1):
         super(SecondaryModel, self).__init__()
@@ -86,7 +87,7 @@ class SecondaryModel(nn.Module):
 
         self.dropout = nn.Dropout(dropout)
         self.linear = nn.Linear(hidden_size, num_labels)
-        self.labels_weights = tensor([0.15, 0.15, 0.15, 0.05, 0.15, 0.15, 0.15, 0.05])
+        self.labels_weights = tensor([0.15, 0.15, 0.15, 0.05, 0.15, 0.15, 0.15, 0.05, 0])
 
     def forward(self, input_ids, attention_mask, token_type_ids=None, labels=None, return_logits_only=False):
         outputs = self.bert(input_ids=input_ids, token_type_ids=token_type_ids, attention_mask=attention_mask)
@@ -94,13 +95,15 @@ class SecondaryModel(nn.Module):
         logits = self.linear(self.dropout(sequence_out))
 
         if return_logits_only:
-            return logits
+            return sequence_out
 
         # Compute the loss only for certain labels
         if labels is not None:
             # Compute the cross-entropy loss with weights
             # ['B-ORG', 'B-GPE', 'B-PRECEDENT', 'B-OTHER', 'I-ORG', 'I-GPE', 'I-PRECEDENT', 'I-OTHER']
             # [0.15, 0.15, 0.15, 0.05, 0.15, 0.15, 0.15, 0.05]
+            print(labels)
+            print(logits.shape)
             ce_loss = nn.CrossEntropyLoss(weight=self.labels_weights, reduction="mean")
             loss = ce_loss(logits, labels)
             
