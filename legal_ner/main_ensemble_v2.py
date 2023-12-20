@@ -49,7 +49,7 @@ class Primary(nn.Module):
             outputs = self.crf.decode(combined_logits, attention_mask.bool())
             return outputs
 
-"""class SecondaryTrainer(Trainer):
+class SecondaryTrainer(Trainer):
     def __init__(self, specialized_mask, *args, **kwargs):
         super(SecondaryTrainer, self).__init__(*args, **kwargs)
         self.specialized_labels=specialized_mask
@@ -70,7 +70,7 @@ class Primary(nn.Module):
         # Compute custom loss only for selected labels
         custom_loss = nn.functional.cross_entropy(selected_logits, selected_labels_batch, reduction='mean')
 
-        return (custom_loss, outputs) if return_outputs else custom_loss """   
+        return (custom_loss, outputs) if return_outputs else custom_loss
       
 """class Secondary(nn.Module):
     def __init__(self, model_path, num_labels, freeze=False, hidden_size=768, dropout=0.1, spec_mask=None):
@@ -381,21 +381,20 @@ if __name__ == "__main__":
             dataloader_num_workers=workers,
             dataloader_pin_memory=True,
             report_to="wandb",
-            logging_steps=3000 if batch_size==1 else 100,
-            #logging_steps=50 if ("bert-" not in model_path and "albert" not in model_path) else 3000,  # how often to log to W&B
+            logging_steps=3000 if batch_size==1 else 50,
         )
         ## Collator
         data_collator = DefaultDataCollator()
 
         ## Trainer
-        trainer_sec = Trainer(
+        trainer_sec = SecondaryTrainer(
             model=sec_model,
             args=training_args,
             train_dataset=train_ds_small,
             eval_dataset=val_ds,
             data_collator=data_collator,
             compute_metrics=compute_metrics,
-            #specialized_mask=labels_mask
+            specialized_mask=labels_mask
         )
         ## Train the model and save it
         print("**\tCRF ON\t**")
