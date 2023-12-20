@@ -87,9 +87,9 @@ class SecondaryModel(nn.Module):
 
         self.dropout = nn.Dropout(dropout)
         self.linear = nn.Linear(hidden_size, num_labels)
-        #self.labels_weights = tensor([0, 0.15, 0.15, 0.15, 0.05, 0.15, 0.15, 0.15, 0.05], device=self.device)
-        #self.ce_loss = nn.CrossEntropyLoss(weight=self.labels_weights, reduction="mean")
-        self.ce_loss = nn.CrossEntropyLoss(reduction="mean")
+        self.labels_weights = tensor([0, 0.15, 0.15, 0.15, 0.05, 0.15, 0.15, 0.15, 0.05], device=self.device)
+        self.ce_loss = nn.CrossEntropyLoss(weight=self.labels_weights, reduction="mean")
+        #self.ce_loss = nn.CrossEntropyLoss(reduction="mean")
 
     def forward(self, input_ids, attention_mask, token_type_ids=None, labels=None, return_logits_only=False):
         outputs = self.bert(input_ids=input_ids, token_type_ids=token_type_ids, attention_mask=attention_mask)
@@ -101,9 +101,19 @@ class SecondaryModel(nn.Module):
 
         # Compute the loss only for certain labels
         if labels is not None:
+            if labels is not None:
+                # Only keep active parts of the loss
+                if attention_mask is not None:
+                    active_loss = attention_mask.view(-1) == 1
+                    active_logits = logits.view(-1, self.num_labels)
+                    active_labels = where(
+                        active_loss, labels.view(-1), tensor(self.ce_loss.ignore_index).type_as(labels)
+                    )
+                    loss = self.ce_loss(active_logits, active_labels)
+                else:
+                    loss = self.ce_loss(logits.view(-1, self.num_labels), labels.view(-1))
             # Compute the cross-entropy loss with weights
             # ['O', 'B-ORG', 'B-GPE', 'B-PRECEDENT', 'B-OTHER', 'I-ORG', 'I-GPE', 'I-PRECEDENT', 'I-OTHER']
-            print(m(logits), m(labels))
             loss = self.ce_loss(logits.permute(0, 2, 1), labels)
             
             return (loss, logits)
