@@ -12,22 +12,36 @@ from utils.dataset import LegalNERTokenDataset
 
 
 class Primary(nn.Module):
-    def __init__(self, model_path, num_labels, freeze=False, hidden_size=768, dropout=0.1, spec_mask=None, weight_ratio=0.2):
+    def __init__(self, model_path, num_labels, freeze=False, hidden_size=768, lstm_hidden_size=256, dropout=0.1, spec_mask=None, weight_ratio=0.2, use_bilstm=False):
         super(Primary, self).__init__()
         self.device = "cpu" if not cuda.is_available() else "cuda"
-        self.bert = AutoModel.from_pretrained(model_path, ignore_mismatched_sizes=True)
+        self.bert = AutoModel.from_pretrained(model_path, ignore_mismatched_sizes=True, output_hidden_states=use_bilstm)
         if freeze:
             self.bert.encoder.requires_grad_(False)
         # https://github.com/huggingface/transformers/issues/1431
         self.dropout = nn.Dropout(dropout)
-        self.linear = nn.Linear(hidden_size, num_labels)
+        self.use_bilstm = use_bilstm
+        if use_bilstm:
+            self.bilstm = nn.LSTM(
+                input_size=hidden_size,
+                hidden_size=lstm_hidden_size,
+                num_layers=1,
+                bidirectional=True,
+                batch_first=True,
+                dropout=0,
+            )
+        self.linear = nn.Linear(hidden_size if not self.use_bilstm else lstm_hidden_size * 2, num_labels)
         self.crf = CRF(num_labels, batch_first=True)
         self.weight_factor = weight_ratio
         self.specialized_labels = spec_mask
 
     def forward(self, input_ids, attention_mask, token_type_ids=None, labels=None):
         outputs = self.bert(input_ids=input_ids, token_type_ids=token_type_ids, attention_mask=attention_mask)
-        sequence_out = outputs[0]
+        if self.use_bilstm:
+            last_hidden_states = outputs.hidden_states[-1]
+            sequence_out, _ = self.bilstm(last_hidden_states)
+        else:
+            sequence_out = outputs[0]
         logits = self.linear(self.dropout(sequence_out))
 
         logits2 = sec_model(input_ids=input_ids, token_type_ids=token_type_ids, attention_mask=attention_mask, return_logits_only=True)
@@ -49,33 +63,6 @@ class Primary(nn.Module):
             outputs = self.crf.decode(combined_logits, attention_mask.bool())
             return outputs
 
-"""class SecondaryModel(nn.Module):
-    def __init__(self, model_path, num_labels, freeze=False, hidden_size=768, dropout=0.1):
-        super(SecondaryModel, self).__init__()
-        self.device = "cpu" if not cuda.is_available() else "cuda"
-        self.bert = AutoModel.from_pretrained(model_path, ignore_mismatched_sizes=True)
-        if freeze:
-            self.bert.encoder.requires_grad_(False)
-
-        # https://github.com/huggingface/transformers/issues/1431
-        self.dropout = nn.Dropout(dropout)
-        self.linear = nn.Linear(hidden_size, num_labels)
-        self.crf = CRF(num_labels, batch_first=True)
-
-    def forward(self, input_ids, attention_mask, token_type_ids=None, labels=None, return_logits_only=False):
-        outputs = self.bert(input_ids=input_ids, token_type_ids=token_type_ids, attention_mask=attention_mask)
-        sequence_out = outputs[0]
-        logits = self.linear(self.dropout(sequence_out))
-
-        if return_logits_only:
-            return logits
-        
-        if labels != None:
-            crf_loss = -self.crf(logits, labels, mask=attention_mask.bool(), reduction="mean" if batch_size!=1 else "token_mean") # if not mean, it is sum by default
-            return (crf_loss, logits)
-        else:
-            outputs = self.crf.decode(logits, attention_mask.bool())
-            return outputs"""
 
 class SecondaryModel(nn.Module):
     def __init__(self, model_path, num_labels, freeze=False, hidden_size=768, dropout=0.1):
@@ -102,16 +89,6 @@ class SecondaryModel(nn.Module):
         # Compute the loss only for certain labels
         if labels is not None:
             
-            """# Only keep active parts of the loss
-            if attention_mask is not None:
-                active_loss = attention_mask.view(-1) == 1
-                active_logits = logits.view(-1, self.num_labels)
-                active_labels = where(
-                    active_loss, labels.view(-1), tensor(self.ce_loss.ignore_index).type_as(labels)
-                )
-                loss = self.ce_loss(active_logits, active_labels)
-            else:
-                loss = self.ce_loss(logits.view(-1, self.num_labels), labels.view(-1))"""
             # Compute the cross-entropy loss with weights
             # ['O', 'B-ORG', 'B-GPE', 'B-PRECEDENT', 'B-OTHER', 'I-ORG', 'I-GPE', 'I-PRECEDENT', 'I-OTHER']
             loss = self.ce_loss(logits.permute(0, 2, 1), labels)
@@ -230,6 +207,14 @@ if __name__ == "__main__":
         default=0.2,
         required=False,
         type=int,
+    )
+
+    parser.add_argument(
+        "--use_bilstm",
+        help="If activated add a bilstm layer in the primary model",
+        action="store_true",
+        required=False,
+        type=bool,
     )
 
     args = parser.parse_args()
