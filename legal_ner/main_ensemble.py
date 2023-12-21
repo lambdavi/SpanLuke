@@ -390,6 +390,29 @@ if __name__ == "__main__":
             metric_for_best_model="f1-strict",
             dataloader_num_workers=workers,
             dataloader_pin_memory=True,
+            logging_steps=500*batch_size,
+            load_best_model_at_end=True,
+            report_to="wandb",
+            num_train_epochs = num_epochs//2
+        )
+        training_args_s = TrainingArguments(
+            output_dir=new_output_folder,
+            num_train_epochs=num_epochs,
+            learning_rate=lr,
+            lr_scheduler_type=scheduler_type,
+            per_device_train_batch_size=batch_size,
+            per_device_eval_batch_size=batch_size,
+            gradient_accumulation_steps=1,
+            warmup_ratio=warmup_ratio,
+            weight_decay=weight_decay,
+            evaluation_strategy="epoch",
+            save_strategy="epoch",
+            save_total_limit=2,
+            fp16=False,
+            fp16_full_eval=False,
+            metric_for_best_model="f1-strict",
+            dataloader_num_workers=workers,
+            dataloader_pin_memory=True,
             logging_steps=500*batch_size
         )
 
@@ -409,7 +432,7 @@ if __name__ == "__main__":
 
         trainer_sec = Trainer(
             model=sec_model,
-            args=training_args,
+            args=training_args_s,
             train_dataset=train_ds_small,
             eval_dataset=val_ds_small,
             data_collator=data_collator,
@@ -422,9 +445,7 @@ if __name__ == "__main__":
         trainer_sec.train()
         ## Map the labels
         idx_to_labels = {v[1]: v[0] for v in train_ds.labels_to_idx.items()}
-        training_args.load_best_model_at_end=True
-        training_args.report_to="wandb"
-        training_args.num_train_epochs = num_epochs//2
+        
         labels_to_idx = train_ds.labels_to_idx
         labels_to_idx_sec = train_ds_small.labels_to_idx
         sec_model.eval()
