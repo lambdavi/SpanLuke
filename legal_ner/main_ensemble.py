@@ -12,7 +12,7 @@ from utils.dataset import LegalNERTokenDataset
 
 
 class Primary(nn.Module):
-    def __init__(self, model_path, num_labels, freeze=False, hidden_size=768, dropout=0.1, spec_mask=None):
+    def __init__(self, model_path, num_labels, freeze=False, hidden_size=768, dropout=0.1, spec_mask=None, weight_ratio=0.2):
         super(Primary, self).__init__()
         self.device = "cpu" if not cuda.is_available() else "cuda"
         self.bert = AutoModel.from_pretrained(model_path, ignore_mismatched_sizes=True)
@@ -22,7 +22,7 @@ class Primary(nn.Module):
         self.dropout = nn.Dropout(dropout)
         self.linear = nn.Linear(hidden_size, num_labels)
         self.crf = CRF(num_labels, batch_first=True)
-        self.weight_factor = 0.2
+        self.weight_factor = weight_ratio
         self.specialized_labels = spec_mask
 
     def forward(self, input_ids, attention_mask, token_type_ids=None, labels=None):
@@ -224,6 +224,14 @@ if __name__ == "__main__":
         type=int,
     )
 
+    parser.add_argument(
+        "--weight_ratio",
+        help="Weight ratio of the principal/secondary model",
+        default=0.2,
+        required=False,
+        type=int,
+    )
+
     args = parser.parse_args()
 
     ## Parameters
@@ -239,7 +247,7 @@ if __name__ == "__main__":
     scheduler_type = args.scheduler     # e.g., linear
     single_model_path = args.model_path        # e.g. bert-base-uncased
     model_path_secondary = args.model_path_secondary        # e.g. bert-base-uncased
-
+    weight_ratio = args.weight_ratio
     ## Define the labels
     original_label_list = [
         "COURT",
@@ -369,7 +377,7 @@ if __name__ == "__main__":
         labels_to_specialize = ["ORG", "GPE", "PRECEDENT"]
         labels_mask = ["B-" + l for l in labels_to_specialize]
         labels_mask += ["I-" + l for l in labels_to_specialize]
-        main_model = Primary(model_path, num_labels=num_labels, hidden_size=args.hidden, spec_mask=labels_mask)
+        main_model = Primary(model_path, num_labels=num_labels, hidden_size=args.hidden, spec_mask=labels_mask, weight_ratio=weight_ratio)
         print("MAIN MODEL", main_model, sep="\n")
         sec_model = SecondaryModel(model_path_secondary, num_labels=num_labels_sec, hidden_size=args.hidden)
         print("SECONDARY MODEL", sec_model, sep="\n")
