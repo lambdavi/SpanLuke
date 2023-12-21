@@ -213,8 +213,7 @@ if __name__ == "__main__":
         "--use_bilstm",
         help="If activated add a bilstm layer in the primary model",
         action="store_true",
-        required=False,
-        type=bool,
+        required=False
     )
 
     args = parser.parse_args()
