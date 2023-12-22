@@ -393,7 +393,7 @@ if __name__ == "__main__":
             logging_steps=500*batch_size,
             load_best_model_at_end=True,
             report_to="wandb",
-            num_train_epochs = num_epochs//2
+            num_train_epochs = 10
         )
         training_args_s = TrainingArguments(
             output_dir=new_output_folder,
@@ -455,6 +455,5 @@ if __name__ == "__main__":
         trainer_main.save_model(output_folder)
         trainer_main.evaluate()
 
-        data_collator = DefaultDataCollator()
 
         
