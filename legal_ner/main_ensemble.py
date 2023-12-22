@@ -395,6 +395,7 @@ if __name__ == "__main__":
             num_train_epochs = 10
         )
         training_args_s = TrainingArguments(
+            output_dir=new_output_folder,
             num_train_epochs=num_epochs,
             learning_rate=lr,
             lr_scheduler_type=scheduler_type,
