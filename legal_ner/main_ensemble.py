@@ -441,10 +441,10 @@ if __name__ == "__main__":
         idx_to_labels = {v[1]: v[0] for v in train_ds_small.labels_to_idx.items()}
         print("**\tCRF ON\t**")
         print("TRAINING AUXILIARY MODEL")
-        #trainer_sec.train()
+        trainer_sec.train()
         ## Map the labels
         idx_to_labels = {v[1]: v[0] for v in train_ds.labels_to_idx.items()}
-        
+        cuda.empty_cache()
         labels_to_idx = train_ds.labels_to_idx
         labels_to_idx_sec = train_ds_small.labels_to_idx
         sec_model.eval()
