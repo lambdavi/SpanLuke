@@ -395,7 +395,6 @@ if __name__ == "__main__":
             num_train_epochs = 10
         )
         training_args_s = TrainingArguments(
-            output_dir=new_output_folder,
             num_train_epochs=num_epochs,
             learning_rate=lr,
             lr_scheduler_type=scheduler_type,
@@ -406,13 +405,11 @@ if __name__ == "__main__":
             weight_decay=weight_decay,
             evaluation_strategy="epoch",
             save_strategy="epoch",
-            save_total_limit=2,
             fp16=False,
             fp16_full_eval=False,
             metric_for_best_model="f1-strict",
             dataloader_num_workers=workers,
             dataloader_pin_memory=True,
-            logging_steps=500*batch_size
         )
 
         ## Collator
