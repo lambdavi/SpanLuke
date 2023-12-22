@@ -411,6 +411,7 @@ if __name__ == "__main__":
             metric_for_best_model="f1-strict",
             dataloader_num_workers=workers,
             dataloader_pin_memory=True,
+            report_to="none"
         )
 
         ## Collator
