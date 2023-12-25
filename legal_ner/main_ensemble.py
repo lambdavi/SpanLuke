@@ -17,7 +17,10 @@ class Primary(nn.Module):
         self.device = "cpu" if not cuda.is_available() else "cuda"
         self.bert = AutoModel.from_pretrained(model_path, ignore_mismatched_sizes=True, output_hidden_states=use_bilstm)
         if freeze:
-            self.bert.encoder.requires_grad_(False)
+            for name, param in self.bert.named_parameters():
+                if 'classifier' not in name:
+                    param.requires_grad = False
+            #self.bert.encoder.requires_grad_(False)
         # https://github.com/huggingface/transformers/issues/1431
         self.dropout = nn.Dropout(dropout)
         self.use_bilstm = use_bilstm

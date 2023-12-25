@@ -20,8 +20,9 @@ class CustomModelWithBiLSTM(nn.Module):
         self.device = "cpu" if not cuda.is_available() else "cuda"
         self.bert = AutoModel.from_pretrained(model_path, output_hidden_states=True)
         if freeze:
-            self.bert.encoder.requires_grad_(False)
-
+            for name, param in self.bert.named_parameters():
+                if 'classifier' not in name:
+                    param.requires_grad = False
         # https://github.com/huggingface/transformers/issues/1431
         self.dropout = nn.Dropout(dropout)
         self.bilstm = nn.LSTM(
