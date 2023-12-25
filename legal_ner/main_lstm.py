@@ -22,6 +22,7 @@ class CustomModelWithBiLSTM(nn.Module):
         if freeze:
             for name, param in self.bert.named_parameters():
                 if 'classifier' not in name:
+                    print(f"{name} freezed")
                     param.requires_grad = False
         # https://github.com/huggingface/transformers/issues/1431
         self.dropout = nn.Dropout(dropout)
