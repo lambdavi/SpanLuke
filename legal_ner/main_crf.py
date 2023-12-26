@@ -128,7 +128,7 @@ if __name__ == "__main__":
 
     parser.add_argument(
         "--hidden",
-        help="Warmup ratio",
+        help="hidden size",
         default=768,
         required=False,
         type=int,
