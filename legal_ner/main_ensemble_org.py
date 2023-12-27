@@ -209,7 +209,7 @@ if __name__ == "__main__":
         help="Weight ratio of the principal/secondary model",
         default=0.2,
         required=False,
-        type=int,
+        type=float,
     )
 
     parser.add_argument(
