@@ -46,8 +46,12 @@ class Primary(nn.Module):
         else:
             sequence_out = outputs[0]
         logits = self.linear(self.dropout(sequence_out))
+        if token_type_ids is not None:
+            tk = token_type_ids.to(sec_model.device)
+        else:
+            tk = token_type_ids        
+        logits2 = sec_model(input_ids=input_ids.to(sec_model.device), token_type_ids=tk, attention_mask=attention_mask.to(sec_model.device), return_logits_only=True)
 
-        logits2 = sec_model(input_ids=input_ids.to(sec_model.device), token_type_ids=token_type_ids.to(sec_model.device), attention_mask=attention_mask.to(sec_model.device), return_logits_only=True)
         logits2=logits2.to(logits.device)
         # Apply softmax to obtain probabilities
         combined_logits = logits.clone()
