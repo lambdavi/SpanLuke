@@ -20,6 +20,7 @@ class CustomModelWithBiLSTM(nn.Module):
         self.device = "cpu" if not cuda.is_available() else "cuda"
         self.bert = AutoModel.from_pretrained(model_path, output_hidden_states=True)
         self.bert.gradient_checkpointing = True
+        self.bert.gradient_accumulation_steps = acc_step
         if freeze:
             print("Freezeing layers.. ")
             for name, param in self.bert.named_parameters():

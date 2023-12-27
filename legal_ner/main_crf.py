@@ -18,6 +18,8 @@ class CustomModelWithCRF(nn.Module):
         super(CustomModelWithCRF, self).__init__()
         self.device = "cpu" if not cuda.is_available() else "cuda"
         self.bert = AutoModel.from_pretrained(model_path, ignore_mismatched_sizes=True)
+        self.bert.gradient_checkpointing = True
+        self.bert.gradient_accumulation_steps = acc_step
         if freeze:
             self.bert.encoder.requires_grad_(False)
 
@@ -134,6 +136,14 @@ if __name__ == "__main__":
         type=int,
     )
 
+    parser.add_argument(
+        "--acc_step",
+        help="Gradient accumulation steps",
+        default=1,
+        required=False,
+        type=int,
+    )
+
     args = parser.parse_args()
 
     ## Parameters
@@ -148,6 +158,8 @@ if __name__ == "__main__":
     workers = args.workers              # e.g., 4
     scheduler_type = args.scheduler     # e.g., linear
     single_model_path = args.model_path        # e.g. bert-base-uncased
+    acc_step = args.acc_step
+    
     ## Define the labels
     original_label_list = [
         "COURT",
@@ -265,7 +277,7 @@ if __name__ == "__main__":
             lr_scheduler_type=scheduler_type,
             per_device_train_batch_size=batch_size,
             per_device_eval_batch_size=batch_size,
-            gradient_accumulation_steps=1,
+            gradient_accumulation_steps=acc_step,
             warmup_ratio=warmup_ratio,
             weight_decay=weight_decay,
             evaluation_strategy="epoch",
@@ -278,8 +290,7 @@ if __name__ == "__main__":
             dataloader_num_workers=workers,
             dataloader_pin_memory=True,
             report_to="wandb",
-            logging_steps=3000 if batch_size==1 else 100,
-            #logging_steps=50 if ("bert-" not in model_path and "albert" not in model_path) else 3000,  # how often to log to W&B
+            logging_steps=50,  # how often to log to W&B
         )
 
         ## Collator
