@@ -122,7 +122,11 @@ if __name__ == "__main__":
     warmup_ratio = args.warmup_ratio    # e.g., 0.06
     workers = args.workers              # e.g., 4
     scheduler_type = args.scheduler     # e.g., linear
+<<<<<<< Updated upstream
     acc_step = args.acc_step
+=======
+
+>>>>>>> Stashed changes
     ## Define the labels
     original_label_list = [
         "COURT",
@@ -270,7 +274,11 @@ if __name__ == "__main__":
             lr_scheduler_type=scheduler_type,
             per_device_train_batch_size=batch_size,
             per_device_eval_batch_size=batch_size,
+<<<<<<< Updated upstream
             gradient_accumulation_steps=acc_step,
+=======
+            gradient_accumulation_steps=1,
+>>>>>>> Stashed changes
             gradient_checkpointing=True if "span" not in model_path else False,
             warmup_ratio=warmup_ratio,
             weight_decay=weight_decay,
