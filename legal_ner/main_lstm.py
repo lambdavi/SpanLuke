@@ -18,7 +18,7 @@ class CustomModelWithBiLSTM(nn.Module):
     def __init__(self, model_path, num_labels, freeze=False, hidden_size=1024, lstm_hidden_size=256, num_lstm_layers=1, bidirectional=True, dropout=0.1):
         super(CustomModelWithBiLSTM, self).__init__()
         self.device = "cpu" if not cuda.is_available() else "cuda"
-        self.bert = AutoModel.from_pretrained(model_path, output_hidden_states=True)
+        self.bert = AutoModel.from_pretrained(model_path, output_hidden_states=True, ignore_mismatched_sizes=True)
         self.bert.gradient_checkpointing = True
         self.bert.gradient_accumulation_steps = acc_step
         if freeze:
