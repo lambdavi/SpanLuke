@@ -7,7 +7,7 @@ from span_marker import SpanMarkerModel, Trainer as SpanTrainer
 from transformers import EarlyStoppingCallback
 from transformers import AutoModelForTokenClassification
 from transformers import Trainer, DefaultDataCollator, TrainingArguments
-
+from sklearn.metrics import confusion_matrix
 from utils.dataset import LegalNERTokenDataset
 
 import spacy
@@ -160,6 +160,12 @@ if __name__ == "__main__":
         unique_labels = list(set([l.split("-")[-1] for l in list(set(labels_ids[0]))]))
         unique_labels.remove("O")
 
+        # Confusion Matrix
+        cm = confusion_matrix(labels_ids[0], prediction_ids[0], labels=unique_labels)
+
+        # Print Confusion Matrix
+        print("Confusion Matrix:")
+        print(cm)
         # Evaluator
         evaluator = Evaluator(
             labels_ids, prediction_ids, tags=unique_labels, loader="list"
