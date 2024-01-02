@@ -46,7 +46,7 @@ batch_size = 8
 learning_rate = 1e-4
 max_length = 64
 if model_size == '7b':
-    model_id = 'NousResearch/Llama-2-7b-hf'
+    model_id = 'TinyPixel/Llama-2-7B-bf16-sharded'
     lora_r = 12
 elif model_size == '13b':
     model_id = 'NousResearch/Llama-2-13b-hf'
@@ -64,6 +64,11 @@ elif task == 'conll2003':
 elif task == 'ontonotesv5':
     ds = load_ontonotesv5()
     label2id = {'O': 0, 'B-NORP': 1, 'B-PERSON': 2, 'B-WORK_OF_ART': 3, 'B-QUANTITY': 4, 'B-EVENT': 5, 'B-DATE': 6, 'B-TIME': 7, 'B-PERCENT': 8, 'B-LANGUAGE': 9, 'B-ORG': 10, 'B-CARDINAL': 11, 'B-LAW': 12, 'B-GPE': 13, 'B-PRODUCT': 14, 'B-LOC': 15, 'B-MONEY': 16, 'B-ORDINAL': 17, 'B-FAC': 18}
+elif task == 'lner':
+    ds = load_legal_ner()
+    entitities = ['B-COURT', 'B-PETITIONER', 'B-RESPONDENT', 'B-JUDGE', 'B-DATE', 'B-ORG', 'B-GPE', 'B-STATUTE', 'B-PROVISION', 'B-PRECEDENT', 'B-CASE_NUMBER', 'B-WITNESS', 'B-OTHER_PERSON', 'B-LAWYER', 'I-COURT', 'I-PETITIONER', 'I-RESPONDENT', 'I-JUDGE', 'I-DATE', 'I-ORG', 'I-GPE', 'I-STATUTE', 'I-PROVISION', 'I-PRECEDENT', 'I-CASE_NUMBER', 'I-WITNESS', 'I-OTHER_PERSON', 'I-LAWYER']
+    labels_list = sorted(entitities + ["O"])[::-1]
+    label2id = dict(zip(sorted(labels_list)[::-1], range(len(labels_list))))
 else:
     raise NotImplementedError
 id2label = {v: k for k, v in label2id.items()}
