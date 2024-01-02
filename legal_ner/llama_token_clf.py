@@ -23,6 +23,16 @@ def load_ontonotesv5():
         ret[split_name] = Dataset.from_list(data)
     return DatasetDict(ret)
 
+def load_legal_ner():
+    ret = {}
+    for split_name in ['TRAIN', 'DEV']:
+        data = []
+        with open(f"./data/NER_{split_name}/NER_{split_name}_ALL_OT.jsonl", 'r') as reader:
+            for line in reader:
+                data.append(json.loads(line))
+        print(type(data))
+        ret[split_name] = Dataset.from_list(data)
+    return DatasetDict(ret)
 
 if len(sys.argv) != 3:
     print('usage python %.py task model_size')

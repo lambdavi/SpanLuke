@@ -48,7 +48,7 @@ learning_rate = 1e-4
 max_length = 64
 lora_r = 12
 if model_size == '7b':
-    model_id = 'TinyPixel/Llama-2-7B-bf16-sharded'
+    model_id = 'abhishek/llama-2-7b-hf-small-shards'
 elif model_size == '13b':
     model_id = 'TinyPixel/Llama-2-7B-bf16-sharded'
 else:
