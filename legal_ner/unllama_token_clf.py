@@ -27,7 +27,7 @@ def load_legal_ner():
     ret = {}
     for split_name in ['TRAIN', 'DEV']:
         data = []
-        with open(f"./legal_ner/data/NER_{split_name}/NER_{split_name}_ALL_OT.json", 'r') as reader:
+        with open(f"./data/NER_{split_name}/NER_{split_name}_ALL_OT.json", 'r') as reader:
             for line in reader:
                 data.append(json.loads(line))
         ret[split_name] = Dataset.from_list(data)
