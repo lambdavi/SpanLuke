@@ -53,7 +53,7 @@ elif model_size == '13b':
     lora_r = 12
 else:
     raise NotImplementedError
-tokenizer = AutoTokenizer.from_pretrained(model_id)
+tokenizer = AutoTokenizer.from_pretrained('NousResearch/Llama-2-13b-hf')
 seqeval = evaluate.load("seqeval")
 if task == 'wnut_17':
     ds = load_dataset("wnut_17")
