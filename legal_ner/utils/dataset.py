@@ -32,6 +32,7 @@ class LegalNERTokenDataset(Dataset):
             self.labels_to_idx = dict(
                 zip(sorted(self.labels_list)[::-1], range(len(self.labels_list)))
             )
+        print(self.labels_list)
 
     def __len__(self):
         return len(self.data)
