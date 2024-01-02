@@ -6,7 +6,7 @@ from nervaluate import Evaluator
 from span_marker import SpanMarkerModel, Trainer as SpanTrainer
 from transformers import EarlyStoppingCallback
 from transformers import AutoModelForTokenClassification
-from transformers import Trainer, DefaultDataCollator, TrainingArguments
+from transformers import Trainer, DefaultDataCollator, TrainingArguments, DataCollatorForTokenClassification
 from sklearn.metrics import confusion_matrix
 from utils.dataset import LegalNERTokenDataset
 from modeling_llama import (
@@ -293,7 +293,7 @@ if __name__ == "__main__":
         )
 
         ## Collator
-        data_collator = DefaultDataCollator()
+        data_collator = DataCollatorForTokenClassification()
 
         ## Trainer
         if "span" not in model_path:
