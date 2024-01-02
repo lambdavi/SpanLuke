@@ -5,7 +5,7 @@ from argparse import ArgumentParser
 from nervaluate import Evaluator
 from span_marker import SpanMarkerModel, Trainer as SpanTrainer
 from transformers import EarlyStoppingCallback
-from transformers import AutoModelForTokenClassification
+from transformers import AutoModelForTokenClassification, RobertaTokenizerFast
 from transformers import Trainer, DefaultDataCollator, TrainingArguments, DataCollatorForTokenClassification
 from sklearn.metrics import confusion_matrix
 from utils.dataset import LegalNERTokenDataset
@@ -293,7 +293,7 @@ if __name__ == "__main__":
         )
 
         ## Collator
-        data_collator = DataCollatorForTokenClassification()
+        data_collator = DataCollatorForTokenClassification(tokenizer=RobertaTokenizerFast.from_pretrained("roberta-base"))
 
         ## Trainer
         if "span" not in model_path:
