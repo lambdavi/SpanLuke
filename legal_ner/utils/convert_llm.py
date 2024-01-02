@@ -41,8 +41,9 @@ def convert_format(all_data):
 
 
 # Example usage for the first entry
-input_data_1 = json.load(open("/Users/davidebuoso/Desktop/dev/dnlp/L-NER/legal_ner/data/NER_DEV/NER_DEV_ALL.json"))
+input_data_1 = json.load(open("/Users/davidebuoso/Desktop/dev/dnlp/L-NER/legal_ner/data/NER_TRAIN/NER_TRAIN_ALL.json"))
 
 output_data_1 = convert_format(input_data_1)
-json.dump(output_data_1, fp=open("ouput_new_dataset.json", "w"), indent=2)
-
+with open("legal_ner/data/NER_TRAIN/NER_TRAIN_ALL_OT.json", "w") as f:
+    for line in output_data_1:
+        f.write(str(line)+"\n")
