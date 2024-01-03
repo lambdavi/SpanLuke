@@ -31,7 +31,7 @@ def load_legal_ner():
             for line in reader:
                 data.append(json.loads(line))
         print(type(data))
-        ret[split_name] = Dataset.from_list(data)
+        ret[split_name.lower()] = Dataset.from_list(data)
     return DatasetDict(ret)
 
 
@@ -48,12 +48,14 @@ learning_rate = 1e-4
 max_length = 64
 lora_r = 12
 if model_size == '7b':
-    model_id = 'abhishek/llama-2-7b-hf-small-shards'
-elif model_size == '13b':
     model_id = 'TinyPixel/Llama-2-7B-bf16-sharded'
+    lora_r = 12
+elif model_size == '13b':
+    model_id = 'NousResearch/Llama-2-13b-hf'
+    lora_r = 12
 else:
     raise NotImplementedError
-tokenizer = AutoTokenizer.from_pretrained(model_id)
+tokenizer = AutoTokenizer.from_pretrained('NousResearch/Llama-2-13b-hf')
 seqeval = evaluate.load("seqeval")
 if task == 'wnut_17':
     ds = load_dataset("wnut_17")

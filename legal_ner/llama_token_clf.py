@@ -44,7 +44,7 @@ print(f'handling task {task}')
 epochs = 1
 batch_size = 1
 learning_rate = 1e-4
-max_length = 64
+max_length = 16
 if model_size == '7b':
     model_id = 'TinyPixel/Llama-2-7B-bf16-sharded'
     lora_r = 12
