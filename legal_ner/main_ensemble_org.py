@@ -46,29 +46,23 @@ class Primary(nn.Module):
         else:
             sequence_out = outputs[0]
         logits = self.linear(self.dropout(sequence_out))
-        """
-        TODO: fix multi-GPU case
-        if token_type_ids is not None:
-            tk = token_type_ids.to(sec_model.device)
-        else:
-            tk = token_type_ids        """
-        logits2 = sec_model(input_ids=input_ids.to(sec_model.device), token_type_ids=token_type_ids, attention_mask=attention_mask.to(sec_model.device), return_logits_only=True)
-
-        logits2=logits2.to(logits.device)
-        # Apply softmax to obtain probabilities
-        combined_logits = logits.clone()
-        specialized_mask = zeros_like(combined_logits, dtype=bool)
-        specialized_mask2 = zeros_like(logits2, dtype=bool)
-        for label in self.specialized_labels:
-            specialized_mask[:, :, labels_to_idx[label]] = True
-            specialized_mask2[:, :, labels_to_idx_sec[label]] = True
-    
-        combined_logits[specialized_mask] = (1 - self.weight_factor) * logits[specialized_mask] + self.weight_factor * logits2[specialized_mask2]
+        
         
         if labels != None:
-            crf_loss = -self.crf(combined_logits, labels, mask=attention_mask.bool(), reduction="mean" if batch_size!=1 else "token_mean") # if not mean, it is sum by default
+            crf_loss = -self.crf(logits, labels, mask=attention_mask.bool(), reduction="mean" if batch_size!=1 else "token_mean") # if not mean, it is sum by default
             return (crf_loss, logits)
         else:
+            logits2 = sec_model(input_ids=input_ids, token_type_ids=token_type_ids, attention_mask=attention_mask, return_logits_only=True)
+            logits2=logits2.to(logits.device)
+            # Apply softmax to obtain probabilities
+            combined_logits = logits.clone()
+            specialized_mask = zeros_like(combined_logits, dtype=bool)
+            specialized_mask2 = zeros_like(logits2, dtype=bool)
+            for label in self.specialized_labels:
+                specialized_mask[:, :, labels_to_idx[label]] = True
+                specialized_mask2[:, :, labels_to_idx_sec[label]] = True
+        
+            combined_logits[specialized_mask] = (1 - self.weight_factor) * logits[specialized_mask] + self.weight_factor * logits2[specialized_mask2]
             outputs = self.crf.decode(combined_logits, attention_mask.bool())
             return outputs
 
