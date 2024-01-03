@@ -42,9 +42,9 @@ task, model_size = sys.argv[1], sys.argv[2].lower()
 print(f'handling task {task}')
 
 epochs = 1
-batch_size = 1
+batch_size = 2
 learning_rate = 1e-4
-max_length = 16
+max_length = 64
 if model_size == '7b':
     model_id = 'TinyPixel/Llama-2-7B-bf16-sharded'
     lora_r = 12
@@ -135,6 +135,7 @@ training_args = TrainingArguments(
     per_device_train_batch_size=batch_size,
     per_device_eval_batch_size=batch_size,
     num_train_epochs=epochs,
+    gradient_accumulation_steps=8,
     weight_decay=0.01,
     evaluation_strategy="epoch",
     save_strategy="epoch",
