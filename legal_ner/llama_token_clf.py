@@ -41,8 +41,8 @@ if len(sys.argv) != 3:
 task, model_size = sys.argv[1], sys.argv[2].lower()
 print(f'handling task {task}')
 
-epochs = 10
-batch_size = 8
+epochs = 1
+batch_size = 1
 learning_rate = 1e-4
 max_length = 64
 if model_size == '7b':
