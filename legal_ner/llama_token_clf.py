@@ -41,8 +41,8 @@ if len(sys.argv) != 3:
 task, model_size = sys.argv[1], sys.argv[2].lower()
 print(f'handling task {task}')
 
-epochs = 2
-batch_size = 8
+epochs = 3
+batch_size = 4
 learning_rate = 1e-4
 max_length = 64
 lora_r = 12
@@ -180,6 +180,7 @@ training_args = TrainingArguments(
     weight_decay=0.01,
     evaluation_strategy="epoch",
     save_strategy="epoch",
+    save_total_limit=2,
     load_best_model_at_end=True,
     push_to_hub=False,
 )
