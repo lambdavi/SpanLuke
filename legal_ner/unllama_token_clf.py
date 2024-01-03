@@ -175,12 +175,13 @@ training_args = TrainingArguments(
     learning_rate=learning_rate,
     per_device_train_batch_size=batch_size,
     per_device_eval_batch_size=batch_size,
-    gradient_accumulation_steps=8,
     num_train_epochs=epochs,
+    gradient_accumulation_steps=8,
     weight_decay=0.01,
-    evaluation_strategy="epoch",
+    evaluation_strategy="steps",
+    eval_steps=5,
     save_strategy="epoch",
-    load_best_model_at_end=True,
+    load_best_model_at_end=False,
     push_to_hub=False,
 )
 
