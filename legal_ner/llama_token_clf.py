@@ -45,12 +45,11 @@ epochs = 1
 batch_size = 2
 learning_rate = 1e-4
 max_length = 64
+lora_r = 12
 if model_size == '7b':
     model_id = 'TinyPixel/Llama-2-7B-bf16-sharded'
-    lora_r = 12
 elif model_size == '13b':
     model_id = 'NousResearch/Llama-2-13b-hf'
-    lora_r = 12
 else:
     raise NotImplementedError
 tokenizer = AutoTokenizer.from_pretrained('NousResearch/Llama-2-13b-hf')

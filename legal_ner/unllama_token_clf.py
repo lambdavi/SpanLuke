@@ -9,7 +9,7 @@ from transformers import AutoTokenizer
 from transformers import DataCollatorForTokenClassification
 from transformers import TrainingArguments, Trainer
 from peft import get_peft_model, LoraConfig, TaskType
-
+from nervaluate import Evaluator
 from modeling_llama import UnmaskingLlamaForTokenClassification
 
 
@@ -42,17 +42,15 @@ if len(sys.argv) != 3:
 task, model_size = sys.argv[1], sys.argv[2].lower()
 print(f'handling task {task}')
 
-epochs = 10
+epochs = 1
 batch_size = 2
 learning_rate = 1e-4
 max_length = 64
 lora_r = 12
 if model_size == '7b':
     model_id = 'TinyPixel/Llama-2-7B-bf16-sharded'
-    lora_r = 12
 elif model_size == '13b':
     model_id = 'NousResearch/Llama-2-13b-hf'
-    lora_r = 12
 else:
     raise NotImplementedError
 tokenizer = AutoTokenizer.from_pretrained('NousResearch/Llama-2-13b-hf')
@@ -129,7 +127,48 @@ def compute_metrics(p):
         "f1": results["overall_f1"],
         "accuracy": results["overall_accuracy"],
     }
+def compute_metrics2(pred):
 
+        # Preds
+        predictions = np.argmax(pred.predictions, axis=-1)
+        predictions = np.concatenate(predictions, axis=0)
+        prediction_ids = [[id2label[p] if p != -100 else "O" for p in predictions]]
+
+        # Labels
+        labels = pred.label_ids
+        labels = np.concatenate(labels, axis=0)
+        labels_ids = [[id2label[p] if p != -100 else "O" for p in labels]]
+        unique_labels = list(set([l.split("-")[-1] for l in list(set(labels_ids[0]))]))
+        unique_labels.remove("O")
+
+
+        # Evaluator
+        evaluator = Evaluator(
+            labels_ids, prediction_ids, tags=unique_labels, loader="list"
+        )
+        results, results_per_tag = evaluator.evaluate()
+        print("")
+        for k,v in results_per_tag.items():
+            print(f"{k}: {v['ent_type']['f1']}")
+
+        return {
+            "f1-type-match": 2
+            * results["ent_type"]["precision"]
+            * results["ent_type"]["recall"]
+            / (results["ent_type"]["precision"] + results["ent_type"]["recall"] + 1e-9),
+            "f1-partial": 2
+            * results["partial"]["precision"]
+            * results["partial"]["recall"]
+            / (results["partial"]["precision"] + results["partial"]["recall"] + 1e-9),
+            "f1-strict": 2
+            * results["strict"]["precision"]
+            * results["strict"]["recall"]
+            / (results["strict"]["precision"] + results["strict"]["recall"] + 1e-9),
+            "f1-exact": 2
+            * results["exact"]["precision"]
+            * results["exact"]["recall"]
+            / (results["exact"]["precision"] + results["exact"]["recall"] + 1e-9),
+        }
 
 training_args = TrainingArguments(
     output_dir="my_awesome_ds_model",
@@ -137,7 +176,6 @@ training_args = TrainingArguments(
     per_device_train_batch_size=batch_size,
     per_device_eval_batch_size=batch_size,
     gradient_accumulation_steps=8,
-
     num_train_epochs=epochs,
     weight_decay=0.01,
     evaluation_strategy="epoch",
