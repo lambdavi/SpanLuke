@@ -393,11 +393,11 @@ if __name__ == "__main__":
             logging_steps=500*batch_size,
             load_best_model_at_end=True,
             report_to="wandb",
-            num_train_epochs = 10
+            num_train_epochs = num_epochs
         )
         training_args_s = TrainingArguments(
             output_dir=new_output_folder,
-            num_train_epochs=num_epochs,
+            num_train_epochs=20,
             learning_rate=lr,
             lr_scheduler_type=scheduler_type,
             per_device_train_batch_size=batch_size,
