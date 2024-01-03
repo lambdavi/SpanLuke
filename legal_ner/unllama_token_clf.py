@@ -192,7 +192,7 @@ trainer = Trainer(
     eval_dataset=tokenized_ds["dev"],
     tokenizer=tokenizer,
     data_collator=data_collator,
-    compute_metrics=compute_metrics,
+    compute_metrics=compute_metrics2,
 )
 
 trainer.train()
