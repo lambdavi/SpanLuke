@@ -178,10 +178,9 @@ training_args = TrainingArguments(
     num_train_epochs=epochs,
     gradient_accumulation_steps=8,
     weight_decay=0.01,
-    evaluation_strategy="steps",
-    eval_steps=50,
+    evaluation_strategy="epoch",
     save_strategy="epoch",
-    load_best_model_at_end=False,
+    load_best_model_at_end=True,
     push_to_hub=False,
 )
 
