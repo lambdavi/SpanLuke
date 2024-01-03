@@ -42,7 +42,7 @@ task, model_size = sys.argv[1], sys.argv[2].lower()
 print(f'handling task {task}')
 
 epochs = 2
-batch_size = 4
+batch_size = 8
 learning_rate = 1e-4
 max_length = 64
 lora_r = 12
