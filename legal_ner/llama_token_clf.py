@@ -31,7 +31,7 @@ def load_legal_ner():
             for line in reader:
                 data.append(json.loads(line))
         print(type(data))
-        ret[split_name] = Dataset.from_list(data)
+        ret[split_name.lower()] = Dataset.from_list(data)
     return DatasetDict(ret)
 
 if len(sys.argv) != 3:
