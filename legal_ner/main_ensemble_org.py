@@ -397,7 +397,7 @@ if __name__ == "__main__":
         )
         training_args_s = TrainingArguments(
             output_dir=new_output_folder,
-            num_train_epochs=20 if num_epochs!= 1 else 1,
+            num_train_epochs=30 if num_epochs!= 1 else 1,
             learning_rate=lr,
             lr_scheduler_type=scheduler_type,
             per_device_train_batch_size=batch_size,
