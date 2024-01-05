@@ -422,8 +422,8 @@ if __name__ == "__main__":
             metric_for_best_model="f1-strict",
             dataloader_num_workers=workers,
             dataloader_pin_memory=True,
-            logging_steps=500*batch_size,
-            report_to="none"
+            logging_steps=100,
+            report_to="none" if train_all else "wandb"
         )
 
         ## Collator
