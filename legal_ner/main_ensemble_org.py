@@ -133,6 +133,14 @@ if __name__ == "__main__":
     )
 
     parser.add_argument(
+        "--acc_step",
+        help="Gradient accumulation steps",
+        default=1,
+        required=False,
+        type=int,
+    )
+
+    parser.add_argument(
         "--model_path",
         help="The model path from huggingface/local folder",
         default=None,
@@ -244,6 +252,7 @@ if __name__ == "__main__":
     model_path_secondary = args.model_path_secondary        # e.g. bert-base-uncased
     weight_ratio = args.weight_ratio
     train_all = args.train_all
+    acc_step = args.acc_step
     ## Define the labels
     original_label_list = [
         "COURT",
@@ -389,7 +398,7 @@ if __name__ == "__main__":
             lr_scheduler_type=scheduler_type,
             per_device_train_batch_size=batch_size,
             per_device_eval_batch_size=batch_size,
-            gradient_accumulation_steps=4,
+            gradient_accumulation_steps=acc_step,
             warmup_ratio=warmup_ratio,
             weight_decay=weight_decay,
             evaluation_strategy="epoch",
@@ -412,7 +421,7 @@ if __name__ == "__main__":
             lr_scheduler_type=scheduler_type,
             per_device_train_batch_size=batch_size,
             per_device_eval_batch_size=batch_size,
-            gradient_accumulation_steps=2,
+            gradient_accumulation_steps=acc_step,
             warmup_ratio=warmup_ratio,
             weight_decay=weight_decay,
             evaluation_strategy="epoch",
