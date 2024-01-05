@@ -371,8 +371,9 @@ if __name__ == "__main__":
         labels_to_specialize = ["ORG"]
         labels_mask = ["B-" + l for l in labels_to_specialize]
         labels_mask += ["I-" + l for l in labels_to_specialize]
-        main_model = Primary(model_path, num_labels=num_labels, hidden_size=args.hidden, spec_mask=labels_mask, weight_ratio=weight_ratio)
-        print("MAIN MODEL", main_model, sep="\n")
+        if train_all:
+            main_model = Primary(model_path, num_labels=num_labels, hidden_size=args.hidden, spec_mask=labels_mask, weight_ratio=weight_ratio)
+            print("MAIN MODEL", main_model, sep="\n")
         sec_model = SecondaryModel(model_path_secondary, num_labels=num_labels_sec, hidden_size=args.hidden)
         print("SECONDARY MODEL", sec_model, sep="\n")
         
@@ -430,15 +431,16 @@ if __name__ == "__main__":
         data_collator = DefaultDataCollator()
 
         ## Trainer
-        trainer_main = Trainer(
-            model=main_model,
-            args=training_args,
-            train_dataset=train_ds,
-            eval_dataset=val_ds,
-            data_collator=data_collator,
-            compute_metrics=compute_metrics,
-            callbacks=[EarlyStoppingCallback(2)]
-        )
+        if train_all:
+            trainer_main = Trainer(
+                model=main_model,
+                args=training_args,
+                train_dataset=train_ds,
+                eval_dataset=val_ds,
+                data_collator=data_collator,
+                compute_metrics=compute_metrics,
+                callbacks=[EarlyStoppingCallback(2)]
+            )
 
         trainer_sec = Trainer(
             model=sec_model,
