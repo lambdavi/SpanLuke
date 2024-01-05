@@ -123,6 +123,7 @@ if __name__ == "__main__":
         required=False,
         type=str,
     )
+    
     parser.add_argument(
         "--output_folder",
         help="Output folder",
@@ -219,6 +220,13 @@ if __name__ == "__main__":
         required=False
     )
 
+    parser.add_argument(
+        "--train_all",
+        help="If activated training both the primary and secondary model",
+        action="store_true",
+        required=False
+    )
+
     args = parser.parse_args()
 
     ## Parameters
@@ -235,6 +243,7 @@ if __name__ == "__main__":
     single_model_path = args.model_path        # e.g. bert-base-uncased
     model_path_secondary = args.model_path_secondary        # e.g. bert-base-uncased
     weight_ratio = args.weight_ratio
+    train_all = args.train_all
     ## Define the labels
     original_label_list = [
         "COURT",
@@ -451,10 +460,11 @@ if __name__ == "__main__":
         labels_to_idx_sec = train_ds_small.labels_to_idx
         sec_model.eval()
         print(3*"\n")
-        print("TRAINING PRIMARY MODEL")
-        trainer_main.train()
-        trainer_main.save_model(output_folder)
-        trainer_main.evaluate()
+        if train_all:
+            print("TRAINING PRIMARY MODEL")
+            trainer_main.train()
+            trainer_main.save_model(output_folder)
+            trainer_main.evaluate()
 
 
         
