@@ -255,7 +255,18 @@ if __name__ == "__main__":
                 task_type=TaskType.TOKEN_CLS, inference_mode=False, r=16, lora_alpha=8, lora_dropout=0.1, bias="all", target_modules=target_modules
             )
             model = get_peft_model(model, peft_config)
+            n_params = 0
+            n_trainable_params = 0
 
+            # count the number of trainable parameters
+            for n, p in model.named_parameters():
+                n_params += p.numel()
+                if p.requires_grad:
+                    n_trainable_params += p.numel()
+
+            print(f"Total parameters: {n_params}")
+            print(f"Trainable parameters: {n_trainable_params}")
+            print(f"Percentage trainable: {round(n_trainable_params / n_params * 100, 2)}%")
         print(model)
 
         ## Map the labels
