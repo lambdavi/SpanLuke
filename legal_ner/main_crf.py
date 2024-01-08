@@ -9,7 +9,8 @@ from transformers import AutoModelForTokenClassification, AutoModel
 from transformers import Trainer, DefaultDataCollator, TrainingArguments
 from torch import nn,cuda
 from utils.dataset import LegalNERTokenDataset
-
+import re
+from peft import LoraConfig, TaskType, get_peft_model
 import spacy
 nlp = spacy.load("en_core_web_sm")
 
@@ -144,6 +145,13 @@ if __name__ == "__main__":
         type=int,
     )
 
+    parser.add_argument(
+        "--use_lora",
+        help="Abilitate Peft Lora",
+        action="store_true",
+        required=False
+    )
+
     args = parser.parse_args()
 
     ## Parameters
@@ -159,6 +167,7 @@ if __name__ == "__main__":
     scheduler_type = args.scheduler     # e.g., linear
     single_model_path = args.model_path        # e.g. bert-base-uncased
     acc_step = args.acc_step
+    use_lora = args.use_lora
     
     ## Define the labels
     original_label_list = [
@@ -260,7 +269,25 @@ if __name__ == "__main__":
         )
 
         model = CustomModelWithCRF(model_path, num_labels=num_labels, hidden_size=args.hidden)
+        if use_lora:
+            model_modules = str(model.modules)
+            pattern = r'\((\w+)\): Linear'
+            linear_layer_names = re.findall(pattern, model_modules)
+
+            names = []
+            # Print the names of the Linear layers
+            for name in linear_layer_names:
+                names.append(name)
+            target_modules = list(set(names))
+            print(f"Found target modules: \n{target_modules}")
+            peft_config = LoraConfig(
+                task_type=TaskType.TOKEN_CLS, inference_mode=False, r=16, lora_alpha=8, lora_dropout=0.1, bias="all", target_modules=target_modules
+            )
+            model = get_peft_model(model, peft_config)
+
         print(model)
+
+
         ## Map the labels
         idx_to_labels = {v[1]: v[0] for v in train_ds.labels_to_idx.items()}
 
