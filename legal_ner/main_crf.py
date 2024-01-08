@@ -15,8 +15,8 @@ import spacy
 nlp = spacy.load("en_core_web_sm")
 
 class CustomModelWithCRF(nn.Module):
-    def __init__(self, model_path, num_labels, freeze=False, hidden_size=768, dropout=0.1):
-        super(CustomModelWithCRF, self).__init__()
+    def __init__(self, model_path, num_labels, freeze=False, hidden_size=768, dropout=0.1, **kwargs):
+        super(CustomModelWithCRF, self).__init__(**kwargs)
         self.device = "cpu" if not cuda.is_available() else "cuda"
         self.bert = AutoModel.from_pretrained(model_path, ignore_mismatched_sizes=True)
         self.bert.gradient_checkpointing = True
