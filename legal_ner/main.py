@@ -3,12 +3,12 @@ import json
 import numpy as np
 from argparse import ArgumentParser
 from nervaluate import Evaluator
-from span_marker import SpanMarkerModel, Trainer as SpanTrainer
 from transformers import EarlyStoppingCallback
 from transformers import AutoModelForTokenClassification
 from transformers import Trainer, DefaultDataCollator, TrainingArguments
-from sklearn.metrics import confusion_matrix
 from utils.dataset import LegalNERTokenDataset
+import re
+from peft import LoraConfig, TaskType, get_peft_model
 
 import spacy
 nlp = spacy.load("en_core_web_sm")
@@ -109,6 +109,13 @@ if __name__ == "__main__":
         type=int,
     )
 
+    parser.add_argument(
+        "--use_lora",
+        help="Abilitate Peft Lora",
+        action="store_true",
+        required=False
+    )
+
     args = parser.parse_args()
 
     ## Parameters
@@ -122,6 +129,7 @@ if __name__ == "__main__":
     warmup_ratio = args.warmup_ratio    # e.g., 0.06
     workers = args.workers              # e.g., 4
     scheduler_type = args.scheduler     # e.g., linear
+    use_lora = args.use_lora
     acc_step = args.acc_step
 
     ## Define the labels
@@ -160,12 +168,6 @@ if __name__ == "__main__":
         unique_labels = list(set([l.split("-")[-1] for l in list(set(labels_ids[0]))]))
         unique_labels.remove("O")
 
-        # Confusion Matrix
-        cm = confusion_matrix(labels_ids[0], prediction_ids[0], labels=unique_labels)
-
-        # Print Confusion Matrix
-        print("Confusion Matrix:")
-        print(cm)
         # Evaluator
         evaluator = Evaluator(
             labels_ids, prediction_ids, tags=unique_labels, loader="list"
@@ -231,34 +233,30 @@ if __name__ == "__main__":
             use_roberta=use_roberta
         )
 
-        ## Define the model
-        if "span" in model_path:
-            # Download from the 🤗 Hub
+        # Run inference
+        model = AutoModelForTokenClassification.from_pretrained(
+            model_path, 
+            num_labels=num_labels, 
+            ignore_mismatched_sizes=True
+        )
 
-            encoder_id = "roberta-base"
-            model = SpanMarkerModel.from_pretrained(
-                # Required arguments
-                encoder_id,
-                labels=['O']+original_label_list,
-                # Optional arguments
-                model_max_length=256,
-                entity_max_length=8,
-                ignore_mismatched_sizes=True
-                # To improve the generated model card
+        if use_lora:
+            model_modules = str(model.modules)
+            pattern = r'\((\w+)\): Linear'
+            linear_layer_names = re.findall(pattern, model_modules)
+
+            names = []
+            # Print the names of the Linear layers
+            for name in linear_layer_names:
+                names.append(name)
+            target_modules = list(set(names))
+            print(f"Found target modules: \n{target_modules}")
+            peft_config = LoraConfig(
+                task_type=TaskType.TOKEN_CLS, inference_mode=False, r=16, lora_alpha=8, lora_dropout=0.1, bias="all", target_modules=target_modules
             )
-            """model = SpanMarkerModel.from_pretrained(
-                model_path,
-                num_labels=num_labels,
-                labels=original_label_list,
-                ignore_mismatched_sizes=True
-            )"""
-        else:
-            # Run inference
-            model = AutoModelForTokenClassification.from_pretrained(
-                model_path, 
-                num_labels=num_labels, 
-                ignore_mismatched_sizes=True
-            )
+            model = get_peft_model(model, peft_config)
+
+        print(model)
 
         ## Map the labels
         idx_to_labels = {v[1]: v[0] for v in train_ds.labels_to_idx.items()}
@@ -278,7 +276,6 @@ if __name__ == "__main__":
             per_device_train_batch_size=batch_size,
             per_device_eval_batch_size=batch_size,
             gradient_accumulation_steps=acc_step,
-            gradient_checkpointing=True if "span" not in model_path else False,
             warmup_ratio=warmup_ratio,
             weight_decay=weight_decay,
             evaluation_strategy="epoch",
@@ -291,30 +288,21 @@ if __name__ == "__main__":
             dataloader_num_workers=workers,
             dataloader_pin_memory=True,
             report_to="wandb",
-            logging_steps=50 if "bert-" not in model_path else 3000,  # how often to log to W&B
+            logging_steps=50,  # how often to log to W&B
         )
 
         ## Collator
         data_collator = DefaultDataCollator()
 
         ## Trainer
-        if "span" not in model_path:
-            trainer = Trainer(
-                model=model,
-                args=training_args,
-                train_dataset=train_ds,
-                eval_dataset=val_ds,
-                data_collator=data_collator,
-                compute_metrics=compute_metrics,
-                callbacks=[EarlyStoppingCallback(2)]
-            )
-        else:
-            trainer = SpanTrainer(
+        trainer = Trainer(
             model=model,
             args=training_args,
             train_dataset=train_ds,
             eval_dataset=val_ds,
-            )
+            data_collator=data_collator,
+            compute_metrics=compute_metrics,
+        )
 
         ## Train the model and save it
         trainer.train()
