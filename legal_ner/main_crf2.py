@@ -266,7 +266,7 @@ if __name__ == "__main__":
             split="val", 
             use_roberta=use_roberta
         )
-        config = AutoModelForTokenClassification.from_pretrained(model_path)
+        config = PretrainedConfig.from_pretrained(model_path)
         config.num_labels=num_labels
         config.ignore_mismatched_sizes = True
         model = CustomModelWithCRF(config, num_tags=num_labels)
