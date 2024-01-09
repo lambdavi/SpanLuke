@@ -18,7 +18,7 @@ class CustomModelWithCRF(nn.Module):
     def __init__(self, model_path, num_labels, use_lora=False, freeze=False, hidden_size=768, dropout=0.1,):
         super(CustomModelWithCRF, self).__init__()
         self.device = "cpu" if not cuda.is_available() else "cuda"
-        self.encoder = AutoModel.from_pretrained(model_path, ignore_mismatched_sizes=True)
+        self.encoder = AutoModelForTokenClassification.from_pretrained(model_path, num_labels = num_labels, ignore_mismatched_sizes=True)
         self.encoder.gradient_checkpointing = True
         self.encoder.gradient_accumulation_steps = acc_step
         if freeze:
@@ -42,14 +42,12 @@ class CustomModelWithCRF(nn.Module):
             self.encoder = get_peft_model(self.encoder, peft_config)
 
         # https://github.com/huggingface/transformers/issues/1431
-        self.dropout = nn.Dropout(dropout)
-        self.linear = nn.Linear(hidden_size, num_labels)
+
         self.crf = CRF(num_labels, batch_first=True)
 
     def forward(self, input_ids, attention_mask, token_type_ids=None, labels=None):
-        outputs = self.encoder(input_ids=input_ids, token_type_ids=token_type_ids, attention_mask=attention_mask)
-        sequence_out = outputs[0]
-        logits = self.linear(self.dropout(sequence_out))
+        logits = self.encoder(input_ids=input_ids, token_type_ids=token_type_ids, attention_mask=attention_mask)
+
         if labels != None:
             crf_loss = -self.crf(logits, labels, mask=attention_mask.bool(), reduction="mean" if batch_size!=1 else "token_mean") # if not mean, it is sum by default
             return (crf_loss, logits)
@@ -287,7 +285,6 @@ if __name__ == "__main__":
         )
 
         model = CustomModelWithCRF(model_path, num_labels=num_labels, hidden_size=args.hidden, use_lora=use_lora)
-
 
         print(model)
 
