@@ -23,7 +23,6 @@ class CustomModelWithCRF(PreTrainedModel):
     ) -> None:
         super(CustomModelWithCRF, self).__init__(config)
         self.config = config
-        self.device = "cpu" if not cuda.is_available() else "cuda"
         self.encoder = AutoModelForTokenClassification(config)
         self.crf = CRF(self.config.num_labels, batch_first=True)
 
