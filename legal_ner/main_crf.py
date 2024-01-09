@@ -15,14 +15,30 @@ import spacy
 nlp = spacy.load("en_core_web_sm")
 
 class CustomModelWithCRF(nn.Module):
-    def __init__(self, model_path, num_labels, freeze=False, hidden_size=768, dropout=0.1, **kwargs):
+    def __init__(self, model_path, num_labels, freeze=False, hidden_size=768, dropout=0.1, use_lora=False, **kwargs):
         super(CustomModelWithCRF, self).__init__(**kwargs)
         self.device = "cpu" if not cuda.is_available() else "cuda"
-        self.bert = AutoModel.from_pretrained(model_path, ignore_mismatched_sizes=True)
-        self.bert.gradient_checkpointing = True
-        self.bert.gradient_accumulation_steps = acc_step
+        self.model = AutoModel.from_pretrained(model_path, ignore_mismatched_sizes=True)
+        self.model.gradient_checkpointing = True
+        self.model.gradient_accumulation_steps = acc_step
         if freeze:
             self.bert.encoder.requires_grad_(False)
+
+        if use_lora:
+            model_modules = str(self.model.modules)
+            pattern = r'\((\w+)\): Linear'
+            linear_layer_names = re.findall(pattern, model_modules)
+
+            names = []
+            # Print the names of the Linear layers
+            for name in linear_layer_names:
+                names.append(name)
+            target_modules = list(set(names))
+            print(f"Found target modules: \n{target_modules}")
+            peft_config = LoraConfig(
+                task_type=TaskType.TOKEN_CLS, inference_mode=False, r=16, lora_alpha=8, lora_dropout=0.1, bias="all", target_modules=target_modules
+            )
+            self.model = get_peft_model(self.model, peft_config)
 
         # https://github.com/huggingface/transformers/issues/1431
         self.dropout = nn.Dropout(dropout)
@@ -268,22 +284,8 @@ if __name__ == "__main__":
             use_roberta=use_roberta
         )
 
-        model = CustomModelWithCRF(model_path, num_labels=num_labels, hidden_size=args.hidden)
-        if use_lora:
-            model_modules = str(model.modules)
-            pattern = r'\((\w+)\): Linear'
-            linear_layer_names = re.findall(pattern, model_modules)
-
-            names = []
-            # Print the names of the Linear layers
-            for name in linear_layer_names:
-                names.append(name)
-            target_modules = list(set(names))
-            print(f"Found target modules: \n{target_modules}")
-            peft_config = LoraConfig(
-                task_type=TaskType.TOKEN_CLS, inference_mode=False, r=16, lora_alpha=8, lora_dropout=0.1, bias="all", target_modules=target_modules
-            )
-            model = get_peft_model(model, peft_config)
+        model = CustomModelWithCRF(model_path, num_labels=num_labels, hidden_size=args.hidden, use_lora=use_lora)
+        
 
         print(model)
 
