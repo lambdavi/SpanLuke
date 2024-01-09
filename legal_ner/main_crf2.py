@@ -44,10 +44,6 @@ class CustomModelWithCRF(AutoModelForTokenClassification):
         self.classifier = nn.Linear(hidden_size, self.config.num_labels)
         self.crf = CRF(self.config.num_labels, batch_first=True)
 
-        # tokenizer and data collator are filled using set_tokenizer
-        self.tokenizer = None
-        self.data_collator = None
-
         self.model_card_data = model_card_data or ModelCard()
         self.model_card_data.register_model(self)
 
@@ -58,7 +54,7 @@ class CustomModelWithCRF(AutoModelForTokenClassification):
     def forward(self, input_ids, attention_mask, token_type_ids=None, labels=None):
         outputs = self.encoder(input_ids=input_ids, token_type_ids=token_type_ids, attention_mask=attention_mask)
         sequence_out = outputs[0]
-        logits = self.linear(self.dropout(sequence_out))
+        logits = self.classifier(sequence_out)
         if labels != None:
             crf_loss = -self.crf(logits, labels, mask=attention_mask.bool(), reduction="mean" if batch_size!=1 else "token_mean") # if not mean, it is sum by default
             return (crf_loss, logits)
