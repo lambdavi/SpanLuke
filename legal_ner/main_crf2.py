@@ -53,6 +53,7 @@ class CustomModelWithCRF(AutoModelForTokenClassification):
 
         # Initialize weights and apply final processing
         self.post_init()
+        print("Done here")
 
     def forward(self, input_ids, attention_mask, token_type_ids=None, labels=None):
         outputs = self.encoder(input_ids=input_ids, token_type_ids=token_type_ids, attention_mask=attention_mask)
