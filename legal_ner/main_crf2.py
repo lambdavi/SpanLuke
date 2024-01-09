@@ -14,42 +14,18 @@ from peft import LoraConfig, TaskType, get_peft_model
 import spacy
 nlp = spacy.load("en_core_web_sm")
 
-class CustomModelWithCRF(AutoModel):
-    config_class = AutoConfig
-    base_model_prefix = "encoder"
-    _no_split_modules = []  # To support `load_in_8bit=True`` and `device_map="auto"`
+class CustomModelWithCRF(PreTrainedModel):
     def __init__(
         self,
-        config: AutoConfig,
-        encoder: None,
-        model_card_data: None,
+        config,
+        num_tags,
         **kwargs,
     ) -> None:
         super(CustomModelWithCRF, self).__init__(config)
         self.config = config
         self.device = "cpu" if not cuda.is_available() else "cuda"
-        if encoder is None:
-            encoder_config = AutoConfig.from_pretrained(self.config.encoder["_name_or_path"], **self.config.encoder)
-            encoder = AutoModel.from_config(encoder_config)
-        self.encoder = encoder
-
-        dropout_rate = self.config.get(["hidden_dropout_prob", "dropout_rate"], default=0.1)
-        if dropout_rate:
-            self.dropout = nn.Dropout(dropout_rate)
-        else:
-            self.dropout = nn.Identity()
-
-        # TODO: Get a less arbitrary default
-        hidden_size = self.config.get("hidden_size", default=768)
-        self.classifier = nn.Linear(hidden_size, self.config.num_labels)
+        self.encoder = AutoModelForTokenClassification(config)
         self.crf = CRF(self.config.num_labels, batch_first=True)
-
-        self.model_card_data = model_card_data or ModelCard()
-        self.model_card_data.register_model(self)
-
-        # Initialize weights and apply final processing
-        self.post_init()
-        print("Done here")
 
     def forward(self, input_ids, attention_mask, token_type_ids=None, labels=None):
         outputs = self.encoder(input_ids=input_ids, token_type_ids=token_type_ids, attention_mask=attention_mask)
@@ -62,10 +38,6 @@ class CustomModelWithCRF(AutoModel):
         else:
             outputs = self.crf.decode(logits, attention_mask.bool())
             return outputs
-        
-    def __repr__(self):
-        print(self.model)
-        return f"CustomModelWithCRF({str(self.encoder)}, CRF(num_labels={self.config.num_labels}))"
 
 
 ############################################################
@@ -294,8 +266,10 @@ if __name__ == "__main__":
             split="val", 
             use_roberta=use_roberta
         )
-
-        model = CustomModelWithCRF.from_pretrained(model_path, num_labels=num_labels, ignore_mismatched_sizes=True)
+        config = AutoModelForTokenClassification.from_pretrained(model_path)
+        config.num_labels=num_labels
+        config.ignore_mismatched_sizes = True
+        model = CustomModelWithCRF(config, num_tags=num_labels)
         if use_lora:
             model_modules = str(model.modules)
             pattern = r'\((\w+)\): Linear'
