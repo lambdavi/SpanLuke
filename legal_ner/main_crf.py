@@ -15,7 +15,7 @@ from peft import LoraConfig, TaskType, get_peft_model
 nlp = spacy.load("en_core_web_sm")
 
 class CustomModelWithCRF(nn.Module):
-    def __init__(self, model_path, num_labels, freeze=False, hidden_size=768, dropout=0.1, use_lora=False):
+    def __init__(self, model_path, num_labels, use_lora=False, freeze=False, hidden_size=768, dropout=0.1,):
         super(CustomModelWithCRF, self).__init__()
         self.device = "cpu" if not cuda.is_available() else "cuda"
         self.encoder = AutoModel.from_pretrained(model_path, ignore_mismatched_sizes=True)
