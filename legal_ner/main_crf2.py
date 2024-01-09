@@ -293,7 +293,7 @@ if __name__ == "__main__":
             use_roberta=use_roberta
         )
 
-        model = CustomModelWithCRF(model_path, num_labels=num_labels, hidden_size=args.hidden)
+        model = CustomModelWithCRF.from_pretrained(model_path, num_labels=num_labels, ignore_mismatched_sizes=True)
         if use_lora:
             model_modules = str(model.modules)
             pattern = r'\((\w+)\): Linear'
@@ -369,7 +369,7 @@ if __name__ == "__main__":
 """
 python 3.10
 Example of usage:
-python main_crf.py \
+python main_crf2.py \
     --ds_train_path data/NER_TRAIN/NER_TRAIN_ALL.json \
     --ds_valid_path data/NER_DEV/NER_DEV_ALL.json \
     --output_folder results/ \
