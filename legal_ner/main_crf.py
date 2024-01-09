@@ -18,14 +18,14 @@ class CustomModelWithCRF(nn.Module):
     def __init__(self, model_path, num_labels, freeze=False, hidden_size=768, dropout=0.1, use_lora=False, **kwargs):
         super(CustomModelWithCRF, self).__init__(**kwargs)
         self.device = "cpu" if not cuda.is_available() else "cuda"
-        self.model = AutoModel.from_pretrained(model_path, ignore_mismatched_sizes=True)
-        self.model.gradient_checkpointing = True
-        self.model.gradient_accumulation_steps = acc_step
+        self.encoder = AutoModel.from_pretrained(model_path, ignore_mismatched_sizes=True)
+        self.encoder.gradient_checkpointing = True
+        self.encoder.gradient_accumulation_steps = acc_step
         if freeze:
-            self.model.encoder.requires_grad_(False)
+            self.encoder.encoder.requires_grad_(False)
 
         if use_lora:
-            model_modules = str(self.model.modules)
+            model_modules = str(self.encoder.modules)
             pattern = r'\((\w+)\): Linear'
             linear_layer_names = re.findall(pattern, model_modules)
 
@@ -38,7 +38,7 @@ class CustomModelWithCRF(nn.Module):
             peft_config = LoraConfig(
                 task_type=TaskType.TOKEN_CLS, inference_mode=False, r=16, lora_alpha=8, lora_dropout=0.1, bias="all", target_modules=target_modules
             )
-            self.model = get_peft_model(self.model, peft_config)
+            self.encoder = get_peft_model(self.encoder, peft_config)
 
         # https://github.com/huggingface/transformers/issues/1431
         self.dropout = nn.Dropout(dropout)
@@ -46,7 +46,7 @@ class CustomModelWithCRF(nn.Module):
         self.crf = CRF(num_labels, batch_first=True)
 
     def forward(self, input_ids, attention_mask, token_type_ids=None, labels=None):
-        outputs = self.model(input_ids=input_ids, token_type_ids=token_type_ids, attention_mask=attention_mask)
+        outputs = self.encoder(input_ids=input_ids, token_type_ids=token_type_ids, attention_mask=attention_mask)
         sequence_out = outputs[0]
         logits = self.linear(self.dropout(sequence_out))
         if labels != None:
