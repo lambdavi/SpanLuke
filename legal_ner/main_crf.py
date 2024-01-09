@@ -22,7 +22,7 @@ class CustomModelWithCRF(nn.Module):
         self.model.gradient_checkpointing = True
         self.model.gradient_accumulation_steps = acc_step
         if freeze:
-            self.bert.encoder.requires_grad_(False)
+            self.model.encoder.requires_grad_(False)
 
         if use_lora:
             model_modules = str(self.model.modules)
