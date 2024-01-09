@@ -285,7 +285,7 @@ if __name__ == "__main__":
             use_roberta=use_roberta
         )
 
-        model = CustomModelWithCRF(model_path, num_labels=num_labels, hidden_size=args.hidden)
+        model = CustomModelWithCRF(model_path, num_labels=num_labels, hidden_size=args.hidden, use_lora=use_lora)
 
 
         print(model)
