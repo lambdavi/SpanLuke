@@ -319,7 +319,7 @@ if __name__ == "__main__":
             dataloader_num_workers=workers,
             dataloader_pin_memory=True,
             report_to="wandb",
-            logging_steps=50,  # how often to log to W&B
+            logging_steps=200,  # how often to log to W&B
         )
 
         ## Collator
