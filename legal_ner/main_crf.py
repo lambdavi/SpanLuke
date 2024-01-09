@@ -46,7 +46,7 @@ class CustomModelWithCRF(nn.Module):
         self.crf = CRF(num_labels, batch_first=True)
 
     def forward(self, input_ids, attention_mask, token_type_ids=None, labels=None):
-        logits = self.encoder(input_ids=input_ids, token_type_ids=token_type_ids, attention_mask=attention_mask)
+        logits = self.encoder(input_ids=input_ids, token_type_ids=token_type_ids, attention_mask=attention_mask).logits
 
         if labels != None:
             crf_loss = -self.crf(logits, labels, mask=attention_mask.bool(), reduction="mean" if batch_size!=1 else "token_mean") # if not mean, it is sum by default
