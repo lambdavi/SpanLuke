@@ -24,6 +24,7 @@ class CustomModelWithCRF(PreTrainedModel):
         super(CustomModelWithCRF, self).__init__(config)
         self.config = config
         self.encoder = AutoModelForTokenClassification(config)
+        
         self.crf = CRF(self.config.num_labels, batch_first=True)
 
     def forward(self, input_ids, attention_mask, token_type_ids=None, labels=None):
