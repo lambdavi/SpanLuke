@@ -10,35 +10,18 @@ from transformers import Trainer, DefaultDataCollator, TrainingArguments
 from torch import nn,cuda
 from utils.dataset import LegalNERTokenDataset
 import re
-from peft import LoraConfig, TaskType, get_peft_model
 import spacy
 nlp = spacy.load("en_core_web_sm")
 
 class CustomModelWithCRF(nn.Module):
-    def __init__(self, model_path, num_labels, freeze=False, hidden_size=768, dropout=0.1, use_lora=False, **kwargs):
-        super(CustomModelWithCRF, self).__init__(**kwargs)
+    def __init__(self, model_path, num_labels, freeze=False, hidden_size=768, dropout=0.1):
+        super(CustomModelWithCRF, self).__init__()
         self.device = "cpu" if not cuda.is_available() else "cuda"
-        self.encoder = AutoModel.from_pretrained(model_path, ignore_mismatched_sizes=True)
-        self.encoder.gradient_checkpointing = True
-        self.encoder.gradient_accumulation_steps = acc_step
+        self.bert = AutoModel.from_pretrained(model_path, ignore_mismatched_sizes=True)
+        self.bert.gradient_checkpointing = True
+        self.bert.gradient_accumulation_steps = acc_step
         if freeze:
-            self.encoder.encoder.requires_grad_(False)
-
-        if use_lora:
-            model_modules = str(self.encoder.modules)
-            pattern = r'\((\w+)\): Linear'
-            linear_layer_names = re.findall(pattern, model_modules)
-
-            names = []
-            # Print the names of the Linear layers
-            for name in linear_layer_names:
-                names.append(name)
-            target_modules = list(set(names))
-            print(f"Found target modules: \n{target_modules}")
-            peft_config = LoraConfig(
-                task_type=TaskType.TOKEN_CLS, inference_mode=False, r=16, lora_alpha=8, lora_dropout=0.1, bias="all", target_modules=target_modules
-            )
-            self.encoder = get_peft_model(self.encoder, peft_config)
+            self.bert.encoder.requires_grad_(False)
 
         # https://github.com/huggingface/transformers/issues/1431
         self.dropout = nn.Dropout(dropout)
@@ -46,7 +29,7 @@ class CustomModelWithCRF(nn.Module):
         self.crf = CRF(num_labels, batch_first=True)
 
     def forward(self, input_ids, attention_mask, token_type_ids=None, labels=None):
-        outputs = self.encoder(input_ids=input_ids, token_type_ids=token_type_ids, attention_mask=attention_mask)
+        outputs = self.bert(input_ids=input_ids, token_type_ids=token_type_ids, attention_mask=attention_mask)
         sequence_out = outputs[0]
         logits = self.linear(self.dropout(sequence_out))
         if labels != None:
@@ -284,11 +267,10 @@ if __name__ == "__main__":
             use_roberta=use_roberta
         )
 
-        model = CustomModelWithCRF(model_path, num_labels=num_labels, hidden_size=args.hidden, use_lora=use_lora)
-        
+        model = CustomModelWithCRF(model_path, num_labels=num_labels, hidden_size=args.hidden)
+
 
         print(model)
-
 
         ## Map the labels
         idx_to_labels = {v[1]: v[0] for v in train_ds.labels_to_idx.items()}
