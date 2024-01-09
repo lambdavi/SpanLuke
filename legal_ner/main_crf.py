@@ -46,7 +46,7 @@ class CustomModelWithCRF(nn.Module):
         self.crf = CRF(num_labels, batch_first=True)
 
     def forward(self, input_ids, attention_mask, token_type_ids=None, labels=None):
-        outputs = self.bert(input_ids=input_ids, token_type_ids=token_type_ids, attention_mask=attention_mask)
+        outputs = self.model(input_ids=input_ids, token_type_ids=token_type_ids, attention_mask=attention_mask)
         sequence_out = outputs[0]
         logits = self.linear(self.dropout(sequence_out))
         if labels != None:
