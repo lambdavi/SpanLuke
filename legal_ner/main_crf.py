@@ -25,6 +25,7 @@ class CustomModelWithCRF(nn.Module):
             self.encoder.encoder.requires_grad_(False)
 
         if use_lora:
+            print("Using lora")
             model_modules = str(self.encoder.modules)
             pattern = r'\((\w+)\): Linear'
             linear_layer_names = re.findall(pattern, model_modules)
