@@ -14,7 +14,7 @@ from peft import LoraConfig, TaskType, get_peft_model
 import spacy
 nlp = spacy.load("en_core_web_sm")
 
-class CustomModelWithCRF(AutoModelForTokenClassification):
+class CustomModelWithCRF(AutoModel):
     config_class = AutoConfig
     base_model_prefix = "encoder"
     _no_split_modules = []  # To support `load_in_8bit=True`` and `device_map="auto"`
