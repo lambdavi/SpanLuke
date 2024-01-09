@@ -61,6 +61,10 @@ class CustomModelWithCRF(AutoModelForTokenClassification):
         else:
             outputs = self.crf.decode(logits, attention_mask.bool())
             return outputs
+        
+    def __repr__(self):
+        print(self.model)
+        return f"CustomModelWithCRF({str(self.encoder)}, CRF(num_labels={self.config.num_labels}))"
 
 
 ############################################################
