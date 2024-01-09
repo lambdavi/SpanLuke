@@ -5,7 +5,7 @@ from argparse import ArgumentParser
 from nervaluate import Evaluator
 from torchcrf import CRF  # Import CRF layer
 from transformers import EarlyStoppingCallback
-from transformers import AutoModelForTokenClassification, AutoModel, PreTrainedModel, AutoConfig, ModelCard
+from transformers import AutoModelForTokenClassification, AutoModel, PreTrainedModel, AutoConfig, ModelCard, PretrainedConfig
 from transformers import Trainer, DefaultDataCollator, TrainingArguments
 from torch import nn,cuda
 from utils.dataset import LegalNERTokenDataset
@@ -14,7 +14,7 @@ from peft import LoraConfig, TaskType, get_peft_model
 import spacy
 nlp = spacy.load("en_core_web_sm")
 
-class CustomModelWithCRF(PreTrainedModel):
+class CustomModelWithCRF(AutoModelForTokenClassification):
     config_class = AutoConfig
     base_model_prefix = "encoder"
     _no_split_modules = []  # To support `load_in_8bit=True`` and `device_map="auto"`
