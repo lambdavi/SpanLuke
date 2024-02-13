@@ -1,7 +1,7 @@
 <div align="center">    
  
 # SpanLuke: Enhance Legal Entity Recognition with LUKE and SpanMarker
-![](https://github.com/lambdavi/L-NER/blob/final/media/logo.png?raw=true)
+![](https://github.com/lambdavi/L-NER/blob/final/media/logo_temp.png?raw=True)
 </div>
 
 ## Description   
