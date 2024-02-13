@@ -17,6 +17,7 @@ nlp = spacy.load("en_core_web_sm")
 class LegalNERTokenDataset(Dataset):
     
     def __init__(self, dataset_path, model_path, labels_list=None, split="train", use_roberta=False):
+        print(dataset_path)
         self.data = json.load(open(dataset_path))
         self.split = split
         self.use_roberta = use_roberta
