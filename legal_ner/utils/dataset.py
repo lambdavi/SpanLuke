@@ -96,7 +96,8 @@ def load_legal_ner(train_data_folder: str):
     for sub in sub_path[:-1]:
         dev_data_folder+=sub
         dev_data_folder+="DEV"
-    print(dev_data_folder+sub_path[-1])
+    dev_data_folder+=sub_path[-1]
+
     # TRAIN
     data = []
     with open(f"{train_data_folder}l", 'r') as reader:
@@ -104,9 +105,6 @@ def load_legal_ner(train_data_folder: str):
             data.append(json.loads(line))
     ret["train"] = Dataset.from_list(data)
 
-    folder = str(train_data_folder)
-    print(type(folder))
-    dev_data_folder = folder.replace("TRAIN", "DEV")
     data = []
     with open(f"{dev_data_folder}l", 'r') as reader:
         for line in reader:
