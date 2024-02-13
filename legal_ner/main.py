@@ -58,7 +58,6 @@ if __name__ == "__main__":
         action="store_true",
         default=False,
         required=False,
-        type=str,
     )
     parser.add_argument(
         "--scheduler",
