@@ -3,8 +3,9 @@ import json
 from torch.utils.data import Dataset
 import numpy as np
 from transformers import AutoTokenizer, RobertaTokenizerFast
-from datasets import Dataset, DatasetDict
+from datasets import load_dataset, Dataset, DatasetDict
 from utils.utils import match_labels
+
 import spacy
 nlp = spacy.load("en_core_web_sm")
 
@@ -84,7 +85,31 @@ class LegalNERTokenDataset(Dataset):
                 inputs["labels"] = labels[: inputs["attention_mask"].shape[0]]
 
         return inputs
+    
 
 ## FOR SPAN
 def load_legal_ner(train_data_folder: str):
-    pass
+    ret = {}
+    dev_data_folder = ""
+
+    sub_path = train_data_folder.split("TRAIN")
+    for sub in sub_path[:-1]:
+        dev_data_folder+=sub
+        dev_data_folder+="DEV"
+    dev_data_folder+=sub_path[-1]
+
+    # TRAIN
+    temp = []
+    with open(f"{train_data_folder}l", 'r') as reader:
+        for line in reader:
+            data.append(json.loads(line))
+    ret["train"] = Dataset.from_list(temp)
+
+    temp = []
+
+    with open(f"{dev_data_folder}l", 'r') as reader:
+        for line in reader:
+            temp.append(json.loads(line))
+    ret["dev"] = Dataset.from_list(temp)
+
+    return DatasetDict(ret)
