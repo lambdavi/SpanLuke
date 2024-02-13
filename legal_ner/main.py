@@ -131,6 +131,7 @@ if __name__ == "__main__":
     warmup_ratio = args.warmup_ratio    # e.g., 0.06
     model_path = args.model_path
     use_span = args.span
+    acc_step = args.acc_step
 
     if use_span:
         print("Span Mode Activated")
@@ -359,7 +360,7 @@ if __name__ == "__main__":
             learning_rate=lr,
             per_device_train_batch_size=batch_size,
             per_device_eval_batch_size=batch_size,
-            gradient_accumulation_steps=1,
+            gradient_accumulation_steps=acc_step,
             gradient_checkpointing=True,
             warmup_ratio=warmup_ratio,
             weight_decay=weight_decay,
@@ -396,8 +397,7 @@ if __name__ == "__main__":
             learning_rate=lr,
             per_device_train_batch_size=batch_size,
             per_device_eval_batch_size=batch_size,
-            gradient_accumulation_steps=1,
-            gradient_checkpointing=True,
+            gradient_accumulation_steps=acc_step,
             warmup_ratio=warmup_ratio,
             weight_decay=weight_decay,
             evaluation_strategy="epoch",
