@@ -16,9 +16,9 @@ nlp = spacy.load("en_core_web_sm")
 ############################################################ 
 class LegalNERTokenDataset(Dataset):
     
-    def __init__(self, dataset_path, model_path, labels_list=None, split="train", use_roberta=False):
+    def __init__(self, dataset_path, model_path, labels_list=None, _split="train", use_roberta=False):
         self._data = json.load(open(dataset_path))
-        self._split = split
+        self._split = _split
         self.use_roberta = use_roberta
         if self.use_roberta:     ## Load the right tokenizer
             self.tokenizer = RobertaTokenizerFast.from_pretrained("roberta-base")
@@ -32,10 +32,10 @@ class LegalNERTokenDataset(Dataset):
             )
 
     def __len__(self):
-        return len(self.data)
+        return len(self._data)
 
     def __getitem__(self, idx):
-        item = self.data[idx]
+        item = self._data[idx]
         text = item["data"]["text"]
 
         ## Get the annotations
@@ -102,7 +102,7 @@ def load_legal_ner(train_data_folder: str):
     temp = []
     with open(f"{train_data_folder}l", 'r') as reader:
         for line in reader:
-            data.append(json.loads(line))
+            _data.append(json.loads(line))
     ret["train"] = Dataset.from_list(temp)
 
     temp = []
