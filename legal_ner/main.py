@@ -56,7 +56,7 @@ if __name__ == "__main__":
     )
 
     parser.add_argument(
-        "--span",
+        "--use_span",
         help="Use Span Model",
         action="store_true",
         default=False,
