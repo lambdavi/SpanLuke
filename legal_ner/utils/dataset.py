@@ -80,3 +80,7 @@ class LegalNERTokenDataset(Dataset):
             else:
                 inputs[column_name] = labels[: inputs["attention_mask"].shape[0]]
         return inputs
+
+## FOR SPAN
+def load_legal_ner(train_data_folder: str):
+    pass
