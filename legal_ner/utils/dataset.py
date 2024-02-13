@@ -3,7 +3,7 @@ import json
 from torch.utils.data import Dataset
 import numpy as np
 from transformers import AutoTokenizer, RobertaTokenizerFast
-from datasets import DatasetDict
+from datasets import DatasetDict, Dataset as Datas
 from utils.utils import match_labels
 
 import spacy
@@ -103,13 +103,13 @@ def load_legal_ner(train_data_folder: str):
     with open(f"{train_data_folder}l", 'r') as reader:
         for line in reader:
             data.append(json.loads(line))
-    ret["train"] = Dataset.from_list(temp)
+    ret["train"] = Dataset.from_list(data)
 
     data = []
 
     with open(f"{dev_data_folder}l", 'r') as reader:
         for line in reader:
-            temp.append(json.loads(line))
-    ret["dev"] = Dataset.from_list(temp)
+            data.append(json.loads(line))
+    ret["dev"] = Datas.from_list(data)
 
     return DatasetDict(ret)
