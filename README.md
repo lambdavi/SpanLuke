@@ -19,24 +19,26 @@ git clone https://github.com/lambdavi/L-NER.git
 cd L-NER 
 pip install -r requirements.txt
 
-# 
  ```   
 
 # Available scripts
  ```bash
 # run training script (example: training on PickAndPlace-v3 task)   
-python train.py --env_id PandaPickAndPlace-v3 --algo ddpg
-
-# run hyperparameters tuning (example: on PandaReach-v3 with SAC) 
-python tuning.py --env_id PandaReach-v3 --algo sac
-
-# eval your agent
-python eval.py --env_id PandaReach-v3 --algo ddpg --path models/PandaReach_DDPG_50000_steps.zip
-
-# just visualize the environment (random actions)
-python visualize.py --env_id PandaReach-v3
+python main.py \
+    --ds_train_path data/NER_TRAIN/NER_TRAIN_ALL.json \
+    --ds_valid_path data/NER_DEV/NER_DEV_ALL.json \
+    --output_folder results/ \
+    --batch 16 \
+    --acc_step 4 \
+    --num_epochs 5 \
+    --lr 1e-4 \
+    --weight_decay 0.01 \
+    --warmup_ratio 0.06 \
+    --model_path studio-ousia/luke-base \
+    --span
 ```
 
+<!--
 #### Arguments for train:
 
 - `--lr`: Learning rate
@@ -86,3 +88,4 @@ python visualize.py --env_id PandaReach-v3
     journal      = {4th Robot Learning Workshop: Self-Supervised and Lifelong Learning at NeurIPS},
     }
 ```   
+-->
