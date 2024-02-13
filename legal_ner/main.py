@@ -386,7 +386,6 @@ if __name__ == "__main__":
             compute_metrics=compute_metrics,
             data_collator=data_collator,
         )
-
     else:
         training_args = TrainingArguments(
             output_dir=new_output_folder,
@@ -412,7 +411,7 @@ if __name__ == "__main__":
         )
 
         # Our Trainer subclasses the 🤗 Trainer, and the usage is very similar
-        trainer = Trainer(
+        trainer = SpanTrainer(
             model=model,
             args=args,
             train_dataset=dataset["train"],
