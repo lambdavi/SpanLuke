@@ -413,7 +413,7 @@ if __name__ == "__main__":
             logging_steps=10,  # how often to log to W&B
         )
         print(type(dataset))
-        print(dataset["train"][0])
+        print(dataset["dev"][0])
         # Our Trainer subclasses the 🤗 Trainer, and the usage is very similar
         trainer = SpanTrainer(
             model=model,
