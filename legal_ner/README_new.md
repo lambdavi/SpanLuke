@@ -3,7 +3,6 @@
 # SpanLuke: Enhance Legal Entity Recognition with LUKE and SpanMarker
 ![](https://github.com/lambdavi/L-NER/blob/final/media/logo.png?raw=true)
 </div>
-![alt text](image.png)
 
 ## Description   
 The goal of this project is to identify entities in legal text.
