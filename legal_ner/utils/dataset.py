@@ -88,12 +88,21 @@ class LegalNERTokenDataset(Dataset):
     
 
 ## FOR SPAN
-def load_legal_ner(data_folder):
+def load_legal_ner(train_data_folder):
     ret = {}
-    for split_name in ['TRAIN', 'DEV']:
-        data = []
-        with open(f"{data_folder}/NER_{split_name}/NER_{split_name}_ALL_OT.jsonl", 'r') as reader:
-            for line in reader:
-                data.append(json.loads(line))
-        ret[split_name.lower()] = Dataset.from_list(data)
+
+    # TRAIN
+    data = []
+    with open(f"{train_data_folder}l", 'r') as reader:
+        for line in reader:
+            data.append(json.loads(line))
+    ret["train"] = Dataset.from_list(data)
+
+    dev_data_folder = train_data_folder.replace("TRAIN", "DEV")
+    data = []
+    with open(f"{dev_data_folder}l", 'r') as reader:
+        for line in reader:
+            data.append(json.loads(line))
+    ret["dev"] = Dataset.from_list(data)
+    
     return DatasetDict(ret)

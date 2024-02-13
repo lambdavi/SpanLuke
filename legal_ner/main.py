@@ -336,7 +336,7 @@ if __name__ == "__main__":
             print("Using Roberta as tokenizer")
             tokenizer = SpanMarkerTokenizer.from_pretrained("roberta-base", config=model.tokenizer.config)
             model.set_tokenizer(tokenizer)
-        dataset = load_legal_ner()
+        dataset = load_legal_ner(ds_train_path)
 
     print(model)
     ## Map the labels
