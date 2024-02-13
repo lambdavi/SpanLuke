@@ -192,7 +192,9 @@ if __name__ == "__main__":
             labels_ids, prediction_ids, tags=unique_labels, loader="list"
         )
         results, results_per_tag = evaluator.evaluate()
-
+        print("")
+        for k,v in results_per_tag.items():
+            print(f"{k}: {v['ent_type']['f1']}")
         return {
             "f1-type-match": 2
             * results["ent_type"]["precision"]
