@@ -106,8 +106,7 @@ def load_legal_ner(train_data_folder: str):
     ret["train"] = Dataset.from_list(data)
 
     data = []
-    print(dev_data_folder)
-    print(train_data_folder)
+
     with open(f"{dev_data_folder}l", 'r') as reader:
         for line in reader:
             data.append(json.loads(line))
