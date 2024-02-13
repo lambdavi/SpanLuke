@@ -1,7 +1,7 @@
 from sklearn.metrics import accuracy_score, f1_score, precision_score, recall_score
 import numpy as np
 from nervaluate import Evaluator
-
+import torch
 
 ############################################################
 #                                                          #
@@ -42,3 +42,4 @@ def match_labels(tokenized_input, annotations):
                     previous_tokens = token_ix
                     
     return aligned_labels
+
