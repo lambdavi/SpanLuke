@@ -1,5 +1,5 @@
 import json
-
+import os
 def convert_format(all_data):
     entitities = ['B-COURT', 'B-PETITIONER', 'B-RESPONDENT', 'B-JUDGE', 'B-DATE', 'B-ORG', 'B-GPE', 'B-STATUTE', 'B-PROVISION', 'B-PRECEDENT', 'B-CASE_NUMBER', 'B-WITNESS', 'B-OTHER_PERSON', 'B-LAWYER', 'I-COURT', 'I-PETITIONER', 'I-RESPONDENT', 'I-JUDGE', 'I-DATE', 'I-ORG', 'I-GPE', 'I-STATUTE', 'I-PROVISION', 'I-PRECEDENT', 'I-CASE_NUMBER', 'I-WITNESS', 'I-OTHER_PERSON', 'I-LAWYER']
     entity_to_tag = {e: i+1 for i, e in enumerate(sorted(entitities))}
@@ -41,10 +41,11 @@ def convert_format(all_data):
 
 
 # Example usage for the first entry
-splits = ["TRAIN", "TEST"]
+splits = ["TRAIN", "DEV"]
+print(os.getcwd())
 for split in splits:
-    input_data = json.load(open(f"./legal_ner/data/NER_{split}/NER_{split}_ALL.json"))
+    input_data = json.load(open(f"legal_ner/data/NER_{split}/NER_{split}_ALL.json"))
     output_data = convert_format(input_data)
-    with open("./legal_ner/data/NER_{split}/NER_{split}_ALL_OT.jsonl", "w") as f:
+    with open(f"legal_ner/data/NER_{split}/NER_{split}_ALL_OT.jsonl", "w") as f:
         for line in output_data:
             f.write(json.dumps(line)+'\n')

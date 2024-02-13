@@ -18,15 +18,7 @@ import torch
 from span_marker.tokenizer import SpanMarkerTokenizer
 from span_marker.configuration import SpanMarkerConfig
 from nervaluate import Evaluator
-def load_legal_ner(data_folder):
-    ret = {}
-    for split_name in ['TRAIN', 'DEV']:
-        data = []
-        with open(f"{data_folder}/NER_{split_name}/NER_{split_name}_ALL_OT.jsonl", 'r') as reader:
-            for line in reader:
-                data.append(json.loads(line))
-        ret[split_name.lower()] = Dataset.from_list(data)
-    return DatasetDict(ret)
+
 ############################################################
 #                                                          #
 #                           MAIN                           #

@@ -7,7 +7,9 @@ from nervaluate import Evaluator
 from transformers import AutoModelForTokenClassification
 from transformers import Trainer, DefaultDataCollator, TrainingArguments
 
-from utils.dataset import LegalNERTokenDataset
+from utils.dataset import LegalNERTokenDataset, load_legal_ner
+from span_marker import SpanMarkerModel, Trainer as SpanTrainer
+from span_marker.tokenizer import SpanMarkerTokenizer
 
 import spacy
 nlp = spacy.load("en_core_web_sm")
@@ -46,6 +48,15 @@ if __name__ == "__main__":
         "--model_path",
         help="The model path from huggingface/local folder",
         default="bert-base",
+        required=False,
+        type=str,
+    )
+
+    parser.add_argument(
+        "--span",
+        help="Use Span Model",
+        action="store_true",
+        default=False,
         required=False,
         type=str,
     )
@@ -120,6 +131,7 @@ if __name__ == "__main__":
     weight_decay = args.weight_decay    # e.g., 0.01
     warmup_ratio = args.warmup_ratio    # e.g., 0.06
     model_path = args.model_path
+    use_span = args.span
 
     ## Define the labels
     original_label_list = [
@@ -140,6 +152,7 @@ if __name__ == "__main__":
     ]
     labels_list = ["B-" + l for l in original_label_list]
     labels_list += ["I-" + l for l in original_label_list]
+    print(labels_list)
     num_labels = len(labels_list) + 1
 
     ## Compute metrics
