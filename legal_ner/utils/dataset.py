@@ -96,7 +96,7 @@ def load_legal_ner(train_data_folder: str):
     for sub in sub_path[:-1]:
         dev_data_folder+=sub
         dev_data_folder+="DEV"
-    print(dev_data_folder)
+    print(dev_data_folder+sub_path[-1])
     # TRAIN
     data = []
     with open(f"{train_data_folder}l", 'r') as reader:
