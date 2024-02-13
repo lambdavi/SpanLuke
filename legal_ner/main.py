@@ -389,7 +389,7 @@ if __name__ == "__main__":
 
         print(f"Total parameters: {n_params}")
         print(f"Trainable parameters: {n_trainable_params}")
-        print(f"Percentage trainable: {round(n_trainable_params / n_params * 100, 2)}%")
+        print(f"Percentage weights reduced: {100 - round(n_trainable_params / n_params * 100, 2)}%")
 
     ## Output folder
     new_output_folder = os.path.join(output_folder, 'all')
