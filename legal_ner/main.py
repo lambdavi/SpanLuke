@@ -213,7 +213,7 @@ if __name__ == "__main__":
         num_labels=num_labels, 
         ignore_mismatched_sizes=True
     )
-
+    print(model)
     ## Map the labels
     idx_to_labels = {v[1]: v[0] for v in train_ds.labels_to_idx.items()}
 
