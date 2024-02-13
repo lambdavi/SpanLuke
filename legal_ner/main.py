@@ -132,6 +132,8 @@ if __name__ == "__main__":
     model_path = args.model_path
     use_span = args.span
 
+    if use_span:
+        print("Span Mode Activated")
     ## Define the labels
     original_label_list = [
         "COURT",
