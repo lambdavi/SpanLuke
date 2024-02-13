@@ -90,6 +90,7 @@ class LegalNERTokenDataset(Dataset):
 ## FOR SPAN
 def load_legal_ner(train_data_folder: str):
     ret = {}
+    dev_data_folder = ""
 
     sub_path = train_data_folder.split("TRAIN")
     for sub in sub_path[:-1]:
