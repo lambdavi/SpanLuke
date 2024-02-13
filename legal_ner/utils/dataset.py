@@ -3,7 +3,7 @@ import json
 from torch.utils.data import Dataset
 import numpy as np
 from transformers import AutoTokenizer, RobertaTokenizerFast
-from datasets import DatasetDict, Dataset as Datas
+from datasets import DatasetDict, Dataset as DatasetHF
 from utils.utils import match_labels
 
 import spacy
