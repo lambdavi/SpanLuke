@@ -17,8 +17,8 @@ nlp = spacy.load("en_core_web_sm")
 class LegalNERTokenDataset(Dataset):
     
     def __init__(self, dataset_path, model_path, labels_list=None, split="train", use_roberta=False):
-        self.data = json.load(open(dataset_path))
-        self.split = split
+        self._data = json.load(open(dataset_path))
+        self._split = split
         self.use_roberta = use_roberta
         if self.use_roberta:     ## Load the right tokenizer
             self.tokenizer = RobertaTokenizerFast.from_pretrained("roberta-base")
