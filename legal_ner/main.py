@@ -417,7 +417,7 @@ if __name__ == "__main__":
         # Our Trainer subclasses the 🤗 Trainer, and the usage is very similar
         trainer = SpanTrainer(
             model=model,
-            args=args,
+            args=training_args,
             train_dataset=dataset["train"],
             eval_dataset=dataset["dev"],
             compute_metrics=compute_score_span
