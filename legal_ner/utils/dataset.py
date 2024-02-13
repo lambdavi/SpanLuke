@@ -88,7 +88,7 @@ class LegalNERTokenDataset(Dataset):
     
 
 ## FOR SPAN
-def load_legal_ner(train_data_folder):
+def load_legal_ner(train_data_folder: str):
     ret = {}
 
     # TRAIN
@@ -99,6 +99,7 @@ def load_legal_ner(train_data_folder):
     ret["train"] = Dataset.from_list(data)
 
     folder = train_data_folder
+    print(type(folder))
     dev_data_folder = folder.replace("TRAIN", "DEV")
     data = []
     with open(f"{dev_data_folder}l", 'r') as reader:
