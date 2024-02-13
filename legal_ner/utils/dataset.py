@@ -18,7 +18,7 @@ class LegalNERTokenDataset(Dataset):
     def __init__(self, dataset_path, model_path, labels_list=None, split="train", use_roberta=False):
         self.model_path = model_path
         self._data = json.load(open(dataset_path))
-        self.split = split
+        self._split = split
         self.use_roberta = use_roberta
         print("Using roberta config" if use_roberta else "Not using Roberta config")
         self.column_names = ["tokens", "ner_tags"]
