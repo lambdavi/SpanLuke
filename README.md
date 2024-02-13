@@ -19,11 +19,7 @@ git clone https://github.com/lambdavi/L-NER.git
 cd L-NER 
 pip install -r requirements.txt
 
- ```   
-
-# Available scripts
- ```bash
-# run training script (example: training on PickAndPlace-v3 task)   
+# run training script  
 python main.py \
     --ds_train_path data/NER_TRAIN/NER_TRAIN_ALL.json \
     --ds_valid_path data/NER_DEV/NER_DEV_ALL.json \
