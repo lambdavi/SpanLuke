@@ -359,7 +359,7 @@ if __name__ == "__main__":
             print("Using Roberta as tokenizer")
             tokenizer = SpanMarkerTokenizer.from_pretrained("roberta-base", config=model.tokenizer.config)
             model.set_tokenizer(tokenizer)
-        dataset = load_legal_ner(ds_train_path)
+        span_dataset = load_legal_ner(ds_train_path)
 
     print(model)
     
@@ -462,8 +462,8 @@ if __name__ == "__main__":
         trainer = SpanTrainer(
             model=model,
             args=training_args,
-            train_dataset=dataset["train"],
-            eval_dataset=dataset["dev"],
+            train_dataset=span_dataset["train"],
+            eval_dataset=span_dataset["dev"],
             compute_metrics=compute_score_span
         )
 
