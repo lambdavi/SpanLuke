@@ -319,6 +319,7 @@ if __name__ == "__main__":
 
     print("MODEL: ", model_path)
     if not use_span:
+        print("here")
         ## Define the train and test datasets
         use_roberta = False
         if "luke" in model_path or "roberta" in model_path:
