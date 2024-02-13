@@ -3,7 +3,7 @@ import json
 from torch.utils.data import Dataset
 import numpy as np
 from transformers import AutoTokenizer, RobertaTokenizerFast
-from datasets import load_dataset, Dataset, DatasetDict
+from datasets import DatasetDict
 from utils.utils import match_labels
 
 import spacy
@@ -16,9 +16,9 @@ nlp = spacy.load("en_core_web_sm")
 ############################################################ 
 class LegalNERTokenDataset(Dataset):
     
-    def __init__(self, dataset_path, model_path, labels_list=None, _split="train", use_roberta=False):
-        self._data = json.load(open(dataset_path))
-        self._split = _split
+    def __init__(self, dataset_path, model_path, labels_list=None, split="train", use_roberta=False):
+        self.data = json.load(open(dataset_path))
+        self.split = split
         self.use_roberta = use_roberta
         if self.use_roberta:     ## Load the right tokenizer
             self.tokenizer = RobertaTokenizerFast.from_pretrained("roberta-base")
@@ -32,10 +32,10 @@ class LegalNERTokenDataset(Dataset):
             )
 
     def __len__(self):
-        return len(self._data)
+        return len(self.data)
 
     def __getitem__(self, idx):
-        item = self._data[idx]
+        item = self.data[idx]
         text = item["data"]["text"]
 
         ## Get the annotations
@@ -102,7 +102,7 @@ def load_legal_ner(train_data_folder: str):
     temp = []
     with open(f"{train_data_folder}l", 'r') as reader:
         for line in reader:
-            _data.append(json.loads(line))
+            data.append(json.loads(line))
     ret["train"] = Dataset.from_list(temp)
 
     temp = []
