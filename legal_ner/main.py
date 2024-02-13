@@ -3,6 +3,8 @@ import json
 import numpy as np
 from argparse import ArgumentParser
 from nervaluate import Evaluator
+import re
+from peft import LoraConfig, TaskType, get_peft_model
 
 from transformers import AutoModelForTokenClassification
 from transformers import Trainer, DefaultDataCollator, TrainingArguments
@@ -12,6 +14,7 @@ from span_marker import SpanMarkerModel, Trainer as SpanTrainer
 from span_marker.tokenizer import SpanMarkerTokenizer
 import torch
 import spacy
+
 nlp = spacy.load("en_core_web_sm")
 
 
@@ -53,7 +56,7 @@ if __name__ == "__main__":
     )
 
     parser.add_argument(
-        "--span",
+        "--use_span",
         help="Use Span Model",
         action="store_true",
         default=False,
@@ -118,6 +121,14 @@ if __name__ == "__main__":
         required=False,
         type=int,
     )
+
+    parser.add_argument(
+        "--use_lora",
+        help="Abilitate Peft Lora",
+        action="store_true",
+        required=False
+    )
+
     args = parser.parse_args()
 
     ## Parameters
@@ -130,11 +141,15 @@ if __name__ == "__main__":
     weight_decay = args.weight_decay    # e.g., 0.01
     warmup_ratio = args.warmup_ratio    # e.g., 0.06
     model_path = args.model_path
-    use_span = args.span
+    use_span = args.use_span
     acc_step = args.acc_step
+    use_lora = args.use_lora
 
     if use_span:
         print("Span Mode Activated")
+    
+    if use_span:
+        print("Lora Enabled")
     ## Define the labels
     original_label_list = [
         "COURT",
@@ -177,7 +192,9 @@ if __name__ == "__main__":
             labels_ids, prediction_ids, tags=unique_labels, loader="list"
         )
         results, results_per_tag = evaluator.evaluate()
-
+        print("")
+        for k,v in results_per_tag.items():
+            print(f"{k}: {v['ent_type']['f1']}")
         return {
             "f1-type-match": 2
             * results["ent_type"]["precision"]
@@ -302,6 +319,7 @@ if __name__ == "__main__":
 
     print("MODEL: ", model_path)
     if not use_span:
+        print("here")
         ## Define the train and test datasets
         use_roberta = False
         if "luke" in model_path or "roberta" in model_path:
@@ -341,10 +359,37 @@ if __name__ == "__main__":
             print("Using Roberta as tokenizer")
             tokenizer = SpanMarkerTokenizer.from_pretrained("roberta-base", config=model.tokenizer.config)
             model.set_tokenizer(tokenizer)
-        dataset = load_legal_ner(ds_train_path)
+        span_dataset = load_legal_ner(ds_train_path)
 
     print(model)
     
+    if use_lora:
+        model_modules = str(model.modules)
+        pattern = r'\((\w+)\): Linear'
+        linear_layer_names = re.findall(pattern, model_modules)
+
+        names = []
+        # Print the names of the Linear layers
+        for name in linear_layer_names:
+            names.append(name)
+        target_modules = list(set(names))
+        print(f"Found target modules: \n{target_modules}")
+        peft_config = LoraConfig(
+            task_type=TaskType.TOKEN_CLS, inference_mode=False, r=16, lora_alpha=8, lora_dropout=0.1, bias="all", target_modules=target_modules
+        )
+        model = get_peft_model(model, peft_config)
+        n_params = 0
+        n_trainable_params = 0
+
+        # count the number of trainable parameters
+        for n, p in model.named_parameters():
+            n_params += p.numel()
+            if p.requires_grad:
+                n_trainable_params += p.numel()
+
+        print(f"Total parameters: {n_params}")
+        print(f"Trainable parameters: {n_trainable_params}")
+        print(f"Percentage of weights that will be trained: {round(n_trainable_params / n_params * 100, 2)}%")
 
     ## Output folder
     new_output_folder = os.path.join(output_folder, 'all')
@@ -417,8 +462,8 @@ if __name__ == "__main__":
         trainer = SpanTrainer(
             model=model,
             args=training_args,
-            train_dataset=dataset["train"],
-            eval_dataset=dataset["dev"],
+            train_dataset=span_dataset["train"],
+            eval_dataset=span_dataset["dev"],
             compute_metrics=compute_score_span
         )
 
