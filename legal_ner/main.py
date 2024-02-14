@@ -144,6 +144,7 @@ if __name__ == "__main__":
     use_span = args.use_span
     acc_step = args.acc_step
     use_lora = args.use_lora
+    scheduler = args.scheduler
 
     if use_span:
         print("Span Mode Activated")
@@ -319,7 +320,6 @@ if __name__ == "__main__":
 
     print("MODEL: ", model_path)
     if not use_span:
-        print("here")
         ## Define the train and test datasets
         use_roberta = False
         if "luke" in model_path or "roberta" in model_path:
@@ -420,7 +420,7 @@ if __name__ == "__main__":
             dataloader_pin_memory=True,
             report_to="wandb",
             logging_steps=10,  # how often to log to W&B
-
+            lr_scheduler_type=scheduler
         )
 
         ## Collator
@@ -435,6 +435,7 @@ if __name__ == "__main__":
             compute_metrics=compute_metrics,
             data_collator=data_collator,
         )
+
     else:
         training_args = TrainingArguments(
             output_dir=new_output_folder,
@@ -456,6 +457,7 @@ if __name__ == "__main__":
             dataloader_pin_memory=True,
             report_to="wandb",
             logging_steps=10,  # how often to log to W&B
+            lr_scheduler_type=scheduler
         )
 
         # Our Trainer subclasses the 🤗 Trainer, and the usage is very similar
