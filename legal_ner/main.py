@@ -373,6 +373,13 @@ if __name__ == "__main__":
         for name in linear_layer_names:
             names.append(name)
         target_modules = list(set(names))
+        if "luke" in model_path:
+            target_modules.remove("e2e_query")
+            target_modules.remove("w2e_query")
+            target_modules.remove("e2w_query")
+            target_modules.remove("entity_embedding_dense")
+
+
         print(f"Found target modules: \n{target_modules}")
         peft_config = LoraConfig(
             task_type=TaskType.TOKEN_CLS, inference_mode=False, r=16, lora_alpha=8, lora_dropout=0.1, bias="all", target_modules=target_modules
