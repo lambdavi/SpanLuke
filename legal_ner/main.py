@@ -432,7 +432,7 @@ if __name__ == "__main__":
         else:
             peft_config = AdaLoraConfig(
                 peft_type="ADALORA",
-                lora_r=lora_rank,
+                r=lora_rank,
                 target_r=8,
                 init_warmup=500, 
                 final_warmup=1500,
