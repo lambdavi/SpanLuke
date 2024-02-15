@@ -455,7 +455,7 @@ if __name__ == "__main__":
             peft_config = IA3Config(
                 task_type=TaskType.TOKEN_CLS,
                 target_modules=target_modules,
-                feedforward_modules=["classifier"]
+                feedforward_modules=["classifier", "dense"]
             )
 
         model = get_peft_model(model, peft_config)
