@@ -438,6 +438,7 @@ if __name__ == "__main__":
         print(f"Trainable parameters: {n_trainable_params}")
         print(f"Percentage of weights that will be trained: {round(n_trainable_params / n_params * 100, 2)}%")"""
         model.print_trainable_parameters()
+        print(model)
 
 
     ## Output folder
