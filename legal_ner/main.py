@@ -410,7 +410,7 @@ if __name__ == "__main__":
             names.append(name)
         target_modules = list(set(names))
 
-        if lora_target=="qv":
+        if "qv" in lora_target:
             target_modules = ['query', 'e2w_query', 'e2e_query', 'value', 'w2e_query']
 
         print(f"Found target modules: \n{target_modules}")
