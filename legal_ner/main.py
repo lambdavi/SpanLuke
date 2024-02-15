@@ -489,7 +489,7 @@ if __name__ == "__main__":
             per_device_train_batch_size=batch_size,
             per_device_eval_batch_size=batch_size,
             gradient_accumulation_steps=acc_step,
-            gradient_checkpointing=True,
+            gradient_checkpointing=not (use_lora or use_adalora or use_ia3),
             warmup_ratio=warmup_ratio,
             weight_decay=weight_decay,
             evaluation_strategy="epoch",
