@@ -144,6 +144,15 @@ if __name__ == "__main__":
         required=False
     )
 
+    parser.add_argument(
+        "--lora_mode",
+        help="Choice of LoRA layers",
+        required=False,
+        type=str,
+        choices=["all", "reduced"],
+        default="all"
+    )
+
     args = parser.parse_args()
 
     ## Parameters
@@ -162,6 +171,7 @@ if __name__ == "__main__":
     scheduler = args.scheduler
     lora_rank = args.lora_rank
     lora_alpha = args.lora_alpha
+    lora_mode = args.lora_mode
 
     if use_span:
         print("Span Mode Activated")
@@ -390,7 +400,7 @@ if __name__ == "__main__":
         for name in linear_layer_names:
             names.append(name)
         target_modules = list(set(names))
-        if "luke" in model_path:
+        if "luke" in model_path and lora_mode == "reduced":
             target_modules.remove("e2e_query")
             target_modules.remove("w2e_query")
             target_modules.remove("e2w_query")
