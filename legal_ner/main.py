@@ -136,6 +136,13 @@ if __name__ == "__main__":
         required=False,
         type=int,
     )
+    parser.add_argument(
+        "--lora_dropout",
+        help="Lora Dropout",
+        default=0.1,
+        required=False,
+        type=float,
+    )
 
     parser.add_argument(
         "--use_lora",
@@ -160,6 +167,7 @@ if __name__ == "__main__":
         default="all"
     )
 
+
     args = parser.parse_args()
 
     ## Parameters
@@ -180,6 +188,7 @@ if __name__ == "__main__":
     lora_alpha = args.lora_alpha
     lora_mode = args.lora_mode
     use_adalora = args.use_adalora
+    lora_dropout = args.lora_dropout
 
     if use_span:
         print("Span Mode Activated")
@@ -418,16 +427,21 @@ if __name__ == "__main__":
         print(f"Found target modules: \n{target_modules}")
         if use_lora:
             peft_config = LoraConfig(
-                task_type=TaskType.TOKEN_CLS, inference_mode=False, r=lora_rank, lora_alpha=lora_alpha, lora_dropout=0.1, bias="all", target_modules=target_modules
+                task_type=TaskType.TOKEN_CLS, inference_mode=False, r=lora_rank, lora_alpha=lora_alpha, lora_dropout=lora_dropout, bias="all", target_modules=target_modules
             )
         else:
             peft_config = AdaLoraConfig(
-                r=lora_rank,
-                init_r=12,
-                tinit=200,
-                tfinal=1000,
-                deltaT=10,
+                peft_type="ADALORA",
+                lora_r=lora_rank,
+                target_r=8,
+                init_warmup=500, 
+                final_warmup=1500,
+                mask_interval=10, 
+                total_step=3000, 
+                beta1=0.85, 
+                beta2=0.85,
                 target_modules=target_modules,
+                lora_dropout=lora_dropout
             )
 
         model = get_peft_model(model, peft_config)
