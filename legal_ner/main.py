@@ -420,23 +420,12 @@ if __name__ == "__main__":
         else:
             peft_config = IA3Config(
                 task_type=TaskType.TOKEN_CLS,
-                target_modules=target_modules,
-                feedforward_modules=["classifier"]
+                target_modules=target_modules+["output.dense"],
+                feedforward_modules=["output.dense"]
             )
 
         model = get_peft_model(model, peft_config)
-        """n_params = 0
-        n_trainable_params = 0
 
-        # count the number of trainable parameters
-        for n, p in model.named_parameters():
-            n_params += p.numel()
-            if p.requires_grad:
-                n_trainable_params += p.numel()
-
-        print(f"Total parameters: {n_params}")
-        print(f"Trainable parameters: {n_trainable_params}")
-        print(f"Percentage of weights that will be trained: {round(n_trainable_params / n_params * 100, 2)}%")"""
         model.print_trainable_parameters()
         print(model)
 
