@@ -483,7 +483,6 @@ if __name__ == "__main__":
             train_dataset=train_ds,
             eval_dataset=val_ds,
             compute_metrics=compute_metrics,
-            data_collator=data_collator,
         )
 
     else:
