@@ -4,7 +4,7 @@ import numpy as np
 from argparse import ArgumentParser
 from nervaluate import Evaluator
 import re
-from peft import LoraConfig, TaskType, get_peft_model
+from peft import LoraConfig, TaskType, get_peft_model, AdaLoraConfig, IA3Config
 
 from transformers import AutoModelForTokenClassification
 from transformers import Trainer, DefaultDataCollator, TrainingArguments
@@ -123,11 +123,56 @@ if __name__ == "__main__":
     )
 
     parser.add_argument(
+        "--lora_rank",
+        help="Lora Rank",
+        default=8,
+        required=False,
+        type=int,
+    )
+    parser.add_argument(
+        "--lora_alpha",
+        help="Lora Alpha",
+        default=32,
+        required=False,
+        type=int,
+    )
+    parser.add_argument(
+        "--lora_dropout",
+        help="Lora Dropout",
+        default=0.1,
+        required=False,
+        type=float,
+    )
+
+    parser.add_argument(
         "--use_lora",
         help="Abilitate Peft Lora",
         action="store_true",
         required=False
     )
+
+    parser.add_argument(
+        "--use_adalora",
+        help="Abilitate Peft Lora",
+        action="store_true",
+        required=False
+    )
+    parser.add_argument(
+        "--use_ia3",
+        help="Abilitate Peft IA3",
+        action="store_true",
+        required=False
+    )
+
+    parser.add_argument(
+        "--lora_mode",
+        help="Choice of LoRA layers",
+        required=False,
+        type=str,
+        choices=["all", "reduced"],
+        default="all"
+    )
+
 
     args = parser.parse_args()
 
@@ -144,6 +189,13 @@ if __name__ == "__main__":
     use_span = args.use_span
     acc_step = args.acc_step
     use_lora = args.use_lora
+    scheduler = args.scheduler
+    lora_rank = args.lora_rank
+    lora_alpha = args.lora_alpha
+    lora_mode = args.lora_mode
+    use_adalora = args.use_adalora
+    lora_dropout = args.lora_dropout
+    use_ia3 = args.use_ia3
 
     if use_span:
         print("Span Mode Activated")
@@ -319,7 +371,6 @@ if __name__ == "__main__":
 
     print("MODEL: ", model_path)
     if not use_span:
-        print("here")
         ## Define the train and test datasets
         use_roberta = False
         if "luke" in model_path or "roberta" in model_path:
@@ -363,7 +414,7 @@ if __name__ == "__main__":
 
     print(model)
     
-    if use_lora:
+    if use_lora or use_adalora or use_ia3:
         model_modules = str(model.modules)
         pattern = r'\((\w+)\): Linear'
         linear_layer_names = re.findall(pattern, model_modules)
@@ -373,12 +424,42 @@ if __name__ == "__main__":
         for name in linear_layer_names:
             names.append(name)
         target_modules = list(set(names))
+        if "luke" in model_path and lora_mode == "reduced":
+            target_modules.remove("e2e_query")
+            target_modules.remove("w2e_query")
+            target_modules.remove("e2w_query")
+            target_modules.remove("entity_embedding_dense")
+
+
         print(f"Found target modules: \n{target_modules}")
-        peft_config = LoraConfig(
-            task_type=TaskType.TOKEN_CLS, inference_mode=False, r=16, lora_alpha=8, lora_dropout=0.1, bias="all", target_modules=target_modules
-        )
+        if use_lora:
+            peft_config = LoraConfig(
+                task_type=TaskType.TOKEN_CLS, inference_mode=False, r=lora_rank, lora_alpha=lora_alpha, lora_dropout=lora_dropout, bias="all", target_modules=target_modules
+            )
+        elif use_adalora:
+            peft_config = AdaLoraConfig(
+                init_r=12,
+                target_r=lora_rank,
+                beta1=0.85,
+                beta2=0.85,
+                tinit=200,
+                tfinal=1000,
+                deltaT=10,
+                lora_alpha=lora_alpha,
+                lora_dropout=lora_dropout,
+                task_type=TaskType.TOKEN_CLS,
+                inference_mode=False,
+                target_modules=target_modules
+            )
+        else:
+            peft_config = IA3Config(
+                task_type=TaskType.TOKEN_CLS,
+                target_modules=target_modules,
+                feedforward_modules=["classifier", "dense"]
+            )
+
         model = get_peft_model(model, peft_config)
-        n_params = 0
+        """n_params = 0
         n_trainable_params = 0
 
         # count the number of trainable parameters
@@ -389,7 +470,9 @@ if __name__ == "__main__":
 
         print(f"Total parameters: {n_params}")
         print(f"Trainable parameters: {n_trainable_params}")
-        print(f"Percentage of weights that will be trained: {round(n_trainable_params / n_params * 100, 2)}%")
+        print(f"Percentage of weights that will be trained: {round(n_trainable_params / n_params * 100, 2)}%")"""
+        model.print_trainable_parameters()
+
 
     ## Output folder
     new_output_folder = os.path.join(output_folder, 'all')
@@ -406,7 +489,7 @@ if __name__ == "__main__":
             per_device_train_batch_size=batch_size,
             per_device_eval_batch_size=batch_size,
             gradient_accumulation_steps=acc_step,
-            gradient_checkpointing=True,
+            gradient_checkpointing=not (use_lora or use_adalora or use_ia3),
             warmup_ratio=warmup_ratio,
             weight_decay=weight_decay,
             evaluation_strategy="epoch",
@@ -420,7 +503,7 @@ if __name__ == "__main__":
             dataloader_pin_memory=True,
             report_to="wandb",
             logging_steps=10,  # how often to log to W&B
-
+            lr_scheduler_type=scheduler
         )
 
         ## Collator
@@ -435,6 +518,7 @@ if __name__ == "__main__":
             compute_metrics=compute_metrics,
             data_collator=data_collator,
         )
+
     else:
         training_args = TrainingArguments(
             output_dir=new_output_folder,
@@ -456,6 +540,7 @@ if __name__ == "__main__":
             dataloader_pin_memory=True,
             report_to="wandb",
             logging_steps=10,  # how often to log to W&B
+            lr_scheduler_type=scheduler
         )
 
         # Our Trainer subclasses the 🤗 Trainer, and the usage is very similar
