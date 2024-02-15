@@ -158,7 +158,7 @@ if __name__ == "__main__":
         help="Choice of layers where apply LoRA to.",
         required=False,
         type=str,
-        choices=["all", "qv", "no_bias"],
+        choices=["all", "all_no_bias", "qv", "qv_no_bias"],
         default="all"
     )
 
@@ -414,7 +414,7 @@ if __name__ == "__main__":
             target_modules = ['query', 'e2w_query', 'e2e_query', 'value', 'w2e_query']
 
         print(f"Found target modules: \n{target_modules}")
-        bias = "none" if lora_target=="no_bias" else "all"
+        bias = "none" if "no_bias" in lora_target else "all"
         if peft_mode == "lora":
             peft_config = LoraConfig(
                 task_type=TaskType.TOKEN_CLS, inference_mode=False, r=lora_rank, lora_alpha=lora_alpha, lora_dropout=lora_dropout, bias=bias, target_modules=target_modules
