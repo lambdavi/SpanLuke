@@ -154,12 +154,11 @@ if __name__ == "__main__":
     )
 
     parser.add_argument(
-        "--lora_target",
-        help="Choice of layers where apply LoRA to.",
+        "--lora_bias",
+        help="Lora bias",
         required=False,
-        type=str,
-        choices=["all", "all_no_bias", "qv", "qv_no_bias"],
-        default="all"
+        action="store_true",
+        default=False
     )
 
 
@@ -182,7 +181,7 @@ if __name__ == "__main__":
     lora_alpha = args.lora_alpha
     peft_mode = args.peft_mode
     lora_dropout = args.lora_dropout
-    lora_target = args.lora_target
+    lora_bias = args.lora_bias
 
     if use_span:
         print("Span Mode Activated")
@@ -400,22 +399,12 @@ if __name__ == "__main__":
     print(model)
     
     if peft_mode is not None:
-        model_modules = str(model.modules)
-        pattern = r'\((\w+)\): Linear'
-        linear_layer_names = re.findall(pattern, model_modules)
-
-        names = []
-        # Print the names of the Linear layers
-        for name in linear_layer_names:
-            names.append(name)
-        target_modules = list(set(names))
-
-        if "qv" in lora_target and "luke" in model_path:
+        if "luke" in model_path:
             target_modules = ['query', 'e2w_query', 'e2e_query', 'value', 'w2e_query']
-
-        print(f"Found target modules: \n{target_modules}")
+            print(f"Found target modules: \n{target_modules}")
+        else:
+            target_modules = None
         bias = "none" if "no_bias" in lora_target else "all"
-
         if peft_mode == "lora":
             peft_config = LoraConfig(
                 task_type=TaskType.TOKEN_CLS, inference_mode=False, r=lora_rank, lora_alpha=lora_alpha, lora_dropout=lora_dropout, bias=bias, target_modules=target_modules
