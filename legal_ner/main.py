@@ -410,24 +410,19 @@ if __name__ == "__main__":
             names.append(name)
         target_modules = list(set(names))
 
-        if "qv" in lora_target:
+        if "qv" in lora_target and "luke" in model_path:
             target_modules = ['query', 'e2w_query', 'e2e_query', 'value', 'w2e_query']
 
         print(f"Found target modules: \n{target_modules}")
         bias = "none" if "no_bias" in lora_target else "all"
+
         if peft_mode == "lora":
             peft_config = LoraConfig(
                 task_type=TaskType.TOKEN_CLS, inference_mode=False, r=lora_rank, lora_alpha=lora_alpha, lora_dropout=lora_dropout, bias=bias, target_modules=target_modules
             )
         elif peft_mode == "adalora":
             peft_config = AdaLoraConfig(
-                init_r=12,
                 target_r=lora_rank,
-                beta1=0.85,
-                beta2=0.85,
-                tinit=200,
-                tfinal=1000,
-                deltaT=10,
                 lora_alpha=lora_alpha,
                 lora_dropout=lora_dropout,
                 task_type=TaskType.TOKEN_CLS,
@@ -438,7 +433,7 @@ if __name__ == "__main__":
             peft_config = IA3Config(
                 task_type=TaskType.TOKEN_CLS,
                 target_modules=target_modules,
-                feedforward_modules=["classifier", "dense"]
+                feedforward_modules=["classifier"]
             )
 
         model = get_peft_model(model, peft_config)
