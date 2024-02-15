@@ -157,10 +157,10 @@ if __name__ == "__main__":
         "--lora_bias",
         help="Lora bias",
         required=False,
-        action="store_true",
-        default=False
+        type=str,
+        choices=["all", "none"],
+        default="all"
     )
-
 
     args = parser.parse_args()
 
@@ -181,7 +181,7 @@ if __name__ == "__main__":
     lora_alpha = args.lora_alpha
     peft_mode = args.peft_mode
     lora_dropout = args.lora_dropout
-    lora_bias = args.lora_bias
+    bias = args.lora_bias
 
     if use_span:
         print("Span Mode Activated")
@@ -404,7 +404,6 @@ if __name__ == "__main__":
             print(f"Found target modules: \n{target_modules}")
         else:
             target_modules = None
-        bias = "none" if "no_bias" in lora_target else "all"
         if peft_mode == "lora":
             peft_config = LoraConfig(
                 task_type=TaskType.TOKEN_CLS, inference_mode=False, r=lora_rank, lora_alpha=lora_alpha, lora_dropout=lora_dropout, bias=bias, target_modules=target_modules
