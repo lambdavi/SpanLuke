@@ -4,7 +4,7 @@ import numpy as np
 from argparse import ArgumentParser
 from nervaluate import Evaluator
 import re
-from peft import LoraConfig, TaskType, get_peft_model
+from peft import LoraConfig, TaskType, get_peft_model, AdaLoraConfig
 
 from transformers import AutoModelForTokenClassification
 from transformers import Trainer, DefaultDataCollator, TrainingArguments
@@ -145,6 +145,13 @@ if __name__ == "__main__":
     )
 
     parser.add_argument(
+        "--use_adalora",
+        help="Abilitate Peft Lora",
+        action="store_true",
+        required=False
+    )
+
+    parser.add_argument(
         "--lora_mode",
         help="Choice of LoRA layers",
         required=False,
@@ -172,6 +179,7 @@ if __name__ == "__main__":
     lora_rank = args.lora_rank
     lora_alpha = args.lora_alpha
     lora_mode = args.lora_mode
+    use_adalora = args.use_adalora
 
     if use_span:
         print("Span Mode Activated")
@@ -390,7 +398,7 @@ if __name__ == "__main__":
 
     print(model)
     
-    if use_lora:
+    if use_lora or use_adalora:
         model_modules = str(model.modules)
         pattern = r'\((\w+)\): Linear'
         linear_layer_names = re.findall(pattern, model_modules)
@@ -408,11 +416,22 @@ if __name__ == "__main__":
 
 
         print(f"Found target modules: \n{target_modules}")
-        peft_config = LoraConfig(
-            task_type=TaskType.TOKEN_CLS, inference_mode=False, r=lora_rank, lora_alpha=lora_alpha, lora_dropout=0.1, bias="all", target_modules=target_modules
-        )
+        if use_lora:
+            peft_config = LoraConfig(
+                task_type=TaskType.TOKEN_CLS, inference_mode=False, r=lora_rank, lora_alpha=lora_alpha, lora_dropout=0.1, bias="all", target_modules=target_modules
+            )
+        else:
+            peft_config = AdaLoraConfig(
+                r=lora_rank,
+                init_r=12,
+                tinit=200,
+                tfinal=1000,
+                deltaT=10,
+                target_modules=target_modules,
+            )
+
         model = get_peft_model(model, peft_config)
-        n_params = 0
+        """n_params = 0
         n_trainable_params = 0
 
         # count the number of trainable parameters
@@ -423,7 +442,9 @@ if __name__ == "__main__":
 
         print(f"Total parameters: {n_params}")
         print(f"Trainable parameters: {n_trainable_params}")
-        print(f"Percentage of weights that will be trained: {round(n_trainable_params / n_params * 100, 2)}%")
+        print(f"Percentage of weights that will be trained: {round(n_trainable_params / n_params * 100, 2)}%")"""
+        model.print_trainable_parameters()
+
 
     ## Output folder
     new_output_folder = os.path.join(output_folder, 'all')
