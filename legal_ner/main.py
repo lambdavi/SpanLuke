@@ -442,6 +442,7 @@ if __name__ == "__main__":
                 lora_dropout=lora_dropout,
                 task_type=TaskType.TOKEN_CLS,
                 inference_mode=False,
+                target_modules=target_modules
             )
 
         model = get_peft_model(model, peft_config)
