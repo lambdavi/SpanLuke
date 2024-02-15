@@ -416,7 +416,7 @@ if __name__ == "__main__":
         print(f"Found target modules: \n{target_modules}")
         if peft_mode == "lora":
             peft_config = LoraConfig(
-                task_type=TaskType.TOKEN_CLS, inference_mode=False, r=lora_rank, lora_alpha=lora_alpha, lora_dropout=lora_dropout, bias="none", target_modules=target_modules
+                task_type=TaskType.TOKEN_CLS, inference_mode=False, r=lora_rank, lora_alpha=lora_alpha, lora_dropout=lora_dropout, bias="all", target_modules=target_modules
             )
         elif peft_mode == "adalora":
             peft_config = AdaLoraConfig(
