@@ -123,6 +123,21 @@ if __name__ == "__main__":
     )
 
     parser.add_argument(
+        "--lora_rank",
+        help="Lora Rank",
+        default=16,
+        required=False,
+        type=int,
+    )
+    parser.add_argument(
+        "--lora_alpha",
+        help="Lora Alpha",
+        default=8,
+        required=False,
+        type=int,
+    )
+
+    parser.add_argument(
         "--use_lora",
         help="Abilitate Peft Lora",
         action="store_true",
@@ -145,6 +160,8 @@ if __name__ == "__main__":
     acc_step = args.acc_step
     use_lora = args.use_lora
     scheduler = args.scheduler
+    lora_rank = args.lora_rank
+    lora_alpha = args.lora_alpha
 
     if use_span:
         print("Span Mode Activated")
@@ -382,7 +399,7 @@ if __name__ == "__main__":
 
         print(f"Found target modules: \n{target_modules}")
         peft_config = LoraConfig(
-            task_type=TaskType.TOKEN_CLS, inference_mode=False, r=16, lora_alpha=8, lora_dropout=0.1, bias="all", target_modules=target_modules
+            task_type=TaskType.TOKEN_CLS, inference_mode=False, r=lora_rank, lora_alpha=lora_alpha, lora_dropout=0.1, bias="all", target_modules=target_modules
         )
         model = get_peft_model(model, peft_config)
         n_params = 0
