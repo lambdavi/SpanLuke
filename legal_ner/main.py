@@ -125,14 +125,14 @@ if __name__ == "__main__":
     parser.add_argument(
         "--lora_rank",
         help="Lora Rank",
-        default=16,
+        default=8,
         required=False,
         type=int,
     )
     parser.add_argument(
         "--lora_alpha",
         help="Lora Alpha",
-        default=8,
+        default=32,
         required=False,
         type=int,
     )
