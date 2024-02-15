@@ -431,17 +431,17 @@ if __name__ == "__main__":
             )
         else:
             peft_config = AdaLoraConfig(
-                peft_type="ADALORA",
-                r=lora_rank,
-                target_r=8,
-                init_warmup=500, 
-                final_warmup=1500,
-                mask_interval=10, 
-                total_step=3000, 
-                beta1=0.85, 
+                init_r=12,
+                target_r=lora_rank,
+                beta1=0.85,
                 beta2=0.85,
-                target_modules=target_modules,
-                lora_dropout=lora_dropout
+                tinit=200,
+                tfinal=1000,
+                deltaT=10,
+                lora_alpha=lora_alpha,
+                lora_dropout=lora_dropout,
+                task_type=TaskType.TOKEN_CLS,
+                inference_mode=False,
             )
 
         model = get_peft_model(model, peft_config)
