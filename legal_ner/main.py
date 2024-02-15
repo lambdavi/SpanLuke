@@ -4,7 +4,7 @@ import numpy as np
 from argparse import ArgumentParser
 from nervaluate import Evaluator
 import re
-from peft import LoraConfig, TaskType, get_peft_model, AdaLoraConfig
+from peft import LoraConfig, TaskType, get_peft_model, AdaLoraConfig, IA3Config
 
 from transformers import AutoModelForTokenClassification
 from transformers import Trainer, DefaultDataCollator, TrainingArguments
@@ -157,6 +157,12 @@ if __name__ == "__main__":
         action="store_true",
         required=False
     )
+    parser.add_argument(
+        "--use_ia3",
+        help="Abilitate Peft IA3",
+        action="store_true",
+        required=False
+    )
 
     parser.add_argument(
         "--lora_mode",
@@ -189,6 +195,7 @@ if __name__ == "__main__":
     lora_mode = args.lora_mode
     use_adalora = args.use_adalora
     lora_dropout = args.lora_dropout
+    use_ia3 = args.use_ia3
 
     if use_span:
         print("Span Mode Activated")
@@ -407,7 +414,7 @@ if __name__ == "__main__":
 
     print(model)
     
-    if use_lora or use_adalora:
+    if use_lora or use_adalora or use_ia3:
         model_modules = str(model.modules)
         pattern = r'\((\w+)\): Linear'
         linear_layer_names = re.findall(pattern, model_modules)
@@ -429,7 +436,7 @@ if __name__ == "__main__":
             peft_config = LoraConfig(
                 task_type=TaskType.TOKEN_CLS, inference_mode=False, r=lora_rank, lora_alpha=lora_alpha, lora_dropout=lora_dropout, bias="all", target_modules=target_modules
             )
-        else:
+        elif use_adalora:
             peft_config = AdaLoraConfig(
                 init_r=12,
                 target_r=lora_rank,
@@ -443,6 +450,11 @@ if __name__ == "__main__":
                 task_type=TaskType.TOKEN_CLS,
                 inference_mode=False,
                 target_modules=target_modules
+            )
+        else:
+            peft_config = IA3Config(
+                task_type=TaskType.TOKEN_CLS,
+                target_modules=target_modules,
             )
 
         model = get_peft_model(model, peft_config)
