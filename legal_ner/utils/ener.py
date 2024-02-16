@@ -38,11 +38,12 @@ def read_data(path):
         token_list = []
         tag_list = []
         sentence = [line.split(",") for line in sentence.split("\n") if len(line.split(","))==2]
-        for token, tag in sentence:
-            token_list.append(token)
-            tag_list.append(tag)
-        
-        dataset.append({"tokens": token_list, "ner_tags": tag_list})
+        if len(sentence)!=0:
+            for token, tag in sentence:
+                token_list.append(token)
+                tag_list.append(tag)
+            
+            dataset.append({"tokens": token_list, "ner_tags": tag_list})
     
     dataset = pd.DataFrame(dataset, columns=["tokens", "ner_tags"])
     dataset = Dataset.from_pandas(dataset)
@@ -62,4 +63,3 @@ def get_ener_dataset():
     ener = ener.remove_columns("ner_tags")
     ener = ener.rename_column("tags", "ner_tags")
     return ener.train_test_split(0.15)
-
