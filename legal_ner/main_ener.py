@@ -574,6 +574,8 @@ if __name__ == "__main__":
     trainer.train()
     trainer.save_model(output_folder)
     trainer.evaluate()
+    if push_to_hub:
+        trainer.push_to_hub()
 
 
 
