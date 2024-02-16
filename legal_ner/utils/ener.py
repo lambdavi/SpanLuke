@@ -108,7 +108,7 @@ class ENER_DataProcessor():
         return tokenized_inputs 
     
     def get_ener_dataset(self):
-        ener = self.data.map(self.label_process)
+        ener = self.data.map(self.label_process).shuffle(0)
         ener = ener.remove_columns("ner_tags")
         ener = ener.rename_column("tags", "ner_tags")
         if self.tokenizer:
