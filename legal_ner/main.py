@@ -534,7 +534,7 @@ python main.py (Ours) \
     --ds_train_path data/NER_TRAIN/NER_TRAIN_ALL.json \
     --ds_valid_path data/NER_DEV/NER_DEV_ALL.json \
     --output_folder results/ \
-    --batch 256 \
+    --batch 8 \
     --num_epochs 5 \
     --lr 1e-4 \
     --weight_decay 0.01 \
