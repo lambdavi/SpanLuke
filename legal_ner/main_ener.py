@@ -495,7 +495,7 @@ if __name__ == "__main__":
     if not use_span:
         ## Training Arguments
         training_args = TrainingArguments(
-            output_dir=hub_model_id.split("/")[1] if hub_model_id is not None else new_output_folder,
+            output_dir=new_output_folder,
             num_train_epochs=num_epochs,
             learning_rate=lr,
             per_device_train_batch_size=batch_size,
@@ -536,7 +536,7 @@ if __name__ == "__main__":
 
     else:
         training_args = TrainingArguments(
-            output_dir=hub_model_id.split("/")[1] if hub_model_id is not None else new_output_folder,
+            output_dir=new_output_folder,
             num_train_epochs=num_epochs,
             learning_rate=lr,
             per_device_train_batch_size=batch_size,
@@ -547,7 +547,7 @@ if __name__ == "__main__":
             evaluation_strategy="epoch",
             save_strategy="epoch",
             load_best_model_at_end=False,
-            save_total_limit=2,
+            save_total_limit=1,
             fp16=False,
             fp16_full_eval=False,
             metric_for_best_model="f1-strict",
