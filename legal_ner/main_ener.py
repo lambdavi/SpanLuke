@@ -13,7 +13,6 @@ from utils.dataset import LegalNERTokenDataset, load_legal_ner
 from span_marker import SpanMarkerModel, Trainer as SpanTrainer
 from span_marker.tokenizer import SpanMarkerTokenizer
 from utils.ener import ENER_DataProcessor
-from utils.utils import tokenize_and_align_labels
 import torch
 import spacy
 
