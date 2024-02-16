@@ -74,9 +74,24 @@ if __name__ == "__main__":
 
     parser.add_argument(
         "--push_to_hub",
-        help="Push the model to the hub once the training is finished. Provide a name of the repo",
+        help="Push the model to the hub once the training is finished",
+        default=False,
+        required=False,
+        action="store_true"
+    )
+    parser.add_argument(
+        "--hub_token",
+        help="Huggingface write token",
         default=None,
         required=False,
+        type=str
+    )
+    parser.add_argument(
+        "--hub_model_id",
+        help="Huggingface full path",
+        default=None,
+        required=False,
+        type=str
     )
 
     parser.add_argument(
@@ -201,6 +216,8 @@ if __name__ == "__main__":
     bias = args.lora_bias
     dataset = args.dataset
     push_to_hub = args.push_to_hub
+    hub_token = args.hub_token
+    hub_model_id = args.hub_model_id
 
     if use_span:
         print("Span Mode Activated")
@@ -474,7 +491,7 @@ if __name__ == "__main__":
     if not use_span:
         ## Training Arguments
         training_args = TrainingArguments(
-            output_dir=new_output_folder if push_to_hub is None else push_to_hub,
+            output_dir=hub_model_id.split("/")[1] if hub_model_id is not None else new_output_folder,
             num_train_epochs=num_epochs,
             learning_rate=lr,
             per_device_train_batch_size=batch_size,
@@ -495,7 +512,9 @@ if __name__ == "__main__":
             report_to="wandb",
             logging_steps=50,  # how often to log to W&B
             lr_scheduler_type=scheduler,
-            push_to_hub=push_to_hub is not None
+            push_to_hub=push_to_hub,
+            hub_token=hub_token,
+            hub_model_id=hub_model_id
         )
 
         ## Collator
@@ -513,7 +532,7 @@ if __name__ == "__main__":
 
     else:
         training_args = TrainingArguments(
-            output_dir=new_output_folder if push_to_hub is None else push_to_hub,
+            output_dir=hub_model_id.split("/")[1] if hub_model_id is not None else new_output_folder,
             num_train_epochs=num_epochs,
             learning_rate=lr,
             per_device_train_batch_size=batch_size,
@@ -533,11 +552,10 @@ if __name__ == "__main__":
             report_to="wandb",
             logging_steps=50,  # how often to log to W&B
             lr_scheduler_type=scheduler,
-            push_to_hub=push_to_hub is not None,
-            push_to_hub_token="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",
-            push_to_hub_organization="lambdavi"
+            push_to_hub=push_to_hub,
+            hub_token=hub_token,
+            hub_model_id=hub_model_id
         )
-
         # Our Trainer subclasses the 🤗 Trainer, and the usage is very similar
         trainer = SpanTrainer(
             model=model,
