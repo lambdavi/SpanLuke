@@ -11,10 +11,13 @@ from transformers import RobertaTokenizerFast, AutoTokenizer
 class ENER_DataProcessor():
     def __init__(self, tokenizer=None, data_path="data/ener/all.csv") -> None:
         original = ["BUSINESS", "LOCATION", "PERSON" , "GOVERNMENT", "COURT", "LEGISLATION/ACT", "MISCELLANEOUS"]
-        entities = ["B-" + l for l in original]
-        entities += ["I-" + l for l in original]
-        self.entity_to_tag = {e: i+1 for i, e in enumerate(sorted(entities))}
-        self.entity_to_tag["O"]=0
+        labels_list = ["B-" + l for l in original]
+        labels_list += ["I-" + l for l in original]
+        self.labels_list = sorted(labels_list + ["O"])[::-1]
+
+        self.labels_to_idx = dict(
+            zip(sorted(self.labels_list)[::-1], range(len(self.labels_list)))
+        )
 
         if tokenizer is not None:
             if "luke" in tokenizer:
@@ -25,7 +28,6 @@ class ENER_DataProcessor():
             self.tokenizer=None
 
         self.data = self.read_data(data_path)
-        self.labels_to_idx = self.entity_to_tag
 
     def label_process(self, example):
         example["tags"] = []
@@ -36,10 +38,10 @@ class ENER_DataProcessor():
                 prefix = "B" if example["ner_tags"][i-1] != tag else "I"
 
             if tag == "O":
-                example["tags"].append(self.entity_to_tag[tag])
+                example["tags"].append(self.labels_to_idx[tag])
             else:
                 tag = tag.split("-")[1]
-                example["tags"].append(self.entity_to_tag[f"{prefix}-{tag}"])
+                example["tags"].append(self.labels_to_idx[f"{prefix}-{tag}"])
         return example
 
     def read_data(self, path):
