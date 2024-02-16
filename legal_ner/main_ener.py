@@ -216,7 +216,7 @@ if __name__ == "__main__":
         ]
         
     else:
-        labels_list = [
+        original_label_list = [
             "BUSINESS", 
             "LOCATION", 
             "PERSON", 
