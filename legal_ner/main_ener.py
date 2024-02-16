@@ -413,6 +413,8 @@ if __name__ == "__main__":
             # TODO: add data path 
             data_processor = ENER_DataProcessor(model_path)
             tok_dataset = data_processor.get_ener_dataset()
+            idx_to_labels = {v[1]: v[0] for v in data_processor.labels_to_idx.items()}
+
         else:
             train_ds = LegalNERTokenDataset(
                 ds_train_path, 
@@ -429,6 +431,7 @@ if __name__ == "__main__":
                 split="val", 
                 use_roberta=use_roberta
             )
+            idx_to_labels = {v[1]: v[0] for v in train_ds.labels_to_idx.items()}
             
 
         ## Define the model
@@ -438,7 +441,6 @@ if __name__ == "__main__":
             ignore_mismatched_sizes=True
         )
         ## Map the labels
-        idx_to_labels = {v[1]: v[0] for v in train_ds.labels_to_idx.items()}
         
     else:
         model = SpanMarkerModel.from_pretrained(model_path, labels=span_labels)
