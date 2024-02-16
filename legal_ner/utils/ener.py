@@ -18,7 +18,7 @@ class ENER_DataProcessor():
 
         if tokenizer is not None:
             if "luke" in tokenizer:
-                self.tokenizer = RobertaTokenizerFast.from_pretrained("roberta-base")
+                self.tokenizer = RobertaTokenizerFast.from_pretrained("roberta-base", add_prefix_space=True)
             else:
                 self.tokenizer = AutoTokenizer.from_pretrained(tokenizer) 
         else:
