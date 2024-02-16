@@ -409,6 +409,10 @@ if __name__ == "__main__":
         if "luke" in model_path or "roberta" in model_path:
             use_roberta = True
 
+        if dataset == "ener":
+            print("ENER dataset is not compatible with standard training, please make use of --use_span in the args.")
+            raise NotImplementedError()
+        
         train_ds = LegalNERTokenDataset(
             ds_train_path, 
             model_path, 
