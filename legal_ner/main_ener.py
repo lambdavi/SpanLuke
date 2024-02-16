@@ -244,7 +244,7 @@ if __name__ == "__main__":
     else:
         original_label_list = [
             "BUSINESS", 
-            "LOCATION", 
+            "LOCATION",
             "PERSON", 
             "GOVERNMENT", 
             "COURT", 
@@ -440,7 +440,7 @@ if __name__ == "__main__":
     else:
         model = SpanMarkerModel.from_pretrained(model_path, labels=span_labels)
         accepted = ["span", "bert"]
-        if any([a in model_path for a in accepted]):
+        if any([a in model_path for a in accepted]) and "luke" not in model_path:
             print(f"Using {model_path} as tokenizer")
             tokenizer = SpanMarkerTokenizer.from_pretrained(model_path, config=model.tokenizer.config)
         else:
@@ -573,7 +573,6 @@ if __name__ == "__main__":
     ## Train the model and save it
     trainer.train()
     trainer.save_model(output_folder)
-    trainer.evaluate()
     if push_to_hub:
         trainer.push_to_hub()
 
