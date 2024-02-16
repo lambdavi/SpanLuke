@@ -12,7 +12,7 @@ from transformers import Trainer, DefaultDataCollator, TrainingArguments
 from utils.dataset import LegalNERTokenDataset, load_legal_ner
 from span_marker import SpanMarkerModel, Trainer as SpanTrainer
 from span_marker.tokenizer import SpanMarkerTokenizer
-from utils.ener import get_ener_dataset
+from utils.ener import ENER_DataProcessor
 from utils.utils import tokenize_and_align_labels
 import torch
 import spacy
@@ -411,8 +411,9 @@ if __name__ == "__main__":
             use_roberta = True
 
         if dataset == "ener":
-            dataset = get_ener_dataset()
-            tok_dataset = tokenized_datasets = dataset.map(tokenize_and_align_labels, batched=True)
+            # TODO: add data path 
+            data_processor = ENER_DataProcessor(model_path)
+            tok_dataset = data_processor.get_ener_dataset()
         else:
             train_ds = LegalNERTokenDataset(
                 ds_train_path, 
@@ -429,6 +430,7 @@ if __name__ == "__main__":
                 split="val", 
                 use_roberta=use_roberta
             )
+            
 
         ## Define the model
         model = AutoModelForTokenClassification.from_pretrained(
@@ -438,20 +440,24 @@ if __name__ == "__main__":
         )
         ## Map the labels
         idx_to_labels = {v[1]: v[0] for v in train_ds.labels_to_idx.items()}
+        
     else:
         model = SpanMarkerModel.from_pretrained(model_path, labels=span_labels)
         accepted = ["span", "bert"]
         if any([a in model_path for a in accepted]) and "luke" not in model_path:
             print(f"Using {model_path} as tokenizer")
             tokenizer = SpanMarkerTokenizer.from_pretrained(model_path, config=model.tokenizer.config)
+
         else:
             print("Using Roberta as tokenizer")
             tokenizer = SpanMarkerTokenizer.from_pretrained("roberta-base", config=model.tokenizer.config)
             model.set_tokenizer(tokenizer)
+
         if dataset =="legal_ner":
             span_dataset = load_legal_ner(ds_train_path)
         else:
-            span_dataset = get_ener_dataset()
+            data_processor = ENER_DataProcessor()
+            span_dataset = data_processor.get_ener_dataset()
 
     print(model)
     

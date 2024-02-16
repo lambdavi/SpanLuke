@@ -6,6 +6,7 @@ import pandas as pd
 from datasets import Dataset
 from time import sleep
 import json
+from transformers import RobertaTokenizerFast, AutoTokenizer
 
 class ENER_DataProcessor():
     def __init__(self, tokenizer=None, data_path="data/ener/all.csv") -> None:
@@ -14,8 +15,17 @@ class ENER_DataProcessor():
         entities += ["I-" + l for l in original]
         self.entity_to_tag = {e: i+1 for i, e in enumerate(sorted(entities))}
         self.entity_to_tag["O"]=0
-        self.tokenizer = tokenizer
+
+        if isinstance(tokenizer) == str:
+            if "luke" in tokenizer:
+                self.tokenizer = RobertaTokenizerFast.from_pretrained("roberta-base")
+            else:
+                self.tokenizer = AutoTokenizer.from_pretrained(tokenizer) 
+        else:
+            self.tokenizer = tokenizer
+
         self.data = self.read_data(data_path)
+        self.labels_to_idx = self.entity_to_tag
 
     def label_process(self, example):
         example["tags"] = []
