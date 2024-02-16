@@ -71,6 +71,14 @@ if __name__ == "__main__":
         default=False,
         required=False,
     )
+
+    parser.add_argument(
+        "--push_to_hub",
+        help="Push the model to the hub once the training is finished. Provide a name of the repo",
+        default=None,
+        required=False,
+    )
+
     parser.add_argument(
         "--scheduler",
         help="Scheduler type among: linear, polynomial, reduce_lr_on_plateau, cosine, constant",
@@ -192,6 +200,7 @@ if __name__ == "__main__":
     lora_dropout = args.lora_dropout
     bias = args.lora_bias
     dataset = args.dataset
+    push_to_hub = args.push_to_hub
 
     if use_span:
         print("Span Mode Activated")
@@ -539,6 +548,8 @@ if __name__ == "__main__":
     trainer.train()
     trainer.save_model(output_folder)
     trainer.evaluate()
+    if push_to_hub is not None:
+        trainer.push_to_hub()
 
 
 
