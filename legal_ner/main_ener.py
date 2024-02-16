@@ -7,7 +7,7 @@ import re
 from peft import LoraConfig, TaskType, get_peft_model, AdaLoraConfig, IA3Config
 
 from transformers import AutoModelForTokenClassification
-from transformers import Trainer, DefaultDataCollator, TrainingArguments
+from transformers import Trainer, DefaultDataCollator, TrainingArguments, DataCollatorForTokenClassification
 
 from utils.dataset import LegalNERTokenDataset, load_legal_ner
 from span_marker import SpanMarkerModel, Trainer as SpanTrainer
@@ -530,7 +530,7 @@ if __name__ == "__main__":
         )
 
         ## Collator
-        data_collator = DefaultDataCollator()
+        data_collator = DefaultDataCollator() if dataset!="ener" else DataCollatorForTokenClassification
 
         ## Trainer
         trainer = Trainer(
@@ -539,7 +539,7 @@ if __name__ == "__main__":
             train_dataset=train_ds if dataset!="ener" else tok_dataset["train"],
             eval_dataset=val_ds if dataset!="ener" else tok_dataset["test"],
             compute_metrics=compute_metrics,
-            data_collator=data_collator if dataset!="ener" else None,
+            data_collator=data_collator,
         )
 
     else:
