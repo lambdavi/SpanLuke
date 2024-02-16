@@ -16,13 +16,10 @@ class ENER_DataProcessor():
         self.entity_to_tag = {e: i+1 for i, e in enumerate(sorted(entities))}
         self.entity_to_tag["O"]=0
 
-        if isinstance(tokenizer) == str:
-            if "luke" in tokenizer:
-                self.tokenizer = RobertaTokenizerFast.from_pretrained("roberta-base")
-            else:
-                self.tokenizer = AutoTokenizer.from_pretrained(tokenizer) 
+        if "luke" in tokenizer and tokenizer!=None:
+            self.tokenizer = RobertaTokenizerFast.from_pretrained("roberta-base")
         else:
-            self.tokenizer = tokenizer
+            self.tokenizer = AutoTokenizer.from_pretrained(tokenizer) 
 
         self.data = self.read_data(data_path)
         self.labels_to_idx = self.entity_to_tag
