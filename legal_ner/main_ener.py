@@ -474,7 +474,7 @@ if __name__ == "__main__":
     if not use_span:
         ## Training Arguments
         training_args = TrainingArguments(
-            output_dir=new_output_folder,
+            output_dir=new_output_folder if push_to_hub is None else push_to_hub,
             num_train_epochs=num_epochs,
             learning_rate=lr,
             per_device_train_batch_size=batch_size,
@@ -494,7 +494,8 @@ if __name__ == "__main__":
             dataloader_pin_memory=True,
             report_to="wandb",
             logging_steps=50,  # how often to log to W&B
-            lr_scheduler_type=scheduler
+            lr_scheduler_type=scheduler,
+            push_to_hub=push_to_hub is not None
         )
 
         ## Collator
@@ -512,7 +513,7 @@ if __name__ == "__main__":
 
     else:
         training_args = TrainingArguments(
-            output_dir=new_output_folder,
+            output_dir=new_output_folder if push_to_hub is None else push_to_hub,
             num_train_epochs=num_epochs,
             learning_rate=lr,
             per_device_train_batch_size=batch_size,
@@ -531,7 +532,8 @@ if __name__ == "__main__":
             dataloader_pin_memory=True,
             report_to="wandb",
             logging_steps=50,  # how often to log to W&B
-            lr_scheduler_type=scheduler
+            lr_scheduler_type=scheduler,
+            push_to_hub=push_to_hub is not None
         )
 
         # Our Trainer subclasses the 🤗 Trainer, and the usage is very similar
@@ -548,8 +550,6 @@ if __name__ == "__main__":
     trainer.train()
     trainer.save_model(output_folder)
     trainer.evaluate()
-    if push_to_hub is not None:
-        trainer.push_to_hub()
 
 
 
