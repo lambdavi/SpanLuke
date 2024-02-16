@@ -353,7 +353,7 @@ if __name__ == "__main__":
     
 
 
-    print("MODEL: ", model_path)
+    print("MODEL:", model_path)
     if not use_span:
         ## Define the train and test datasets
         use_roberta = False
@@ -385,7 +385,7 @@ if __name__ == "__main__":
         ## Map the labels
         idx_to_labels = {v[1]: v[0] for v in train_ds.labels_to_idx.items()}
     else:
-        model = SpanMarkerModel.from_pretrained(model_path, labels=span_labels)
+        model = SpanMarkerModel.from_pretrained(pretrained_model_name_or_path=model_path, labels=span_labels)
         accepted = ["span", "bert"]
         if any([a in model_path for a in accepted]):
             print(f"Using {model_path} as tokenizer")
