@@ -11,7 +11,7 @@ nlp = spacy.load("en_core_web_sm")
 
 ############################################################
 #                                                          #
-#                      DATASET CLASS                       #
+#                     LEGAL DATASET CLASS                  #
 #                                                          #
 ############################################################ 
 class LegalNERTokenDataset(Dataset):
@@ -85,7 +85,8 @@ class LegalNERTokenDataset(Dataset):
                 inputs["labels"] = labels[: inputs["attention_mask"].shape[0]]
 
         return inputs
-    
+
+  
 
 ## FOR SPAN
 def load_legal_ner(train_data_folder: str):

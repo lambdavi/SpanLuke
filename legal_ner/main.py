@@ -145,34 +145,22 @@ if __name__ == "__main__":
     )
 
     parser.add_argument(
-        "--use_lora",
-        help="Abilitate Peft Lora",
-        action="store_true",
-        required=False
-    )
-
-    parser.add_argument(
-        "--use_adalora",
-        help="Abilitate Peft Lora",
-        action="store_true",
-        required=False
-    )
-    parser.add_argument(
-        "--use_ia3",
-        help="Abilitate Peft IA3",
-        action="store_true",
-        required=False
-    )
-
-    parser.add_argument(
-        "--lora_mode",
-        help="Choice of LoRA layers",
+        "--peft_mode",
+        help="Choice of PEFT algorithm",
         required=False,
         type=str,
-        choices=["all", "reduced"],
-        default="all"
+        choices=["lora", "adalora", "ia3"],
+        default=None
     )
 
+    parser.add_argument(
+        "--lora_bias",
+        help="Lora bias",
+        required=False,
+        type=str,
+        choices=["all", "none"],
+        default="all"
+    )
 
     args = parser.parse_args()
 
@@ -188,20 +176,16 @@ if __name__ == "__main__":
     model_path = args.model_path
     use_span = args.use_span
     acc_step = args.acc_step
-    use_lora = args.use_lora
     scheduler = args.scheduler
     lora_rank = args.lora_rank
     lora_alpha = args.lora_alpha
-    lora_mode = args.lora_mode
-    use_adalora = args.use_adalora
+    peft_mode = args.peft_mode
     lora_dropout = args.lora_dropout
-    use_ia3 = args.use_ia3
+    bias = args.lora_bias
 
     if use_span:
         print("Span Mode Activated")
     
-    if use_span:
-        print("Lora Enabled")
     ## Define the labels
     original_label_list = [
         "COURT",
@@ -369,7 +353,7 @@ if __name__ == "__main__":
     
 
 
-    print("MODEL: ", model_path)
+    print("MODEL:", model_path)
     if not use_span:
         ## Define the train and test datasets
         use_roberta = False
@@ -401,7 +385,7 @@ if __name__ == "__main__":
         ## Map the labels
         idx_to_labels = {v[1]: v[0] for v in train_ds.labels_to_idx.items()}
     else:
-        model = SpanMarkerModel.from_pretrained(model_path, labels=span_labels)
+        model = SpanMarkerModel.from_pretrained(pretrained_model_name_or_path=model_path, labels=span_labels)
         accepted = ["span", "bert"]
         if any([a in model_path for a in accepted]):
             print(f"Using {model_path} as tokenizer")
@@ -414,37 +398,19 @@ if __name__ == "__main__":
 
     print(model)
     
-    if use_lora or use_adalora or use_ia3:
-        model_modules = str(model.modules)
-        pattern = r'\((\w+)\): Linear'
-        linear_layer_names = re.findall(pattern, model_modules)
-
-        names = []
-        # Print the names of the Linear layers
-        for name in linear_layer_names:
-            names.append(name)
-        target_modules = list(set(names))
-        if "luke" in model_path and lora_mode == "reduced":
-            target_modules.remove("e2e_query")
-            target_modules.remove("w2e_query")
-            target_modules.remove("e2w_query")
-            target_modules.remove("entity_embedding_dense")
-
-
-        print(f"Found target modules: \n{target_modules}")
-        if use_lora:
+    if peft_mode is not None:
+        if "luke" in model_path:
+            target_modules = ['query', 'e2w_query', 'e2e_query', 'value', 'w2e_query']
+            print(f"Found target modules: \n{target_modules}")
+        else:
+            target_modules = None
+        if peft_mode == "lora":
             peft_config = LoraConfig(
-                task_type=TaskType.TOKEN_CLS, inference_mode=False, r=lora_rank, lora_alpha=lora_alpha, lora_dropout=lora_dropout, bias="all", target_modules=target_modules
+                task_type=TaskType.TOKEN_CLS, inference_mode=False, r=lora_rank, lora_alpha=lora_alpha, lora_dropout=lora_dropout, bias=bias, target_modules=target_modules
             )
-        elif use_adalora:
+        elif peft_mode == "adalora":
             peft_config = AdaLoraConfig(
-                init_r=12,
                 target_r=lora_rank,
-                beta1=0.85,
-                beta2=0.85,
-                tinit=200,
-                tfinal=1000,
-                deltaT=10,
                 lora_alpha=lora_alpha,
                 lora_dropout=lora_dropout,
                 task_type=TaskType.TOKEN_CLS,
@@ -454,24 +420,14 @@ if __name__ == "__main__":
         else:
             peft_config = IA3Config(
                 task_type=TaskType.TOKEN_CLS,
-                target_modules=target_modules,
-                feedforward_modules=["classifier", "dense"]
+                target_modules=target_modules+["output.dense"],
+                feedforward_modules=["output.dense"]
             )
 
         model = get_peft_model(model, peft_config)
-        """n_params = 0
-        n_trainable_params = 0
 
-        # count the number of trainable parameters
-        for n, p in model.named_parameters():
-            n_params += p.numel()
-            if p.requires_grad:
-                n_trainable_params += p.numel()
-
-        print(f"Total parameters: {n_params}")
-        print(f"Trainable parameters: {n_trainable_params}")
-        print(f"Percentage of weights that will be trained: {round(n_trainable_params / n_params * 100, 2)}%")"""
         model.print_trainable_parameters()
+        print(model)
 
 
     ## Output folder
@@ -489,7 +445,7 @@ if __name__ == "__main__":
             per_device_train_batch_size=batch_size,
             per_device_eval_batch_size=batch_size,
             gradient_accumulation_steps=acc_step,
-            gradient_checkpointing=not (use_lora or use_adalora or use_ia3),
+            gradient_checkpointing=peft_mode is None,
             warmup_ratio=warmup_ratio,
             weight_decay=weight_decay,
             evaluation_strategy="epoch",
@@ -502,7 +458,7 @@ if __name__ == "__main__":
             dataloader_num_workers=4,
             dataloader_pin_memory=True,
             report_to="wandb",
-            logging_steps=10,  # how often to log to W&B
+            logging_steps=50,  # how often to log to W&B
             lr_scheduler_type=scheduler
         )
 
@@ -539,7 +495,7 @@ if __name__ == "__main__":
             dataloader_num_workers=4,
             dataloader_pin_memory=True,
             report_to="wandb",
-            logging_steps=10,  # how often to log to W&B
+            logging_steps=50,  # how often to log to W&B
             lr_scheduler_type=scheduler
         )
 
@@ -578,7 +534,7 @@ python main.py (Ours) \
     --ds_train_path data/NER_TRAIN/NER_TRAIN_ALL.json \
     --ds_valid_path data/NER_DEV/NER_DEV_ALL.json \
     --output_folder results/ \
-    --batch 256 \
+    --batch 8 \
     --num_epochs 5 \
     --lr 1e-4 \
     --weight_decay 0.01 \
