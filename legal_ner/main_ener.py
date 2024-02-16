@@ -13,6 +13,7 @@ from utils.dataset import LegalNERTokenDataset, load_legal_ner
 from span_marker import SpanMarkerModel, Trainer as SpanTrainer
 from span_marker.tokenizer import SpanMarkerTokenizer
 from utils.ener import get_ener_dataset
+from utils.utils import tokenize_and_align_labels
 import torch
 import spacy
 
@@ -410,24 +411,24 @@ if __name__ == "__main__":
             use_roberta = True
 
         if dataset == "ener":
-            print("ENER dataset is not compatible with standard training, please make use of --use_span in the args.")
-            raise NotImplementedError()
-        
-        train_ds = LegalNERTokenDataset(
-            ds_train_path, 
-            model_path, 
-            labels_list=labels_list, 
-            split="train", 
-            use_roberta=use_roberta
-        )
+            dataset = get_ener_dataset()
+            tok_dataset = tokenized_datasets = dataset.map(tokenize_and_align_labels, batched=True)
+        else:
+            train_ds = LegalNERTokenDataset(
+                ds_train_path, 
+                model_path, 
+                labels_list=labels_list, 
+                split="train", 
+                use_roberta=use_roberta
+            )
 
-        val_ds = LegalNERTokenDataset(
-            ds_valid_path, 
-            model_path, 
-            labels_list=labels_list, 
-            split="val", 
-            use_roberta=use_roberta
-        )
+            val_ds = LegalNERTokenDataset(
+                ds_valid_path, 
+                model_path, 
+                labels_list=labels_list, 
+                split="val", 
+                use_roberta=use_roberta
+            )
 
         ## Define the model
         model = AutoModelForTokenClassification.from_pretrained(
