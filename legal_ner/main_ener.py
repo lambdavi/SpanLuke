@@ -536,8 +536,8 @@ if __name__ == "__main__":
         trainer = Trainer(
             model=model,
             args=training_args,
-            train_dataset=train_ds,
-            eval_dataset=val_ds,
+            train_dataset=train_ds if dataset!="ener" else tok_dataset["train"],
+            eval_dataset=val_ds if dataset!="ener" else tok_dataset["test"],
             compute_metrics=compute_metrics,
             data_collator=data_collator,
         )
