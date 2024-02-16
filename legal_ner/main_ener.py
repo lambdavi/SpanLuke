@@ -539,7 +539,7 @@ if __name__ == "__main__":
             train_dataset=train_ds if dataset!="ener" else tok_dataset["train"],
             eval_dataset=val_ds if dataset!="ener" else tok_dataset["test"],
             compute_metrics=compute_metrics,
-            data_collator=data_collator,
+            data_collator=data_collator if dataset!="ener" else None,
         )
 
     else:
