@@ -50,7 +50,7 @@ def read_data(path):
 
 # to jsonl
 def to_jsonl(ener):
-    with open(f"legal_ner/data/ener/ener.jsonl", "w") as f:
+    with open(f"ener/ener.jsonl", "w") as f:
         for data in ener:
             print(data) 
             data.pop("ner_tags", None)
@@ -58,7 +58,7 @@ def to_jsonl(ener):
             f.write(json.dumps(data)+'\n')
 
 def get_ener_dataset():
-    ener = read_data("legal_ner/data/ener/all.csv").map(label_process)
+    ener = read_data("data/ener/all.csv").map(label_process)
     ener = ener.remove_columns("ner_tags")
     ener = ener.rename_column("tags", "ner_tags")
     return ener.train_test_split(0.15)
