@@ -530,7 +530,7 @@ if __name__ == "__main__":
         )
 
         ## Collator
-        data_collator = DefaultDataCollator() if dataset!="ener" else DataCollatorForTokenClassification
+        data_collator = DefaultDataCollator() if dataset!="ener" else DataCollatorForTokenClassification()
 
         ## Trainer
         trainer = Trainer(
