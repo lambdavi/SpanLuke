@@ -42,7 +42,7 @@ class ENER_DataProcessor():
                 example["tags"].append(self.entity_to_tag[f"{prefix}-{tag}"])
         return example
 
-    def read_data(path):
+    def read_data(self, path):
         f = open(path, "r", encoding="utf-8")
         docs = f.read().split("\n,O")
         dataset = []
