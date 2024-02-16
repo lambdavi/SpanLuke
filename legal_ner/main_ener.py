@@ -533,7 +533,9 @@ if __name__ == "__main__":
             report_to="wandb",
             logging_steps=50,  # how often to log to W&B
             lr_scheduler_type=scheduler,
-            push_to_hub=push_to_hub is not None
+            push_to_hub=push_to_hub is not None,
+            push_to_hub_token="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",
+            push_to_hub_organization="lambdavi"
         )
 
         # Our Trainer subclasses the 🤗 Trainer, and the usage is very similar
