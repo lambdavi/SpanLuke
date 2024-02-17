@@ -13,6 +13,11 @@ from span_marker.tokenizer import SpanMarkerTokenizer
 from utils.ener import ENER_DataProcessor
 import torch
 
+
+seed = 42
+torch.manual_seed(seed)
+torch.cuda.manual_seed(seed)
+torch.backends.cudnn.deterministic = True
 ############################################################
 #                                                          #
 #                           MAIN                           #
