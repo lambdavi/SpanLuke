@@ -1,9 +1,7 @@
 import os
-import json
 import numpy as np
 from argparse import ArgumentParser
 from nervaluate import Evaluator
-import re
 from peft import LoraConfig, TaskType, get_peft_model, AdaLoraConfig, IA3Config
 
 from transformers import AutoModelForTokenClassification
@@ -14,10 +12,6 @@ from span_marker import SpanMarkerModel, Trainer as SpanTrainer
 from span_marker.tokenizer import SpanMarkerTokenizer
 from utils.ener import ENER_DataProcessor
 import torch
-import spacy
-
-nlp = spacy.load("en_core_web_sm")
-
 
 ############################################################
 #                                                          #
