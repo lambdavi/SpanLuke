@@ -414,7 +414,6 @@ if __name__ == "__main__":
             data_processor = ENER_DataProcessor(model_path)
             tok_dataset = data_processor.get_ener_dataset()
             idx_to_labels = {v[1]: v[0] for v in data_processor.labels_to_idx.items()}
-
         else:
             train_ds = LegalNERTokenDataset(
                 ds_train_path, 
@@ -448,10 +447,9 @@ if __name__ == "__main__":
         if any([a in model_path for a in accepted]) and "luke" not in model_path:
             print(f"Using {model_path} as tokenizer")
             tokenizer = SpanMarkerTokenizer.from_pretrained(model_path, config=model.tokenizer.config)
-
         else:
             print("Using Roberta as tokenizer")
-            tokenizer = SpanMarkerTokenizer.from_pretrained("roberta-base", config=model.tokenizer.config)
+            tokenizer = SpanMarkerTokenizer.from_pretrained("FacebookAI/roberta-base", config=model.tokenizer.config)
             model.set_tokenizer(tokenizer)
 
         if dataset =="legal_ner":
