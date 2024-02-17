@@ -444,12 +444,12 @@ if __name__ == "__main__":
     else:
         model = SpanMarkerModel.from_pretrained(model_path, labels=span_labels)
         accepted = ["span", "bert"]
-        if any([a in model_path for a in accepted]) and "luke" not in model_path:
+        if any([a in model_path for a in accepted]) and ("luke" not in model_path):
             print(f"Using {model_path} as tokenizer")
             tokenizer = SpanMarkerTokenizer.from_pretrained(model_path, config=model.tokenizer.config)
         else:
             print("Using Roberta as tokenizer")
-            tokenizer = SpanMarkerTokenizer.from_pretrained("FacebookAI/roberta-base", config=model.tokenizer.config)
+            tokenizer = SpanMarkerTokenizer.from_pretrained("roberta-base", config=model.tokenizer.config)
             model.set_tokenizer(tokenizer)
 
         if dataset =="legal_ner":
