@@ -387,7 +387,7 @@ if __name__ == "__main__":
     else:
         model = SpanMarkerModel.from_pretrained(pretrained_model_name_or_path=model_path, labels=span_labels)
         accepted = ["span", "bert"]
-        if any([a in model_path for a in accepted]):
+        if any([a in model_path for a in accepted]) and "luke" not in model_path:
             print(f"Using {model_path} as tokenizer")
             tokenizer = SpanMarkerTokenizer.from_pretrained(model_path, config=model.tokenizer.config)
         else:
