@@ -19,6 +19,7 @@ torch.manual_seed(seed)
 torch.cuda.manual_seed(seed)
 torch.backends.cudnn.deterministic = True
 
+
 def optuna_hp_space(trial):
     return {
         "learning_rate": trial.suggest_float("learning_rate", 1e-6, 1e-3, log=True),
@@ -406,6 +407,12 @@ if __name__ == "__main__":
         }
     
 
+    def model_init(trial):
+        return AutoModelForTokenClassification.from_pretrained(
+                model_path, 
+                num_labels=num_labels, 
+                ignore_mismatched_sizes=True
+            )
 
     print("MODEL: ", model_path)
     if not use_span:
@@ -537,7 +544,8 @@ if __name__ == "__main__":
 
         ## Trainer
         trainer = Trainer(
-            model=model,
+            model=None,
+            model_init=model_init,
             args=training_args,
             train_dataset=train_ds if dataset!="ener" else tok_dataset["train"],
             eval_dataset=val_ds if dataset!="ener" else tok_dataset["test"],
