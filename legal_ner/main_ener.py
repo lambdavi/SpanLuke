@@ -441,7 +441,7 @@ if __name__ == "__main__":
         ## Map the labels
         
     else:
-        model = SpanMarkerModel.from_pretrained(model_path, labels=span_labels)
+        model = SpanMarkerModel.from_pretrained(model_path, labels=span_labels, max_prev_context=2, max_next_context=2)
         accepted = ["span", "bert"]
         if any([a in model_path for a in accepted]) and ("luke" not in model_path):
             print(f"Using {model_path} as tokenizer")
@@ -571,7 +571,7 @@ if __name__ == "__main__":
             args=training_args,
             train_dataset=span_dataset["train"],
             eval_dataset=span_dataset["dev"] if dataset=="legal_ner" else span_dataset["test"],
-            compute_metrics=compute_score_span
+            compute_metrics=compute_score_span,
         )
 
 
