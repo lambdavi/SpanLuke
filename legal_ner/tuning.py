@@ -552,6 +552,8 @@ if __name__ == "__main__":
             compute_metrics=compute_metrics,
             data_collator=data_collator,
         )
+        def compute_objective(metrics):
+            return metrics["f1-strict"]
 
     else:
         training_args = TrainingArguments(
@@ -591,6 +593,7 @@ if __name__ == "__main__":
 
     best_trial = trainer.hyperparameter_search(
         direction="maximize",
+        compute_objective=compute_objective,
         backend="optuna",
         hp_space=optuna_hp_space,
         n_trials=20,
