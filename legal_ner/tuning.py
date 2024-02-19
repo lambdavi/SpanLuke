@@ -553,7 +553,7 @@ if __name__ == "__main__":
             data_collator=data_collator,
         )
         def compute_objective(metrics):
-            return metrics["f1-strict"]
+            return metrics["eval_f1-strict"]
 
     else:
         training_args = TrainingArguments(
