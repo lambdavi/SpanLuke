@@ -12,12 +12,19 @@ from span_marker import SpanMarkerModel, Trainer as SpanTrainer
 from span_marker.tokenizer import SpanMarkerTokenizer
 from utils.ener import ENER_DataProcessor
 import torch
-
+import optuna
 
 seed = 42
 torch.manual_seed(seed)
 torch.cuda.manual_seed(seed)
 torch.backends.cudnn.deterministic = True
+
+
+def optuna_hp_space(trial):
+    return {
+        "learning_rate": trial.suggest_float("learning_rate", 1e-6, 1e-3, log=True),
+        "weight_decay":  trial.suggest_float("weight_decay", 1e-12, 0.1, log=True)
+    }
 ############################################################
 #                                                          #
 #                           MAIN                           #
@@ -400,6 +407,12 @@ if __name__ == "__main__":
         }
     
 
+    def model_init(trial):
+        return AutoModelForTokenClassification.from_pretrained(
+                model_path, 
+                num_labels=num_labels, 
+                ignore_mismatched_sizes=True
+            )
 
     print("MODEL: ", model_path)
     if not use_span:
@@ -531,13 +544,16 @@ if __name__ == "__main__":
 
         ## Trainer
         trainer = Trainer(
-            model=model,
+            model=None,
+            model_init=model_init,
             args=training_args,
             train_dataset=train_ds if dataset!="ener" else tok_dataset["train"],
             eval_dataset=val_ds if dataset!="ener" else tok_dataset["test"],
             compute_metrics=compute_metrics,
             data_collator=data_collator,
         )
+        def compute_objective(metrics):
+            return metrics["eval_f1-strict"]
 
     else:
         training_args = TrainingArguments(
@@ -575,11 +591,13 @@ if __name__ == "__main__":
         )
 
 
-    ## Train the model and save it
-    trainer.train()
-    trainer.save_model(output_folder)
-    if push_to_hub:
-        trainer.push_to_hub()
+    best_trial = trainer.hyperparameter_search(
+        direction="maximize",
+        compute_objective=compute_objective,
+        backend="optuna",
+        hp_space=optuna_hp_space,
+        n_trials=20,
+    )
 
 
 
