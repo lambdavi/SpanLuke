@@ -89,16 +89,9 @@ class LegalNERTokenDataset(Dataset):
   
 
 ## FOR SPAN
-def load_legal_ner(train_data_folder: str):
+def load_legal_ner(train_data_folder: str, dev_data_folder: str):
     ret = {}
-    dev_data_folder = ""
-
-    sub_path = train_data_folder.split("TRAIN")
-    for sub in sub_path[:-1]:
-        dev_data_folder+=sub
-        dev_data_folder+="DEV"
-    dev_data_folder+=sub_path[-1]
-
+    
     # TRAIN
     data = []
     with open(f"{train_data_folder}l", 'r') as reader:

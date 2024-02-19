@@ -452,7 +452,7 @@ if __name__ == "__main__":
             model.set_tokenizer(tokenizer)
 
         if dataset =="legal_ner":
-            span_dataset = load_legal_ner(ds_train_path)
+            span_dataset = load_legal_ner(ds_train_path, ds_valid_path)
         else:
             data_processor = ENER_DataProcessor()
             span_dataset = data_processor.get_ener_dataset()
