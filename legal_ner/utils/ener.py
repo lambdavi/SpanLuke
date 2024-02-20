@@ -74,47 +74,31 @@ class ENER_DataProcessor():
                 f.write(json.dumps(data)+'\n')
 
 
-    def tokenize_and_align_labels(self, examples, label_all_tokens=True): 
-        tokenized_input = self.tokenizer(examples["tokens"][0], is_split_into_words=True)
-        tokens = self.tokenizer.convert_ids_to_tokens(tokenized_input["input_ids"])
-        print(tokens)
-        tokenized_inputs = self.tokenizer(examples["tokens"], truncation=True, is_split_into_words=True) 
-        labels = [] 
-        for i, label in enumerate(examples["ner_tags"]): 
-            word_ids = tokenized_inputs.word_ids(batch_index=i) 
-            # word_ids() => Return a list mapping the tokens
-            # to their actual word in the initial sentence.
-            # It Returns a list indicating the word corresponding to each token. 
-            previous_word_idx = None 
+    def tokenize_and_align_labels(self, examples):
+        tokenized_inputs = self.tokenizer(examples["tokens"], truncation=True, is_split_into_words=True)
+
+        labels = []
+        for i, label in enumerate(examples[f"ner_tags"]):
+            word_ids = tokenized_inputs.word_ids(batch_index=i)  # Map tokens to their respective word.
+            previous_word_idx = None
             label_ids = []
-            # Special tokens like `` and `<\s>` are originally mapped to None 
-            # We need to set the label to -100 so they are automatically ignored in the loss function.
-            for word_idx in word_ids: 
-                if word_idx is None: 
-                    # set –100 as the label for these special tokens
+            for word_idx in word_ids:  # Set the special tokens to -100.
+                if word_idx is None:
                     label_ids.append(-100)
-                # For the other tokens in a word, we set the label to either the current label or -100, depending on
-                # the label_all_tokens flag.
-                elif word_idx != previous_word_idx:
-                    # if current word_idx is != prev then its the most regular case
-                    # and add the corresponding token     
-                    label_ids.append(label[word_idx]) 
-                else: 
-                    # to take care of sub-words which have the same word_idx
-                    # set -100 as well for them, but only if label_all_tokens == False
-                    label_ids.append(-100) 
-                    # mask the subword representations after the first subword
-                    
-                previous_word_idx = word_idx 
-            labels.append(label_ids) 
-        tokenized_inputs["labels"] = labels 
-        print(tokenized_inputs["labels"])
-        return tokenized_inputs 
+                elif word_idx != previous_word_idx:  # Only label the first token of a given word.
+                    label_ids.append(label[word_idx])
+                else:
+                    label_ids.append(-100)
+                previous_word_idx = word_idx
+            labels.append(label_ids)
+
+        tokenized_inputs["labels"] = labels
+        return tokenized_inputs
     
     def get_ener_dataset(self):
         ener = self.data.map(self.label_process)
         ener = ener.remove_columns("ner_tags")
-        ener = ener.rename_column("tags", "ner_tags")
+        ener = ener.rename_column("tags", "ner_tags").train_test_split(0.2, seed=42)
         if self.tokenizer:
-            ener = ener.select(range(10)).map(self.tokenize_and_align_labels, batched=True)
-        return ener.train_test_split(0.2, seed=42)
+            ener = ener.map(self.tokenize_and_align_labels, batched=True)
+        return ener
