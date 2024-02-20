@@ -1,0 +1,574 @@
+[
+    {
+        "id": "90d9a97c7b7749ec8a4f460fda6f937e",
+        "annotations": [
+            {
+                "result": [
+                    {
+                        "value": {
+                            "start": 90,
+                            "end": 103,
+                            "text": "Hongkong Bank",
+                            "labels": [
+                                "ORG"
+                            ]
+                        },
+                        "id": "C8HPTIM1",
+                        "from_name": "label",
+                        "to_name": "text",
+                        "type": "labels"
+                    },
+                    {
+                        "value": {
+                            "start": 267,
+                            "end": 278,
+                            "text": "Rahul & Co.",
+                            "labels": [
+                                "ORG"
+                            ]
+                        },
+                        "id": "KOWE3RAM",
+                        "from_name": "label",
+                        "to_name": "text",
+                        "type": "labels"
+                    }
+                ]
+            }
+        ],
+        "data": {
+            "text": "\n\n(7) On specific query by the Bench about an entry of Rs. 1,31,37,500 on deposit side of Hongkong Bank account of which a photo copy is appearing at p. 40 of assessee's paper book, learned authorised representative submitted that it was related to loan from broker, Rahul & Co. on the basis of his submission a necessary mark is put by us on that photo copy."
+        },
+        "meta": {
+            "source": "tax_districtcourts judgement https://indiankanoon.org/doc/1556717/"
+        }
+    },
+    {
+        "id": "a325c57ba5b84c6fa46bee65e6616633",
+        "annotations": [
+            {
+                "result": [
+                    {
+                        "value": {
+                            "start": 26,
+                            "end": 30,
+                            "text": "Agya",
+                            "labels": [
+                                "OTHER_PERSON"
+                            ]
+                        },
+                        "id": "0V4Q2F2B",
+                        "from_name": "label",
+                        "to_name": "text",
+                        "type": "labels"
+                    },
+                    {
+                        "value": {
+                            "start": 101,
+                            "end": 105,
+                            "text": "Kaur",
+                            "labels": [
+                                "OTHER_PERSON"
+                            ]
+                        },
+                        "id": "HLWY1CM9",
+                        "from_name": "label",
+                        "to_name": "text",
+                        "type": "labels"
+                    },
+                    {
+                        "value": {
+                            "start": 159,
+                            "end": 174,
+                            "text": "Tarlochan Singh",
+                            "labels": [
+                                "OTHER_PERSON"
+                            ]
+                        },
+                        "id": "9BYYLAZB",
+                        "from_name": "label",
+                        "to_name": "text",
+                        "type": "labels"
+                    }
+                ]
+            }
+        ],
+        "data": {
+            "text": "He was also asked whether Agya <span class=\"hidden_text\" id=\"span_5\"> CRA No.326-DB of 1998 6</span> Kaur, mother-in-law of the deceased lived separately from Tarlochan Singh."
+        },
+        "meta": {
+            "source": "criminal_punjab-haryana_high_court judgement https://indiankanoon.org/doc/264463"
+        }
+    },
+    {
+        "id": "33cface31108441080976035ee04d07e",
+        "annotations": [
+            {
+                "result": [
+                    {
+                        "value": {
+                            "start": 13,
+                            "end": 25,
+                            "text": "Vijay Mishra",
+                            "labels": [
+                                "WITNESS"
+                            ]
+                        },
+                        "id": "F8G5DZ9V",
+                        "from_name": "label",
+                        "to_name": "text",
+                        "type": "labels"
+                    },
+                    {
+                        "value": {
+                            "start": 44,
+                            "end": 60,
+                            "text": "HDFC Bank, Noida",
+                            "labels": [
+                                "ORG"
+                            ]
+                        },
+                        "id": "6EYWDSH8",
+                        "from_name": "label",
+                        "to_name": "text",
+                        "type": "labels"
+                    },
+                    {
+                        "value": {
+                            "start": 62,
+                            "end": 64,
+                            "text": "UP",
+                            "labels": [
+                                "GPE"
+                            ]
+                        },
+                        "id": "0CP8SD2M",
+                        "from_name": "label",
+                        "to_name": "text",
+                        "type": "labels"
+                    },
+                    {
+                        "value": {
+                            "start": 121,
+                            "end": 130,
+                            "text": "HDFC Bank",
+                            "labels": [
+                                "ORG"
+                            ]
+                        },
+                        "id": "L6YOIRVA",
+                        "from_name": "label",
+                        "to_name": "text",
+                        "type": "labels"
+                    }
+                ]
+            }
+        ],
+        "data": {
+            "text": " \n5.2 CW3 Mr Vijay Mishra , Deputy Manager, HDFC Bank, Noida, UP has deposed that complainant had a current account with HDFC Bank in the year 2004\u00ad2005."
+        },
+        "meta": {
+            "source": "financial_districtcourts judgement https://indiankanoon.org/doc/94286093/"
+        }
+    },
+    {
+        "id": "08debe900b51464e9f26b5d1eecae170",
+        "annotations": [
+            {
+                "result": []
+            }
+        ],
+        "data": {
+            "text": "You are hereby asked not to carry out any construction work of the said building hereafter since the agreement has been terminated\"."
+        },
+        "meta": {
+            "source": "civil_bombay_high_court judgement https://indiankanoon.org/doc/710312"
+        }
+    },
+    {
+        "id": "428070222cd940eba78b233829eb28b8",
+        "annotations": [
+            {
+                "result": [
+                    {
+                        "value": {
+                            "start": 18,
+                            "end": 43,
+                            "text": "T.V. Satyanarayana Murthy",
+                            "labels": [
+                                "OTHER_PERSON"
+                            ]
+                        },
+                        "id": "M7Z8PSX1",
+                        "from_name": "label",
+                        "to_name": "text",
+                        "type": "labels"
+                    }
+                ]
+            }
+        ],
+        "data": {
+            "text": "The pillion rider T.V. Satyanarayana Murthy also sustained injuries."
+        },
+        "meta": {
+            "source": "motorvehicles_andhra_high_court judgement https://indiankanoon.org/doc/903089"
+        }
+    },
+    {
+        "id": "ac75957f317f4277ae7e21a5c74190d8",
+        "annotations": [
+            {
+                "result": [
+                    {
+                        "value": {
+                            "start": 119,
+                            "end": 123,
+                            "text": "POTA",
+                            "labels": [
+                                "STATUTE"
+                            ]
+                        },
+                        "id": "Z12MHQ9M",
+                        "from_name": "label",
+                        "to_name": "text",
+                        "type": "labels"
+                    }
+                ]
+            }
+        ],
+        "data": {
+            "text": ", if the argument of the learned counsel for the respondents is accepted, it would mean that a person whose bail under POTA has been rejected by the Special Court will have two remedies and he can avail any one of them at his sweet will."
+        },
+        "meta": {
+            "source": "criminal_andhra_high_court judgement https://indiankanoon.org/doc/60411382"
+        }
+    },
+    {
+        "id": "25a06e51867f41ab83691cef5ec228c5",
+        "annotations": [
+            {
+                "result": []
+            }
+        ],
+        "data": {
+            "text": "After all the steps at the stage of investigation has to be reported before the Court and the order passed thereon is obviously judicial order and this takes clear note of the agony of the learned Counsels."
+        },
+        "meta": {
+            "source": "criminal_calcutta_high_court judgement https://indiankanoon.org/doc/810514"
+        }
+    },
+    {
+        "id": "4cb7a0dd260d48e495a9df7f6219c3f4",
+        "annotations": [
+            {
+                "result": [
+                    {
+                        "value": {
+                            "start": 6,
+                            "end": 18,
+                            "text": "Chandregowda",
+                            "labels": [
+                                "WITNESS"
+                            ]
+                        },
+                        "id": "W4WIZPFU",
+                        "from_name": "label",
+                        "to_name": "text",
+                        "type": "labels"
+                    }
+                ]
+            }
+        ],
+        "data": {
+            "text": "PW--2 Chandregowda is the younger brother of bi-hglllltleceased."
+        },
+        "meta": {
+            "source": "criminal_karnataka_high_court judgement https://indiankanoon.org/doc/7032220"
+        }
+    },
+    {
+        "id": "a4d0bb91a70c4fbf88dba1e0373d6c71",
+        "annotations": [
+            {
+                "result": []
+            }
+        ],
+        "data": {
+            "text": "What is the main offence in the charges involved in all these 36 cases?"
+        },
+        "meta": {
+            "source": "constitution_districtcourts judgement https://indiankanoon.org/doc/88979551/"
+        }
+    },
+    {
+        "id": "77e7e78086d748438ee72d63df9651f7",
+        "annotations": [
+            {
+                "result": [
+                    {
+                        "value": {
+                            "start": 30,
+                            "end": 39,
+                            "text": "19.8.1998",
+                            "labels": [
+                                "DATE"
+                            ]
+                        },
+                        "id": "CVKVI4HT",
+                        "from_name": "label",
+                        "to_name": "text",
+                        "type": "labels"
+                    }
+                ]
+            }
+        ],
+        "data": {
+            "text": "He had prepared G.D. No. 7 on 19.8.1998 at 3.05 A.M."
+        },
+        "meta": {
+            "source": "criminal_allahabad_high_court judgement https://indiankanoon.org/doc/600200"
+        }
+    },
+    {
+        "id": "e26564d66f884772af904ce568008344",
+        "annotations": [
+            {
+                "result": [
+                    {
+                        "value": {
+                            "start": 16,
+                            "end": 30,
+                            "text": "28 March, 1959",
+                            "labels": [
+                                "DATE"
+                            ]
+                        },
+                        "id": "Y4PRUUGD",
+                        "from_name": "label",
+                        "to_name": "text",
+                        "type": "labels"
+                    },
+                    {
+                        "value": {
+                            "start": 32,
+                            "end": 49,
+                            "text": "Krishnamurthi Rao",
+                            "labels": [
+                                "OTHER_PERSON"
+                            ]
+                        },
+                        "id": "ZNJWXYW2",
+                        "from_name": "label",
+                        "to_name": "text",
+                        "type": "labels"
+                    }
+                ]
+            }
+        ],
+        "data": {
+            "text": "On the night of 28 March, 1959, Krishnamurthi Rao, according to his story, walked into the room of the petitioner, gave the bribe and made the pre-arranged signal which brought the Assistant Superintendent of Police and his companions to the room."
+        },
+        "meta": {
+            "source": "constitution_karnataka_high_court judgement https://indiankanoon.org/doc/1125817"
+        }
+    },
+    {
+        "id": "6e30eef5f6ba4e98b0627252989fdb94",
+        "annotations": [
+            {
+                "result": [
+                    {
+                        "value": {
+                            "start": 89,
+                            "end": 97,
+                            "text": "Tripathi",
+                            "labels": [
+                                "OTHER_PERSON"
+                            ]
+                        },
+                        "id": "S6L2UZ4A",
+                        "from_name": "label",
+                        "to_name": "text",
+                        "type": "labels"
+                    }
+                ]
+            }
+        ],
+        "data": {
+            "text": "The deceased Collector also initiated a proceeding under the Crime Control Order against Tripathi and inspite of his best efforts bail was not granted to him."
+        },
+        "meta": {
+            "source": "tax_patna_high_court judgement https://indiankanoon.org/doc/374135"
+        }
+    },
+    {
+        "id": "ecca444c63514507a708eca50494c1d3",
+        "annotations": [
+            {
+                "result": [
+                    {
+                        "value": {
+                            "start": 24,
+                            "end": 38,
+                            "text": "Section 66 (1)",
+                            "labels": [
+                                "PROVISION"
+                            ]
+                        },
+                        "id": "H35VUG2Q",
+                        "from_name": "label",
+                        "to_name": "text",
+                        "type": "labels"
+                    },
+                    {
+                        "value": {
+                            "start": 46,
+                            "end": 73,
+                            "text": "Indian Income-tax Act, 1922",
+                            "labels": [
+                                "STATUTE"
+                            ]
+                        },
+                        "id": "T31JPXBF",
+                        "from_name": "label",
+                        "to_name": "text",
+                        "type": "labels"
+                    },
+                    {
+                        "value": {
+                            "start": 115,
+                            "end": 140,
+                            "text": "Dayabhai & Co. of Barwani",
+                            "labels": [
+                                "ORG"
+                            ]
+                        },
+                        "id": "6BAYJ32W",
+                        "from_name": "label",
+                        "to_name": "text",
+                        "type": "labels"
+                    },
+                    {
+                        "value": {
+                            "start": 290,
+                            "end": 302,
+                            "text": "Section 26-A",
+                            "labels": [
+                                "PROVISION"
+                            ]
+                        },
+                        "id": "OWWXT6EG",
+                        "from_name": "label",
+                        "to_name": "text",
+                        "type": "labels"
+                    },
+                    {
+                        "value": {
+                            "start": 310,
+                            "end": 331,
+                            "text": "Indian Income-tax Act",
+                            "labels": [
+                                "STATUTE"
+                            ]
+                        },
+                        "id": "HUXWD5NG",
+                        "from_name": "label",
+                        "to_name": "text",
+                        "type": "labels"
+                    }
+                ]
+            }
+        ],
+        "data": {
+            "text": "In this reference under Section 66 (1) of the Indian Income-tax Act, 1922, at the instance of the assessee Messrs. Dayabhai & Co. of Barwani, the question posed for our answer is: \n \"Whether on the facts and in the circumstances of this case, the assessee is entitled to registration under Section 26-A of the Indian Income-tax Act for the assessment year 1956-57?\" \n 2."
+        },
+        "meta": {
+            "source": "tax_madhya_pradesh_high_court judgement https://indiankanoon.org/doc/1809810"
+        }
+    },
+    {
+        "id": "23dea1fad3a84ceb8392f02f80831c08",
+        "annotations": [
+            {
+                "result": [
+                    {
+                        "value": {
+                            "start": 130,
+                            "end": 139,
+                            "text": "29.4.1968",
+                            "labels": [
+                                "DATE"
+                            ]
+                        },
+                        "id": "SXCJH9ZP",
+                        "from_name": "label",
+                        "to_name": "text",
+                        "type": "labels"
+                    },
+                    {
+                        "value": {
+                            "start": 149,
+                            "end": 175,
+                            "text": "Sessions Judge Jaipur City",
+                            "labels": [
+                                "COURT"
+                            ]
+                        },
+                        "id": "3DRV3SWZ",
+                        "from_name": "label",
+                        "to_name": "text",
+                        "type": "labels"
+                    },
+                    {
+                        "value": {
+                            "start": 285,
+                            "end": 294,
+                            "text": "26.2.1968",
+                            "labels": [
+                                "DATE"
+                            ]
+                        },
+                        "id": "8PC9TVNJ",
+                        "from_name": "label",
+                        "to_name": "text",
+                        "type": "labels"
+                    }
+                ]
+            }
+        ],
+        "data": {
+            "text": "In view of these fact, it can he safely held that for the area of Jaipur City (municipal limits) there were two Special Judges on 29.4.1968, one was Sessions Judge Jaipur City, who by virtue of his Office was appointed to be Special Judge for that area by virtue of-Notified ion dated 26.2.1968."
+        },
+        "meta": {
+            "source": "criminal_rajasthan_high_court judgement https://indiankanoon.org/doc/702474"
+        }
+    },
+    {
+        "id": "821e66318a5349c99c3377f8de150ae4",
+        "annotations": [
+            {
+                "result": [
+                    {
+                        "value": {
+                            "start": 5,
+                            "end": 16,
+                            "text": "Vinay Saraf",
+                            "labels": [
+                                "OTHER_PERSON"
+                            ]
+                        },
+                        "id": "R74MSM9O",
+                        "from_name": "label",
+                        "to_name": "text",
+                        "type": "labels"
+                    }
+                ]
+            }
+        ],
+        "data": {
+            "text": "Shri Vinay Saraf, learned counsel for the appellant."
+        },
+        "meta": {
+            "source": "civil_madhya_pradesh_high_court judgement https://indiankanoon.org/doc/156256483"
+        }
+    }
+]
