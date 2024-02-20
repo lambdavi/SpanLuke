@@ -75,7 +75,7 @@ class ENER_DataProcessor():
 
 
     def tokenize_and_align_labels(self, examples, label_all_tokens=True): 
-        
+        print(examples["tokens"], examples["ner_tags"])
         tokenized_inputs = self.tokenizer(examples["tokens"], truncation=True, is_split_into_words=True, return_tensors="pt", padding='max_length') 
         labels = [] 
         for i, label in enumerate(examples["ner_tags"]): 
