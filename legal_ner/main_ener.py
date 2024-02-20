@@ -549,7 +549,7 @@ if __name__ == "__main__":
         )
 
         ## Collator
-        data_collator = DefaultDataCollator() if dataset != "ener" else DataCollatorWithPadding(train_ds.tokenizer)
+        data_collator = DefaultDataCollator() if dataset != "ener" else DataCollatorWithPadding(data_processor.tokenizer)
 
         ## Trainer
         trainer = Trainer(
