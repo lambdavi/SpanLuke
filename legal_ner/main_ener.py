@@ -484,6 +484,7 @@ if __name__ == "__main__":
             for name in linear_layer_names:
                 names.append(name)
             target_modules = list(set(names))
+            print(target_modules)
         else:
             target_modules = None
         if peft_mode == "lora":
