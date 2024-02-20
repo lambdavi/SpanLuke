@@ -75,10 +75,13 @@ class ENER_DataProcessor():
 
 
     def tokenize_and_align_labels(self, examples, label_all_tokens=True): 
-        tokenized_inputs = self.tokenizer(examples["tokens"], truncation=True, is_split_into_words=True, return_tensors="pt") 
+        
+        tokenized_inputs = self.tokenizer(examples["tokens"], truncation=True, is_split_into_words=True, return_tensors="pt", padding='max_length') 
         labels = [] 
         for i, label in enumerate(examples["ner_tags"]): 
+            print(f"{i}, {label}")
             word_ids = tokenized_inputs.word_ids(batch_index=i) 
+            print("Word_ids:", word_ids)
             # word_ids() => Return a list mapping the tokens
             # to their actual word in the initial sentence.
             # It Returns a list indicating the word corresponding to each token. 
@@ -87,6 +90,7 @@ class ENER_DataProcessor():
             # Special tokens like `` and `<\s>` are originally mapped to None 
             # We need to set the label to -100 so they are automatically ignored in the loss function.
             for word_idx in word_ids: 
+                print(f"For: {word_idx}, {label[word_idx]}")
                 if word_idx is None: 
                     # set –100 as the label for these special tokens
                     label_ids.append(-100)
