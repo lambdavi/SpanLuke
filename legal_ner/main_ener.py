@@ -278,7 +278,7 @@ if __name__ == "__main__":
             for prediction, label in zip(predictions, labels)
         ]
         true_labels = [
-            [idx_to_labels[l] for (p, l) in zip(prediction, label)]
+            [idx_to_labels[l] if l!=100 else "O" for (p, l) in zip(prediction, label)]
             for prediction, label in zip(predictions, labels)
         ]
         unique_labels = list(set([l.split("-")[-1] for l in list(set(true_labels[0]))]))
