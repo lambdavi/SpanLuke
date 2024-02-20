@@ -162,6 +162,15 @@ if __name__ == "__main__":
         default="all"
     )
 
+    parser.add_argument(
+        "--target_modules",
+        help="Which modules to target with Lora",
+        required=False,
+        type=str,
+        choices=["default", "linear"],
+        default="default"
+    )
+
     args = parser.parse_args()
 
     ## Parameters
@@ -182,6 +191,7 @@ if __name__ == "__main__":
     peft_mode = args.peft_mode
     lora_dropout = args.lora_dropout
     bias = args.lora_bias
+    target_modules = args.target_modules
 
     if use_span:
         print("Span Mode Activated")
@@ -399,9 +409,19 @@ if __name__ == "__main__":
     print(model)
     
     if peft_mode is not None:
-        if "luke" in model_path:
+        if "luke" in model_path and target_modules=="default":
             target_modules = ['query', 'e2w_query', 'e2e_query', 'value', 'w2e_query']
             print(f"Found target modules: \n{target_modules}")
+        elif target_modules=="linear":
+            model_modules = str(model.modules)
+            pattern = r'\((\w+)\): Linear'
+            linear_layer_names = re.findall(pattern, model_modules)
+
+            names = []
+            # Print the names of the Linear layers
+            for name in linear_layer_names:
+                names.append(name)
+            target_modules = list(set(names))
         else:
             target_modules = None
         if peft_mode == "lora":
