@@ -3,6 +3,7 @@ import numpy as np
 from argparse import ArgumentParser
 from nervaluate import Evaluator
 from peft import LoraConfig, TaskType, get_peft_model, AdaLoraConfig, IA3Config
+from time import sleep
 
 from transformers import AutoModelForTokenClassification
 from transformers import Trainer, DefaultDataCollator, TrainingArguments, DataCollatorForTokenClassification
@@ -303,6 +304,7 @@ if __name__ == "__main__":
         unique_labels = list(set([l.split("-")[-1] for l in list(set(labels_ids[0]))]))
         unique_labels.remove("O")
         print(labels_ids, prediction_ids)
+        sleep(20)
         # Evaluator
         evaluator = Evaluator(
             labels_ids, prediction_ids, tags=unique_labels, loader="list"
