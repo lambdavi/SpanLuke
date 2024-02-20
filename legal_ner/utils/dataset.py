@@ -59,10 +59,8 @@ class LegalNERTokenDataset(Dataset):
         else:
             inputs = self.tokenizer(
                 text, 
-                return_tensors="pt", 
                 truncation=True, 
                 verbose=False, 
-                padding='max_length'
             )
 
         ## Match the labels
