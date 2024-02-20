@@ -163,7 +163,7 @@ if __name__ == "__main__":
     parser.add_argument(
         "--lora_alpha",
         help="Lora Alpha",
-        default=32,
+        default=16,
         required=False,
         type=int,
     )
