@@ -12,7 +12,7 @@ from span_marker import SpanMarkerModel, Trainer as SpanTrainer
 from span_marker.tokenizer import SpanMarkerTokenizer
 from utils.ener import ENER_DataProcessor
 import torch
-
+import re
 
 seed = 42
 torch.manual_seed(seed)
