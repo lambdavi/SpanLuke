@@ -90,7 +90,7 @@ class ENER_DataProcessor():
             # Special tokens like `` and `<\s>` are originally mapped to None 
             # We need to set the label to -100 so they are automatically ignored in the loss function.
             for word_idx in word_ids: 
-                print(f"For: {word_idx}, {label[word_idx]}")
+                print(f"For: {word_idx}")
                 if word_idx is None: 
                     # set –100 as the label for these special tokens
                     label_ids.append(-100)
@@ -98,7 +98,8 @@ class ENER_DataProcessor():
                 # the label_all_tokens flag.
                 elif word_idx != previous_word_idx:
                     # if current word_idx is != prev then its the most regular case
-                    # and add the corresponding token                 
+                    # and add the corresponding token     
+                    print("Label_wi: ",label[word_idx])            
                     label_ids.append(label[word_idx]) 
                 else: 
                     # to take care of sub-words which have the same word_idx
@@ -116,5 +117,5 @@ class ENER_DataProcessor():
         ener = ener.remove_columns("ner_tags")
         ener = ener.rename_column("tags", "ner_tags")
         if self.tokenizer:
-            ener = ener.map(self.tokenize_and_align_labels, batched=True)
+            ener = ener.select(range(10)).map(self.tokenize_and_align_labels, batched=True)
         return ener.train_test_split(0.2, seed=42)
