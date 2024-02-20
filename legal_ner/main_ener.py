@@ -14,6 +14,9 @@ from utils.ener import ENER_DataProcessor
 import torch
 import re
 
+import evaluate
+
+seqeval = evaluate.load("seqeval")
 seed = 42
 torch.manual_seed(seed)
 torch.cuda.manual_seed(seed)
@@ -265,7 +268,26 @@ if __name__ == "__main__":
     labels_list += ["I-" + l for l in original_label_list]
     span_labels = ["O"]+labels_list
     num_labels = len(labels_list) + 1
-        
+    def compute_metrics_ener(p):
+        predictions, labels = p
+        predictions = np.argmax(predictions, axis=2)
+
+        true_predictions = [
+            [idx_to_labels[p] for (p, l) in zip(prediction, label) if l != -100]
+            for prediction, label in zip(predictions, labels)
+        ]
+        true_labels = [
+            [idx_to_labels[l] for (p, l) in zip(prediction, label) if l != -100]
+            for prediction, label in zip(predictions, labels)
+        ]
+
+        results = seqeval.compute(predictions=true_predictions, references=true_labels)
+        return {
+            "precision": results["overall_precision"],
+            "recall": results["overall_recall"],
+            "f1": results["overall_f1"],
+            "accuracy": results["overall_accuracy"],
+        }
     ## Compute metrics
     def compute_metrics(pred):
 
@@ -558,7 +580,7 @@ if __name__ == "__main__":
             args=training_args,
             train_dataset=train_ds if dataset!="ener" else tok_dataset["train"],
             eval_dataset=val_ds if dataset!="ener" else tok_dataset["test"],
-            compute_metrics=compute_metrics,
+            compute_metrics=compute_metrics if dataset !="ener" else compute_metrics_ener,
             data_collator=data_collator,
         )
 
