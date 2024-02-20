@@ -257,7 +257,7 @@ if __name__ == "__main__":
             "PERSON", 
             "GOVERNMENT", 
             "COURT", 
-            "LEGISLATION/ACT", 
+            "LEGACT", 
             "MISCELLANEOUS"
         ]
     

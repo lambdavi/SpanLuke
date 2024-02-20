@@ -10,7 +10,7 @@ from transformers import RobertaTokenizerFast, AutoTokenizer
 
 class ENER_DataProcessor():
     def __init__(self, tokenizer=None, data_path="data/ener/all.csv") -> None:
-        original = ["BUSINESS", "LOCATION", "PERSON" , "GOVERNMENT", "COURT", "LEGISLATION/ACT", "MISCELLANEOUS"]
+        original = ["BUSINESS", "LOCATION", "PERSON" , "GOVERNMENT", "COURT", "LEGACT", "MISCELLANEOUS"]
         labels_list = ["B-" + l for l in original]
         labels_list += ["I-" + l for l in original]
         self.labels_list = sorted(labels_list + ["O"])[::-1]
