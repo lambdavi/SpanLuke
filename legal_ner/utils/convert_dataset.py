@@ -16,7 +16,7 @@ def convert_format(all_data, compute_doc=False):
         tokens = []
         ner_tags = [0] * len(text.split())
 
-        doc_word = input_data["meta"]["source"].split(" ")[2]
+        doc_word = input_data["meta"]["source"].split(" ")[1]
         if doc_split.get(doc_word, None) is None:
             doc_split[doc_word] = [0, len(doc_split.keys())]
         else:
@@ -58,6 +58,6 @@ print(os.getcwd())
 for split in splits:
     input_data = json.load(open(f"data/NER_{split}/NER_{split}_ALL.json"))
     output_data = convert_format(input_data, compute_doc=True)
-    with open(f"data/NER_{split}/NER_{split}_ALL_DOC2.jsonl", "w") as f:
+    with open(f"data/NER_{split}/NER_{split}_ALL_DOC3.jsonl", "w") as f:
         for line in output_data:
             f.write(json.dumps(line)+'\n')
