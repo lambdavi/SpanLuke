@@ -474,6 +474,7 @@ if __name__ == "__main__":
             target_modules = ['query', 'e2w_query', 'e2e_query', 'value', 'w2e_query']
             print(f"Found target modules: \n{target_modules}")
         elif target_modules=="linear":
+            print("Applying Lora to all linear layers")
             model_modules = str(model.modules)
             pattern = r'\((\w+)\): Linear'
             linear_layer_names = re.findall(pattern, model_modules)
