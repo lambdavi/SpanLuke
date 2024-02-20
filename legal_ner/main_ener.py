@@ -303,7 +303,9 @@ if __name__ == "__main__":
         labels_ids = [[idx_to_labels[p] if p != -100 else "O" for p in labels]]
         unique_labels = list(set([l.split("-")[-1] for l in list(set(labels_ids[0]))]))
         unique_labels.remove("O")
-        print(labels_ids, prediction_ids)
+        print(labels_ids[:10], prediction_ids[:10])
+        print(labels_ids[50:60], prediction_ids[50:60])
+
         sleep(20)
         # Evaluator
         evaluator = Evaluator(
