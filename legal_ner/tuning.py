@@ -23,7 +23,8 @@ torch.backends.cudnn.deterministic = True
 def optuna_hp_space(trial):
     return {
         "learning_rate": trial.suggest_float("learning_rate", 1e-6, 1e-3, log=True),
-        "weight_decay":  trial.suggest_float("weight_decay", 1e-12, 0.1, log=True)
+        "weight_decay":  trial.suggest_float("weight_decay", 1e-12, 0.1, log=True),
+        "warmup_ratio": trial.suggest_float("warmup_ratio", 1e-12, 1e-1, log=True)
     }
 ############################################################
 #                                                          #
