@@ -560,7 +560,7 @@ if __name__ == "__main__":
             save_total_limit=1,
             fp16=False,
             fp16_full_eval=False,
-            metric_for_best_model="f1-strict",
+            metric_for_best_model="f1-strict" if dataset!="ener" else "f1",
             dataloader_num_workers=4,
             dataloader_pin_memory=True,
             report_to="wandb",
