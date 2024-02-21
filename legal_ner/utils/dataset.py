@@ -87,7 +87,7 @@ class LegalNERTokenDataset(Dataset):
 
 class ENERTokenDataset(Dataset):
     def __init__(self, dataset_path, model_path, labels_list=None, split="train", use_roberta=False):
-        self.data = self._read_data("data/ener/all2.csv")
+        self.data = self._read_data(dataset_path)
         self.split = split
         self.use_roberta = use_roberta
         if self.use_roberta:     ## Load the right tokenizer
