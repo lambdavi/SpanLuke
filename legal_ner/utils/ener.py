@@ -4,12 +4,11 @@ sys.path.append(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(
 print(os.getcwd())
 import pandas as pd
 from datasets import Dataset
-from time import sleep
 import json
 from transformers import RobertaTokenizerFast, AutoTokenizer
 
 class ENER_DataProcessor():
-    def __init__(self, tokenizer=None, data_path="data/ener/all.csv") -> None:
+    def __init__(self, tokenizer=None, data_path="data/ener/all2.csv") -> None:
         original = ["BUSINESS", "LOCATION", "PERSON" , "GOVERNMENT", "COURT", "LEGACT", "MISCELLANEOUS"]
         labels_list = ["B-" + l for l in original]
         labels_list += ["I-" + l for l in original]
@@ -40,7 +39,6 @@ class ENER_DataProcessor():
             if tag == "O":
                 example["tags"].append(self.labels_to_idx[tag])
             else:
-                tag = tag.split("-")[1]
                 example["tags"].append(self.labels_to_idx[f"{prefix}-{tag}"])
         return example
 
@@ -98,7 +96,7 @@ class ENER_DataProcessor():
     def get_ener_dataset(self):
         ener = self.data.map(self.label_process)
         ener = ener.remove_columns("ner_tags")
-        ener = ener.rename_column("tags", "ner_tags").train_test_split(0.01, seed=42)
+        ener = ener.rename_column("tags", "ner_tags").train_test_split(test_size=0.2, seed=42)
         if self.tokenizer:
             ener = ener.map(self.tokenize_and_align_labels, batched=True)
         return ener

@@ -6,7 +6,7 @@ from peft import LoraConfig, TaskType, get_peft_model, AdaLoraConfig, IA3Config
 from time import sleep
 
 from transformers import AutoModelForTokenClassification
-from transformers import Trainer, DefaultDataCollator, TrainingArguments, DataCollatorForTokenClassification
+from transformers import Trainer, DefaultDataCollator, TrainingArguments, DataCollatorForTokenClassification, DataCollatorWithPadding
 
 from utils.dataset import LegalNERTokenDataset, load_legal_ner
 from span_marker import SpanMarkerModel, Trainer as SpanTrainer
@@ -274,20 +274,39 @@ if __name__ == "__main__":
         predictions = np.argmax(predictions, axis=2)
 
         true_predictions = [
-            [idx_to_labels[p] for (p, l) in zip(prediction, label) if l != -100]
+            [idx_to_labels[p] if l!=-100 else "O" for (p, l) in zip(prediction, label)]
             for prediction, label in zip(predictions, labels)
         ]
         true_labels = [
-            [idx_to_labels[l] for (p, l) in zip(prediction, label) if l != -100]
+            [idx_to_labels[l] if l!=-100 else "O" for (p, l) in zip(prediction, label)]
             for prediction, label in zip(predictions, labels)
         ]
-
-        results = seqeval.compute(predictions=true_predictions, references=true_labels)
+        unique_labels = list(set([l.split("-")[-1] for l in list(set(true_labels[0]))]))
+        unique_labels.remove("O")
+        evaluator = Evaluator(
+            true_labels, true_predictions, tags=unique_labels, loader="list"
+        )
+        results, results_per_tag = evaluator.evaluate()
+        print("")
+        for k,v in results_per_tag.items():
+            print(f"{k}: {v['ent_type']['f1']}")
         return {
-            "precision": results["overall_precision"],
-            "recall": results["overall_recall"],
-            "f1": results["overall_f1"],
-            "accuracy": results["overall_accuracy"],
+            "f1-type-match": 2
+            * results["ent_type"]["precision"]
+            * results["ent_type"]["recall"]
+            / (results["ent_type"]["precision"] + results["ent_type"]["recall"] + 1e-9),
+            "f1-partial": 2
+            * results["partial"]["precision"]
+            * results["partial"]["recall"]
+            / (results["partial"]["precision"] + results["partial"]["recall"] + 1e-9),
+            "f1-strict": 2
+            * results["strict"]["precision"]
+            * results["strict"]["recall"]
+            / (results["strict"]["precision"] + results["strict"]["recall"] + 1e-9),
+            "f1-exact": 2
+            * results["exact"]["precision"]
+            * results["exact"]["recall"]
+            / (results["exact"]["precision"] + results["exact"]["recall"] + 1e-9),
         }
     ## Compute metrics
     def compute_metrics(pred):
@@ -303,10 +322,7 @@ if __name__ == "__main__":
         labels_ids = [[idx_to_labels[p] if p != -100 else "O" for p in labels]]
         unique_labels = list(set([l.split("-")[-1] for l in list(set(labels_ids[0]))]))
         unique_labels.remove("O")
-        print(labels_ids[:10], prediction_ids[:10])
-        print(labels_ids[50:60], prediction_ids[50:60])
-
-        sleep(20)
+        print(unique_labels)
         # Evaluator
         evaluator = Evaluator(
             labels_ids, prediction_ids, tags=unique_labels, loader="list"
@@ -586,6 +602,7 @@ if __name__ == "__main__":
             eval_dataset=val_ds if dataset!="ener" else tok_dataset["test"],
             compute_metrics=compute_metrics,
             data_collator=data_collator,
+            tokenizer=data_processor.tokenizer
         )
 
     else:
