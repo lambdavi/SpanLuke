@@ -74,7 +74,7 @@ class ENER_DataProcessor():
 
 
     def tokenize_and_align_labels(self, examples):
-        tokenized_inputs = self.tokenizer(examples["tokens"], truncation=True, is_split_into_words=True)
+        tokenized_inputs = self.tokenizer(examples["tokens"], truncation=True, is_split_into_words=True, padding="max_length")
 
         labels = []
         for i, label in enumerate(examples[f"ner_tags"]):
@@ -97,7 +97,7 @@ class ENER_DataProcessor():
     def get_ener_dataset(self):
         ener = self.data.map(self.label_process)
         ener = ener.remove_columns("ner_tags")
-        ener = ener.rename_column("tags", "ner_tags").train_test_split(0.2, seed=42)
+        ener = ener.rename_column("tags", "ner_tags")
         if self.tokenizer:
             ener = ener.map(self.tokenize_and_align_labels, batched=True)
-        return ener
+        return ener.train_test_split(0.2, seed=42)
