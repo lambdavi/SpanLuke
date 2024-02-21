@@ -488,7 +488,7 @@ if __name__ == "__main__":
         if dataset =="legal_ner":
             span_dataset = load_legal_ner(ds_train_path, ds_valid_path)
         else:
-            data_processor = ENER_DataProcessor()
+            data_processor = ENER_DataProcessor(ds_train_path, ds_valid_path)
             span_dataset = data_processor.get_ener_dataset()
 
     print(model)
