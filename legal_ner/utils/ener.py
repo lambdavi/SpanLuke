@@ -8,7 +8,7 @@ import json
 from transformers import RobertaTokenizerFast, AutoTokenizer
 
 class ENER_DataProcessor():
-    def __init__(self, tokenizer=None, data_path="data/ener/all.csv") -> None:
+    def __init__(self, tokenizer=None, data_path="data/ener/all2.csv") -> None:
         original = ["BUSINESS", "LOCATION", "PERSON" , "GOVERNMENT", "COURT", "LEGACT", "MISCELLANEOUS"]
         labels_list = ["B-" + l for l in original]
         labels_list += ["I-" + l for l in original]
@@ -39,7 +39,6 @@ class ENER_DataProcessor():
             if tag == "O":
                 example["tags"].append(self.labels_to_idx[tag])
             else:
-                tag = tag.split("-")[1]
                 example["tags"].append(self.labels_to_idx[f"{prefix}-{tag}"])
         return example
 
@@ -74,7 +73,7 @@ class ENER_DataProcessor():
 
 
     def tokenize_and_align_labels(self, examples):
-        tokenized_inputs = self.tokenizer(examples["tokens"], truncation=True, is_split_into_words=True, padding="max_length")
+        tokenized_inputs = self.tokenizer(examples["tokens"], truncation=True, is_split_into_words=True)
 
         labels = []
         for i, label in enumerate(examples[f"ner_tags"]):
@@ -97,7 +96,7 @@ class ENER_DataProcessor():
     def get_ener_dataset(self):
         ener = self.data.map(self.label_process)
         ener = ener.remove_columns("ner_tags")
-        ener = ener.rename_column("tags", "ner_tags")
+        ener = ener.rename_column("tags", "ner_tags").train_test_split(test_size=0.2, seed=42)
         if self.tokenizer:
             ener = ener.map(self.tokenize_and_align_labels, batched=True)
-        return ener.select(range(1000)).train_test_split(0.2, seed=42)
+        return ener
