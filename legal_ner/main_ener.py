@@ -8,10 +8,9 @@ from time import sleep
 from transformers import AutoModelForTokenClassification
 from transformers import Trainer, DefaultDataCollator, TrainingArguments, DataCollatorForTokenClassification, DataCollatorWithPadding
 
-from utils.dataset import LegalNERTokenDataset, load_legal_ner
+from utils.dataset import LegalNERTokenDataset, load_legal_ner, ENER_Dataset
 from span_marker import SpanMarkerModel, Trainer as SpanTrainer
 from span_marker.tokenizer import SpanMarkerTokenizer
-from utils.ener import ENER_DataProcessor
 import torch
 import re
 
@@ -443,8 +442,7 @@ if __name__ == "__main__":
             use_roberta = True
 
         if dataset == "ener":
-            # TODO: add data path 
-            data_processor = ENER_DataProcessor(ds_train_path, ds_valid_path, tokenizer=model_path)
+            data_processor = ENER_Dataset(ds_train_path, ds_valid_path, labels_list=labels_list, tokenizer=model_path)
             tok_dataset = data_processor.get_ener_dataset()
             idx_to_labels = {v[1]: v[0] for v in data_processor.labels_to_idx.items()}
         else:
@@ -475,7 +473,13 @@ if __name__ == "__main__":
         ## Map the labels
         
     else:
-        model = SpanMarkerModel.from_pretrained(model_path, labels=span_labels, max_prev_context=3, max_next_context=3)
+        model = SpanMarkerModel.from_pretrained(
+            model_path, 
+            labels=span_labels, 
+            model_max_length=128,
+            marker_max_length=64,
+            entity_max_length=6
+        )
         accepted = ["span", "bert"]
         if any([a in model_path for a in accepted]) and ("luke" not in model_path):
             print(f"Using {model_path} as tokenizer")
@@ -488,7 +492,7 @@ if __name__ == "__main__":
         if dataset =="legal_ner":
             span_dataset = load_legal_ner(ds_train_path, ds_valid_path)
         else:
-            data_processor = ENER_DataProcessor(ds_train_path, ds_valid_path)
+            data_processor = ENER_Dataset(ds_train_path, ds_valid_path, labels_list=labels_list)
             span_dataset = data_processor.get_ener_dataset()
 
     print(model)
