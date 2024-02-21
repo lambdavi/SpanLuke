@@ -8,7 +8,7 @@ from time import sleep
 from transformers import AutoModelForTokenClassification
 from transformers import Trainer, DefaultDataCollator, TrainingArguments, DataCollatorForTokenClassification, DataCollatorWithPadding
 
-from utils.dataset import LegalNERTokenDataset, load_legal_ner
+from utils.dataset import LegalNERTokenDataset, load_legal_ner, ENERTokenDataset
 from span_marker import SpanMarkerModel, Trainer as SpanTrainer
 from span_marker.tokenizer import SpanMarkerTokenizer
 from utils.ener import ENER_DataProcessor
@@ -462,9 +462,22 @@ if __name__ == "__main__":
 
         if dataset == "ener":
             # TODO: add data path 
-            data_processor = ENER_DataProcessor(model_path)
-            tok_dataset = data_processor.get_ener_dataset()
-            idx_to_labels = {v[1]: v[0] for v in data_processor.labels_to_idx.items()}
+            train_ds = ENERTokenDataset(
+                "data/ener/all2.csv", 
+                model_path, 
+                labels_list=labels_list, 
+                split="train", 
+                use_roberta=use_roberta
+            )
+            val_ds = LegalNERTokenDataset(
+                "data/ener/all3.csv", 
+                model_path, 
+                labels_list=labels_list, 
+                split="val", 
+                use_roberta=use_roberta
+            )
+            idx_to_labels = {v[1]: v[0] for v in train_ds.labels_to_idx.items()}
+
         else:
             train_ds = LegalNERTokenDataset(
                 ds_train_path, 
