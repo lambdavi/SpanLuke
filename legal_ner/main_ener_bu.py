@@ -274,13 +274,12 @@ if __name__ == "__main__":
         predictions, labels = p
         predictions = np.argmax(predictions, axis=2)
 
-        # Remove ignored index (special tokens)
         true_predictions = [
-            [idx_to_labels[p] for (p, l) in zip(prediction, label) if l != -100]
+            [idx_to_labels[p] for (p, l) in zip(prediction, label) if l!=-100]
             for prediction, label in zip(predictions, labels)
         ]
         true_labels = [
-            [idx_to_labels[l] for (p, l) in zip(prediction, label) if l != -100]
+            [idx_to_labels[l]  for (p, l) in zip(prediction, label) if l!=-100]
             for prediction, label in zip(predictions, labels)
         ]
 
@@ -444,8 +443,8 @@ if __name__ == "__main__":
 
         if dataset == "ener":
             # TODO: add data path 
-            data_processor = ENER_DataProcessor(ds_train_path, ds_valid_path, tokenizer=model_path)
-            tok_dataset = ENER_DataProcessor.get_ener_dataset()
+            data_processor = ENER_DataProcessor(model_path)
+            tok_dataset = data_processor.get_ener_dataset()
             idx_to_labels = {v[1]: v[0] for v in data_processor.labels_to_idx.items()}
         else:
             train_ds = LegalNERTokenDataset(
@@ -573,7 +572,7 @@ if __name__ == "__main__":
         )
 
         ## Collator
-        data_collator = DefaultDataCollator() if dataset != "ener" else DataCollatorForTokenClassification(tokenizer=data_processor.tokenizer)
+        data_collator = DefaultDataCollator() if dataset != "ener" else DataCollatorForTokenClassification(tokenizer=data_processor.tokenizer, padding="max_length")
 
 
         ## Trainer

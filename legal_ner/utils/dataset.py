@@ -88,7 +88,7 @@ class LegalNERTokenDataset(Dataset):
 
   
 
-## FOR SPAN
+## FOR SPAN - LEGAL NER
 def load_legal_ner(train_data_folder: str, dev_data_folder: str):
     ret = {}
     
