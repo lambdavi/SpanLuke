@@ -572,7 +572,7 @@ if __name__ == "__main__":
         )
 
         ## Collator
-        data_collator = DefaultDataCollator() if dataset != "ener" else DataCollatorForTokenClassification(tokenizer=data_processor.tokenizer)
+        data_collator = DefaultDataCollator() if dataset != "ener" else DataCollatorForTokenClassification(tokenizer=data_processor.tokenizer, padding="max_length")
 
 
         ## Trainer
