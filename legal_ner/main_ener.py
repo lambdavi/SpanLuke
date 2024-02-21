@@ -269,44 +269,26 @@ if __name__ == "__main__":
     labels_list += ["I-" + l for l in original_label_list]
     span_labels = ["O"]+labels_list
     num_labels = len(labels_list) + 1
+
     def compute_metrics_ener(p):
         predictions, labels = p
         predictions = np.argmax(predictions, axis=2)
 
         true_predictions = [
-            [idx_to_labels[p] if l!=-100 else "O" for (p, l) in zip(prediction, label)]
+            [idx_to_labels[p] for (p, l) in zip(prediction, label) if l!=-100]
             for prediction, label in zip(predictions, labels)
         ]
         true_labels = [
-            [idx_to_labels[l] if l!=-100 else "O" for (p, l) in zip(prediction, label)]
+            [idx_to_labels[l]  for (p, l) in zip(prediction, label) if l!=-100]
             for prediction, label in zip(predictions, labels)
         ]
-        unique_labels = list(set([l.split("-")[-1] for l in list(set(true_labels[0]))]))
-        unique_labels.remove("O")
-        evaluator = Evaluator(
-            true_labels, true_predictions, tags=unique_labels, loader="list"
-        )
-        results, results_per_tag = evaluator.evaluate()
-        print("")
-        for k,v in results_per_tag.items():
-            print(f"{k}: {v['ent_type']['f1']}")
+
+        results = seqeval.compute(predictions=true_predictions, references=true_labels)
         return {
-            "f1-type-match": 2
-            * results["ent_type"]["precision"]
-            * results["ent_type"]["recall"]
-            / (results["ent_type"]["precision"] + results["ent_type"]["recall"] + 1e-9),
-            "f1-partial": 2
-            * results["partial"]["precision"]
-            * results["partial"]["recall"]
-            / (results["partial"]["precision"] + results["partial"]["recall"] + 1e-9),
-            "f1-strict": 2
-            * results["strict"]["precision"]
-            * results["strict"]["recall"]
-            / (results["strict"]["precision"] + results["strict"]["recall"] + 1e-9),
-            "f1-exact": 2
-            * results["exact"]["precision"]
-            * results["exact"]["recall"]
-            / (results["exact"]["precision"] + results["exact"]["recall"] + 1e-9),
+            "precision": results["overall_precision"],
+            "recall": results["overall_recall"],
+            "f1": results["overall_f1"],
+            "accuracy": results["overall_accuracy"],
         }
     ## Compute metrics
     def compute_metrics(pred):
@@ -322,7 +304,6 @@ if __name__ == "__main__":
         labels_ids = [[idx_to_labels[p] if p != -100 else "O" for p in labels]]
         unique_labels = list(set([l.split("-")[-1] for l in list(set(labels_ids[0]))]))
         unique_labels.remove("O")
-        print(unique_labels)
         # Evaluator
         evaluator = Evaluator(
             labels_ids, prediction_ids, tags=unique_labels, loader="list"
@@ -600,9 +581,8 @@ if __name__ == "__main__":
             args=training_args,
             train_dataset=train_ds if dataset!="ener" else tok_dataset["train"],
             eval_dataset=val_ds if dataset!="ener" else tok_dataset["test"],
-            compute_metrics=compute_metrics,
+            compute_metrics=compute_metrics if dataset!="ener" else compute_metrics_ener,
             data_collator=data_collator,
-            tokenizer=data_processor.tokenizer
         )
 
     else:
