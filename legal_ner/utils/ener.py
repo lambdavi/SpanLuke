@@ -19,7 +19,7 @@ class ENER_DataProcessor():
         )
 
         if tokenizer is not None:
-            if "luke" in tokenizer:
+            if "luke" in tokenizer and "lambdavi" not in tokenizer:
                 print("Using roberta as tokenizer..")
                 self.tokenizer = RobertaTokenizerFast.from_pretrained("roberta-base", add_prefix_space=True)
             else:
