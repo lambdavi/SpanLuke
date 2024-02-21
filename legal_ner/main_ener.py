@@ -445,7 +445,7 @@ if __name__ == "__main__":
         if dataset == "ener":
             # TODO: add data path 
             data_processor = ENER_DataProcessor(ds_train_path, ds_valid_path, tokenizer=model_path)
-            tok_dataset = ENER_DataProcessor.get_ener_dataset()
+            tok_dataset = data_processor.get_ener_dataset()
             idx_to_labels = {v[1]: v[0] for v in data_processor.labels_to_idx.items()}
         else:
             train_ds = LegalNERTokenDataset(
