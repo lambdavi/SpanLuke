@@ -100,4 +100,4 @@ class ENER_DataProcessor():
         ener = ener.rename_column("tags", "ner_tags")
         if self.tokenizer:
             ener = ener.map(self.tokenize_and_align_labels, batched=True)
-        return ener.train_test_split(0.2, seed=42)
+        return ener.select(range(1000)).train_test_split(0.2, seed=42)
