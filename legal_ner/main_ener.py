@@ -626,6 +626,7 @@ if __name__ == "__main__":
     trainer.save_model(output_folder)
     if push_to_hub:
         trainer.push_to_hub()
+        train_ds.tokenizer.push_to_hub()
 
 
 
