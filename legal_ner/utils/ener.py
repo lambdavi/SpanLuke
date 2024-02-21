@@ -46,7 +46,7 @@ class ENER_DataProcessor():
         with open(f"{dev_data_folder}l", 'r') as reader:
             for line in reader:
                 data.append(json.loads(line))
-        ret["dev"] = DatasetHF.from_list(data)
+        ret["test"] = DatasetHF.from_list(data)
 
         return DatasetDict(ret)
 
