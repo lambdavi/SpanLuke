@@ -160,7 +160,7 @@ class ENER_Dataset():
                 f.write(json.dumps(data)+'\n')
 
     def tokenize_and_align_labels(self, examples):
-        print(examples)
+
         tokenized_inputs = self.tokenizer(examples, truncation=True, is_split_into_words=True)
 
         labels = []
