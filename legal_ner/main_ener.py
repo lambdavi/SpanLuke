@@ -205,6 +205,14 @@ if __name__ == "__main__":
         default="default"
     )
 
+    parser.add_argument(
+        "--wxe",
+        help="How many words per entity to use with SpanMarker",
+        required=False,
+        type=int,
+        default=6
+    )
+
     args = parser.parse_args()
 
     ## Parameters
@@ -230,6 +238,7 @@ if __name__ == "__main__":
     hub_token = args.hub_token
     hub_model_id = args.hub_model_id
     target_modules = args.target_modules
+    words_per_entity = args.wxe
 
     if use_span:
         print("Span Mode Activated")
@@ -478,7 +487,7 @@ if __name__ == "__main__":
             labels=span_labels, 
             model_max_length=128,
             marker_max_length=64,
-            entity_max_length=6
+            entity_max_length=words_per_entity
         )
         accepted = ["span", "bert"]
         if any([a in model_path for a in accepted]) and ("luke" not in model_path):
