@@ -130,6 +130,7 @@ class ENER_Dataset():
                 print(f"Using {tokenizer} as tokenizer..")
                 self.tokenizer = AutoTokenizer.from_pretrained(tokenizer) 
         else:
+            print("Tokenizer already set")
             self.tokenizer=tokenizer
 
         self.data = self.read_data(train_ds_path, test_ds_path)
