@@ -498,7 +498,7 @@ if __name__ == "__main__":
             tokenizer = SpanMarkerTokenizer.from_pretrained(model_path, config=model.config)
         else:
             print("Using Roberta as tokenizer")
-            t = RobertaTokenizerFast.from_pretrained("roberta_base")
+            t = RobertaTokenizerFast.from_pretrained("roberta-base")
             c = SpanMarkerConfig(model.encoder.config)
             tokenizer = SpanMarkerTokenizer(t, c)
 
