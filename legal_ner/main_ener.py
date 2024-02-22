@@ -580,7 +580,7 @@ if __name__ == "__main__":
             save_total_limit=1,
             fp16=False,
             fp16_full_eval=False,
-            metric_for_best_model="f1-strict" if dataset!="ener" else "f1",
+            metric_for_best_model="f1-strict",
             dataloader_num_workers=4,
             dataloader_pin_memory=True,
             report_to="wandb",
@@ -601,7 +601,7 @@ if __name__ == "__main__":
             args=training_args,
             train_dataset=train_ds if dataset!="ener" else tok_dataset["train"],
             eval_dataset=val_ds if dataset!="ener" else tok_dataset["test"],
-            compute_metrics=compute_metrics if dataset!="ener" else compute_metrics_ener,
+            compute_metrics=compute_metrics,
             data_collator=data_collator,
         )
 
