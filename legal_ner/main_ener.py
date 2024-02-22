@@ -489,6 +489,7 @@ if __name__ == "__main__":
             data_processor = ENER_Dataset(ds_train_path, ds_valid_path, labels_list=labels_list)
             span_dataset = data_processor.get_ener_dataset()
             tokenizer = data_processor.tokenizer
+            print(type(tokenizer))
 
         model = SpanMarkerModel.from_pretrained(
             model_path, 
