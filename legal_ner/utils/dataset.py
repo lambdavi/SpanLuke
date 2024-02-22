@@ -194,5 +194,5 @@ class ENER_Dataset():
         return ener
     
     def get_ener_dataset_e(self):
-        ener = self.data
+        ener = self.data.select(range(100))
         return ener

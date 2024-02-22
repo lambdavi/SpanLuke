@@ -507,7 +507,6 @@ if __name__ == "__main__":
             data_processor = ENER_Dataset(ds_train_path, ds_valid_path, tokenizer = model.tokenizer.tokenizer, labels_list=labels_list)
             span_dataset = data_processor.get_ener_dataset_e()
             
-
     print(model)
     
     if peft_mode is not None:
@@ -645,9 +644,12 @@ if __name__ == "__main__":
     if push_to_hub:
         trainer.push_to_hub()
         if use_span:
-            trainer.tokenizer.push_to_hub()
+            trainer.tokenizer.push_to_hub(hf_model_id)
         else:
-            train_ds.tokenizer.push_to_hub()
+            if dataset!="ener":
+                train_ds.tokenizer.push_to_hub()
+            else:
+                data_processor.tokenizer.push_to_hub()
 
 
 
