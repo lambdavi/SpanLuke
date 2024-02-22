@@ -159,7 +159,8 @@ class ENER_Dataset():
             for data in ener:
                 f.write(json.dumps(data)+'\n')
 
-    def tokenize_and_align_labels(self, examples, label_all_tokens=True):
+    def tokenize_and_align_labels(self, examples):
+        print(examples)
         tokenized_inputs = self.tokenizer(examples["tokens"], truncation=True, is_split_into_words=True)
 
         labels = []
@@ -178,7 +179,7 @@ class ENER_Dataset():
                 # For the other tokens in a word, we set the label to either the current label or -100, depending on
                 # the label_all_tokens flag.
                 else:
-                    label_ids.append(label[word_idx] if label_all_tokens else -100)
+                    label_ids.append(label[word_idx])
                 previous_word_idx = word_idx
 
             labels.append(label_ids)
