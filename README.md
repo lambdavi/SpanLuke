@@ -1,6 +1,6 @@
 <div align="center">    
  
-# SpanLuke: Enhance Legal Entity Recognition with LUKE, SpanMarker and LoRA
+# SpanLuke: Enhancing Legal NER using SpanMarker and PEFT
 ![](https://github.com/lambdavi/L-NER/blob/final/media/logo_temp.png?raw=True)
 </div>
 
@@ -36,7 +36,7 @@ python main.py \
 
 ### Citation   
 ```
-@inproceedings{benedetto-etal-2023-politohfi,
+@inproceeding{benedetto-etal-2023-politohfi,
     title = "{P}oli{T}o{HFI} at {S}em{E}val-2023 Task 6: Leveraging Entity-Aware and Hierarchical Transformers For Legal Entity Recognition and Court Judgment Prediction",
     author = "Benedetto, Irene  and
       Koudounas, Alkis  and
@@ -61,4 +61,19 @@ python main.py \
     pages = "1401--1411",
     abstract = "The use of Natural Language Processing techniques in the legal domain has become established for supporting attorneys and domain experts in content retrieval and decision-making. However, understanding the legal text poses relevant challenges in the recognition of domain-specific entities and the adaptation and explanation of predictive models. This paper addresses the Legal Entity Name Recognition (L-NER) and Court judgment Prediction (CPJ) and Explanation (CJPE) tasks. The L-NER solution explores the use of various transformer-based models, including an entity-aware method attending domain-specific entities. The CJPE proposed method relies on hierarchical BERT-based classifiers combined with local input attribution explainers. We propose a broad comparison of eXplainable AI methodologies along with a novel approach based on NER. For the L-NER task, the experimental results remark on the importance of domain-specific pre-training. For CJP our lightweight solution shows performance in line with existing approaches, and our NER-boosted explanations show promising CJPE results in terms of the conciseness of the prediction explanations.",
 }
-```   
+@software{Aarsen_SpanMarker,
+    author = {Aarsen, Tom},
+    license = {Apache-2.0},
+    title = {{SpanMarker for Named Entity Recognition}},
+    url = {https://github.com/tomaarsen/SpanMarkerNER}
+}
+
+@misc{au2022ener,
+      title={E-NER -- An Annotated Named Entity Recognition Corpus of Legal Text}, 
+      author={Ting Wai Terence Au and Ingemar J. Cox and Vasileios Lampos},
+      year={2022},
+      eprint={2212.09306},
+      archivePrefix={arXiv},
+      primaryClass={cs.CL}
+}
+```
