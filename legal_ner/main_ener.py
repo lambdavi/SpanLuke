@@ -15,6 +15,7 @@ from utils.dataset import LegalNERTokenDataset, load_legal_ner, ENER_Dataset
 
 from span_marker import SpanMarkerModel, Trainer as SpanTrainer
 from span_marker.tokenizer import SpanMarkerTokenizer
+from span_marker.configuration import SpanMarkerConfig
 
 # SET SEED FOR REPRODUCIBILITY
 seed = 42
@@ -503,7 +504,7 @@ if __name__ == "__main__":
             tokenizer = SpanMarkerTokenizer.from_pretrained(model_path, config=model.tokenizer.config)
         else:
             print("Using Roberta as tokenizer")
-            tokenizer = SpanMarkerTokenizer(tokenizer=tokenizer, config=tokenizer.config)
+            tokenizer = SpanMarkerTokenizer(tokenizer=tokenizer, config=model.tokenizer.config)
         
         model.set_tokenizer(tokenizer)
 
