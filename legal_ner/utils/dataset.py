@@ -122,7 +122,7 @@ class ENER_Dataset():
             zip(sorted(self.labels_list)[::-1], range(len(self.labels_list)))
         )
 
-        if tokenizer is not None:
+        if isinstance(tokenizer, str):
             if "luke" in tokenizer:
                 print("Using roberta as tokenizer..")
                 self.tokenizer = RobertaTokenizerFast.from_pretrained("roberta-base", add_prefix_space=True)
@@ -130,7 +130,7 @@ class ENER_Dataset():
                 print(f"Using {tokenizer} as tokenizer..")
                 self.tokenizer = AutoTokenizer.from_pretrained(tokenizer) 
         else:
-            self.tokenizer=None
+            self.tokenizer=tokenizer
 
         self.data = self.read_data(train_ds_path, test_ds_path)
 
@@ -188,6 +188,5 @@ class ENER_Dataset():
     
     def get_ener_dataset(self):
         ener = self.data
-        if self.tokenizer:
-            ener = ener.map(self.tokenize_and_align_labels, batched=True)
+        ener = ener.map(self.tokenize_and_align_labels, batched=True)
         return ener
