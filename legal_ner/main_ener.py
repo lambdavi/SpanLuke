@@ -8,12 +8,13 @@ from argparse import ArgumentParser
 from nervaluate import Evaluator
 from peft import LoraConfig, TaskType, get_peft_model, AdaLoraConfig, IA3Config
 
-from transformers import AutoModelForTokenClassification
+from transformers import AutoModelForTokenClassification, RobertaTokenizerFast
 from transformers import Trainer, DefaultDataCollator, TrainingArguments, DataCollatorForTokenClassification, DataCollatorWithPadding
 
 from utils.dataset import LegalNERTokenDataset, load_legal_ner, ENER_Dataset
 
 from span_marker import SpanMarkerModel, Trainer as SpanTrainer
+from span_marker.configuration import SpanMarkerConfig
 from span_marker.tokenizer import SpanMarkerTokenizer
 
 # SET SEED FOR REPRODUCIBILITY
@@ -497,7 +498,9 @@ if __name__ == "__main__":
             tokenizer = SpanMarkerTokenizer.from_pretrained(model_path, config=model.config)
         else:
             print("Using Roberta as tokenizer")
-            tokenizer = SpanMarkerTokenizer.from_pretrained("roberta-base", config=model.config)
+            t = RobertaTokenizerFast.from_pretrained("roberta_base")
+            c = SpanMarkerConfig(model.encoder.config)
+            tokenizer = SpanMarkerTokenizer(t, c)
 
         print(tokenizer.tokenizer)
         model.set_tokenizer(tokenizer)
