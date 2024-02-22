@@ -505,7 +505,7 @@ if __name__ == "__main__":
             span_dataset = load_legal_ner(ds_train_path, ds_valid_path)
         else:
             data_processor = ENER_Dataset(ds_train_path, ds_valid_path, tokenizer = model.tokenizer.tokenizer, labels_list=labels_list)
-            span_dataset = data_processor.get_ener_dataset()
+            span_dataset = data_processor.get_ener_dataset_e()
             
 
     print(model)

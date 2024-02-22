@@ -192,3 +192,7 @@ class ENER_Dataset():
         ener = self.data
         ener = ener.map(self.tokenize_and_align_labels, batched=True)
         return ener
+    
+    def get_ener_dataset_e(self):
+        ener = self.data
+        return ener
