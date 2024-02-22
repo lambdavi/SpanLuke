@@ -1,22 +1,22 @@
 import os
+import torch
+import re
+import evaluate
 import numpy as np
+
 from argparse import ArgumentParser
 from nervaluate import Evaluator
 from peft import LoraConfig, TaskType, get_peft_model, AdaLoraConfig, IA3Config
-from time import sleep
 
 from transformers import AutoModelForTokenClassification
 from transformers import Trainer, DefaultDataCollator, TrainingArguments, DataCollatorForTokenClassification, DataCollatorWithPadding
 
 from utils.dataset import LegalNERTokenDataset, load_legal_ner, ENER_Dataset
+
 from span_marker import SpanMarkerModel, Trainer as SpanTrainer
 from span_marker.tokenizer import SpanMarkerTokenizer
-import torch
-import re
 
-import evaluate
-
-seqeval = evaluate.load("seqeval")
+# SET SEED FOR REPRODUCIBILITY
 seed = 42
 torch.manual_seed(seed)
 torch.cuda.manual_seed(seed)
@@ -27,7 +27,7 @@ torch.backends.cudnn.deterministic = True
 #                                                          #
 ############################################################ 
 if __name__ == "__main__":
-
+    seqeval = evaluate.load("seqeval")
     parser = ArgumentParser(description="Training of LUKE model")
     parser.add_argument(
         "--dataset",
