@@ -482,21 +482,6 @@ if __name__ == "__main__":
         ## Map the labels
         
     else:
-        model = SpanMarkerModel.from_pretrained(
-            model_path, 
-            labels=span_labels, 
-            model_max_length=128,
-            marker_max_length=64,
-            entity_max_length=words_per_entity
-        )
-        accepted = ["span", "bert"]
-        if any([a in model_path for a in accepted]) and ("luke" not in model_path):
-            print(f"Using {model_path} as tokenizer")
-            tokenizer = SpanMarkerTokenizer.from_pretrained(model_path, config=model.tokenizer.config)
-        else:
-            print("Using Roberta as tokenizer")
-            tokenizer = SpanMarkerTokenizer.from_pretrained("roberta-base", config=model.tokenizer.config)
-
         if dataset =="legal_ner":
             span_dataset = load_legal_ner(ds_train_path, ds_valid_path)
         else:
@@ -504,6 +489,22 @@ if __name__ == "__main__":
             span_dataset = data_processor.get_ener_dataset()
             tokenizer = data_processor.tokenizer
 
+        model = SpanMarkerModel.from_pretrained(
+            model_path, 
+            labels=span_labels, 
+            model_max_length=128,
+            marker_max_length=64,
+            entity_max_length=words_per_entity,
+        )
+
+        accepted = ["span", "bert"]
+        if any([a in model_path for a in accepted]) and ("luke" not in model_path):
+            print(f"Using {model_path} as tokenizer")
+            tokenizer = SpanMarkerTokenizer.from_pretrained(model_path, config=model.tokenizer.config)
+        else:
+            print("Using Roberta as tokenizer")
+            tokenizer = SpanMarkerTokenizer(tokenizer=tokenizer)
+        
         model.set_tokenizer(tokenizer)
 
 
