@@ -501,13 +501,12 @@ if __name__ == "__main__":
             t = RobertaTokenizerFast.from_pretrained("roberta-base", add_prefix_space=True)
             tokenizer = SpanMarkerTokenizer(t, model.config)
 
-        print(tokenizer.tokenizer)
         model.set_tokenizer(tokenizer)
         
         if dataset =="legal_ner":
             span_dataset = load_legal_ner(ds_train_path, ds_valid_path)
         else:
-            data_processor = ENER_Dataset(ds_train_path, ds_valid_path, tokenizer = model.tokenizer.tokenizer, labels_list=labels_list)
+            data_processor = ENER_Dataset(ds_train_path, ds_valid_path, labels_list=labels_list)
             span_dataset = data_processor.get_ener_dataset_e()
             
     print(model)
@@ -580,7 +579,7 @@ if __name__ == "__main__":
             save_total_limit=1,
             fp16=False,
             fp16_full_eval=False,
-            metric_for_best_model="f1-strict",
+            metric_for_best_model="f1-strict" if dataset!="ener" else "f1",
             dataloader_num_workers=4,
             dataloader_pin_memory=True,
             report_to="wandb",
@@ -601,7 +600,7 @@ if __name__ == "__main__":
             args=training_args,
             train_dataset=train_ds if dataset!="ener" else tok_dataset["train"],
             eval_dataset=val_ds if dataset!="ener" else tok_dataset["test"],
-            compute_metrics=compute_metrics,
+            compute_metrics=compute_metrics if dataset!="ener" else compute_metrics_ener,
             data_collator=data_collator,
         )
 
@@ -646,18 +645,7 @@ if __name__ == "__main__":
     trainer.save_model(output_folder)
     if push_to_hub:
         trainer.push_to_hub()
-        if use_span:
-            print("Pushing tok")
-            trainer.tokenizer.push_to_hub(repo_id=hub_model_id, token=hub_token)
-            trainer.tokenizer.tokenizer.push_to_hub(repo_id=hub_model_id, token=hub_token)
-            trainer.tokenizer.save_pretrained("tok")
-            trainer.tokenizer.tokenizer.save_pretrained("tok_tok")
 
-        else:
-            if dataset!="ener":
-                train_ds.tokenizer.push_to_hub(repo_id=hub_model_id, token=hub_token)
-            else:
-                data_processor.tokenizer.push_to_hub(repo_id=hub_model_id, token=hub_token)
 
 
 
