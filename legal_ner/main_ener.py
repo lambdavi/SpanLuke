@@ -650,8 +650,8 @@ if __name__ == "__main__":
             print("Pushing tok")
             trainer.tokenizer.push_to_hub(repo_id=hub_model_id, token=hub_token)
             trainer.tokenizer.tokenizer.push_to_hub(repo_id=hub_model_id, token=hub_token)
-            trainer.tokenizer.save_pretrained("tok.json")
-            trainer.tokenizer.tokenizer.save_pretrained("tok_tok.json")
+            trainer.tokenizer.save_pretrained("tok")
+            trainer.tokenizer.tokenizer.save_pretrained("tok_tok")
 
         else:
             if dataset!="ener":
