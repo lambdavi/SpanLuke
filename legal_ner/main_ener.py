@@ -644,12 +644,12 @@ if __name__ == "__main__":
     if push_to_hub:
         trainer.push_to_hub()
         if use_span:
-            trainer.tokenizer.tokenizer.push_to_hub(repo_id=hub_model_id)
+            trainer.tokenizer.tokenizer.push_to_hub(repo_id=hub_model_id, token=hub_token)
         else:
             if dataset!="ener":
-                train_ds.tokenizer.push_to_hub(repo_id=hub_model_id)
+                train_ds.tokenizer.push_to_hub(repo_id=hub_model_id, token=hub_token)
             else:
-                data_processor.tokenizer.push_to_hub(repo_id=hub_model_id)
+                data_processor.tokenizer.push_to_hub(repo_id=hub_model_id, token=hub_token)
 
 
 
