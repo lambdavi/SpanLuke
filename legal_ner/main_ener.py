@@ -500,7 +500,6 @@ if __name__ == "__main__":
             tokenizer = SpanMarkerTokenizer.from_pretrained("roberta-base", config=model.config)
 
         model.set_tokenizer(tokenizer.tokenizer)
-        print(model.tokenizer.tokenizer)
 
         if dataset =="legal_ner":
             span_dataset = load_legal_ner(ds_train_path, ds_valid_path)
