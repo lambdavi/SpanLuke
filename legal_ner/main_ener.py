@@ -499,7 +499,7 @@ if __name__ == "__main__":
             print("Using Roberta as tokenizer")
             tokenizer = SpanMarkerTokenizer.from_pretrained("roberta-base", config=model.config)
 
-        model.set_tokenizer(tokenizer)
+        model.set_tokenizer(tokenizer.tokenizer)
         print(model.tokenizer.tokenizer)
 
         if dataset =="legal_ner":
