@@ -503,7 +503,7 @@ if __name__ == "__main__":
             tokenizer = SpanMarkerTokenizer.from_pretrained(model_path, config=model.tokenizer.config)
         else:
             print("Using Roberta as tokenizer")
-            tokenizer = SpanMarkerTokenizer(tokenizer=tokenizer)
+            tokenizer = SpanMarkerTokenizer(tokenizer=tokenizer, config=tokenizer.config)
         
         model.set_tokenizer(tokenizer)
 
