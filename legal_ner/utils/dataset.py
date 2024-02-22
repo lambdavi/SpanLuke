@@ -162,7 +162,7 @@ class ENER_Dataset():
 
     def tokenize_and_align_labels(self, examples):
 
-        tokenized_inputs = self.tokenizer(examples)
+        tokenized_inputs = self.tokenizer(examples["tokens"])
 
         labels = []
         for i, label in enumerate(examples[f"ner_tags"]):
