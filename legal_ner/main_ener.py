@@ -494,10 +494,10 @@ if __name__ == "__main__":
         accepted = ["span", "bert"]
         if any([a in model_path for a in accepted]) and ("luke" not in model_path):
             print(f"Using {model_path} as tokenizer")
-            tokenizer = SpanMarkerTokenizer.from_pretrained(model_path, config=model.tokenizer.config)
+            tokenizer = SpanMarkerTokenizer.from_pretrained(model_path, config=model.config)
         else:
             print("Using Roberta as tokenizer")
-            tokenizer = SpanMarkerTokenizer.from_pretrained("roberta-base", config=model.tokenizer.config)
+            tokenizer = SpanMarkerTokenizer.from_pretrained("roberta-base", config=model.config)
 
         model.set_tokenizer(tokenizer)
         print(model.tokenizer.tokenizer)
