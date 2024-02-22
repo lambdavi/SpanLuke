@@ -2,7 +2,7 @@ import torch
 import json
 from torch.utils.data import Dataset
 import numpy as np
-from transformers import AutoTokenizer, PreTrainedTokenizerFast
+from transformers import AutoTokenizer, RobertaTokenizerFast
 from datasets import DatasetDict, Dataset as DatasetHF
 from utils.utils import match_labels
 
@@ -115,6 +115,7 @@ def load_legal_ner(train_data_folder: str, dev_data_folder: str):
 ############################################################ 
 class ENER_Dataset():
     def __init__(self, train_ds_path, test_ds_path, labels_list, tokenizer=None) -> None:
+
         self.labels_list = sorted(labels_list + ["O"])[::-1]
 
         self.labels_to_idx = dict(
@@ -123,8 +124,8 @@ class ENER_Dataset():
 
         if tokenizer is not None:
             if "luke" in tokenizer:
-                print("Initializing tokenizer..")
-                self.tokenizer = PreTrainedTokenizerFast.from_pretrained("roberta-base", add_prefix_space=True)
+                print("Using roberta as tokenizer..")
+                self.tokenizer = RobertaTokenizerFast.from_pretrained("roberta-base", add_prefix_space=True)
             else:
                 print(f"Using {tokenizer} as tokenizer..")
                 self.tokenizer = AutoTokenizer.from_pretrained(tokenizer) 

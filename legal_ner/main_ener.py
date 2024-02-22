@@ -15,7 +15,6 @@ from utils.dataset import LegalNERTokenDataset, load_legal_ner, ENER_Dataset
 
 from span_marker import SpanMarkerModel, Trainer as SpanTrainer
 from span_marker.tokenizer import SpanMarkerTokenizer
-from span_marker.configuration import SpanMarkerConfig
 
 # SET SEED FOR REPRODUCIBILITY
 seed = 42
@@ -483,32 +482,27 @@ if __name__ == "__main__":
         ## Map the labels
         
     else:
-        if dataset =="legal_ner":
-            span_dataset = load_legal_ner(ds_train_path, ds_valid_path)
-        else:
-            data_processor = ENER_Dataset(ds_train_path, ds_valid_path, labels_list=labels_list)
-            span_dataset = data_processor.get_ener_dataset()
-            tokenizer = data_processor.tokenizer
-            print(type(tokenizer))
-
         model = SpanMarkerModel.from_pretrained(
             model_path, 
             labels=span_labels, 
             model_max_length=128,
             marker_max_length=64,
-            entity_max_length=words_per_entity,
+            entity_max_length=words_per_entity
         )
-
         accepted = ["span", "bert"]
         if any([a in model_path for a in accepted]) and ("luke" not in model_path):
             print(f"Using {model_path} as tokenizer")
             tokenizer = SpanMarkerTokenizer.from_pretrained(model_path, config=model.tokenizer.config)
         else:
             print("Using Roberta as tokenizer")
-            tokenizer = SpanMarkerTokenizer(tokenizer=tokenizer, config=model.tokenizer.config)
-        
-        model.set_tokenizer(tokenizer)
+            tokenizer = SpanMarkerTokenizer.from_pretrained("roberta-base", config=model.tokenizer.config)
+            model.set_tokenizer(tokenizer)
 
+        if dataset =="legal_ner":
+            span_dataset = load_legal_ner(ds_train_path, ds_valid_path)
+        else:
+            data_processor = ENER_Dataset(ds_train_path, ds_valid_path, labels_list=labels_list)
+            span_dataset = data_processor.get_ener_dataset()
 
     print(model)
     
@@ -647,7 +641,7 @@ if __name__ == "__main__":
     if push_to_hub:
         trainer.push_to_hub()
         if use_span:
-            tokenizer.push_to_hub()
+            trainer.tokenizer.push_to_hub()
         else:
             train_ds.tokenizer.push_to_hub()
 
