@@ -1,6 +1,6 @@
 <div align="center">    
  
-# SpanLuke: Enhance Legal Entity Recognition with LUKE, SpanMarker and LoRA
+# SpanLuke: Enhancing Legal NER using SpanMarker and PEFT
 ![](https://github.com/lambdavi/L-NER/blob/final/media/logo_temp.png?raw=True)
 </div>
 
@@ -34,54 +34,46 @@ python main.py \
     --span
 ```
 
-<!--
-#### Arguments for train:
-
-- `--lr`: Learning rate
-  - Type: float
-  - Default: 0.001
-
-- `--gamma`: Gamma value
-  - Type: float
-  - Default: 0.99
-
-- `--buffer_size`: Buffer size
-  - Type: int
-  - Default: 1,000,000
-
-- `--batch_size`: Batch size
-  - Type: int
-  - Default: 100
-
-- `--tau`: Tau value
-  - Type: float
-  - Default: 0.005
-
-- `--learning_starts`: When to start the learning
-  - Type: int
-  - Default: 100
-
-- `--steps`: Number of steps
-  - Type: int
-  - Default: 50,000
-
-- `--env_id`: Environment ID
-  - Type: str
-  - Default: "PandaReach-v3"
-  - Choices: ["PandaReach-v3", "PandaReachDense-v3", "PandaPickAndPlace-v3", "PandaPickAndPlaceDense-v3"]
-
-- `--algo`: Algorithm to solve the task
-  - Type: str
-  - Default: "ddpg"
-  - Choices: ["ddpg", "sac", "dqn"]
-
 ### Citation   
 ```
-@article{gallouedec2021pandagym,
-    title        = {{panda-gym: Open-Source Goal-Conditioned Environments for Robotic Learning}},
-    author       = {Gallou{\'e}dec, Quentin and Cazin, Nicolas and Dellandr{\'e}a, Emmanuel and Chen, Liming},
-    year         = 2021,
-    journal      = {4th Robot Learning Workshop: Self-Supervised and Lifelong Learning at NeurIPS},
-    }
-```   
--->
+@inproceeding{benedetto-etal-2023-politohfi,
+    title = "{P}oli{T}o{HFI} at {S}em{E}val-2023 Task 6: Leveraging Entity-Aware and Hierarchical Transformers For Legal Entity Recognition and Court Judgment Prediction",
+    author = "Benedetto, Irene  and
+      Koudounas, Alkis  and
+      Vaiani, Lorenzo  and
+      Pastor, Eliana  and
+      Baralis, Elena  and
+      Cagliero, Luca  and
+      Tarasconi, Francesco",
+    editor = {Ojha, Atul Kr.  and
+      Do{\u{g}}ru{\"o}z, A. Seza  and
+      Da San Martino, Giovanni  and
+      Tayyar Madabushi, Harish  and
+      Kumar, Ritesh  and
+      Sartori, Elisa},
+    booktitle = "Proceedings of the 17th International Workshop on Semantic Evaluation (SemEval-2023)",
+    month = jul,
+    year = "2023",
+    address = "Toronto, Canada",
+    publisher = "Association for Computational Linguistics",
+    url = "https://aclanthology.org/2023.semeval-1.194",
+    doi = "10.18653/v1/2023.semeval-1.194",
+    pages = "1401--1411",
+    abstract = "The use of Natural Language Processing techniques in the legal domain has become established for supporting attorneys and domain experts in content retrieval and decision-making. However, understanding the legal text poses relevant challenges in the recognition of domain-specific entities and the adaptation and explanation of predictive models. This paper addresses the Legal Entity Name Recognition (L-NER) and Court judgment Prediction (CPJ) and Explanation (CJPE) tasks. The L-NER solution explores the use of various transformer-based models, including an entity-aware method attending domain-specific entities. The CJPE proposed method relies on hierarchical BERT-based classifiers combined with local input attribution explainers. We propose a broad comparison of eXplainable AI methodologies along with a novel approach based on NER. For the L-NER task, the experimental results remark on the importance of domain-specific pre-training. For CJP our lightweight solution shows performance in line with existing approaches, and our NER-boosted explanations show promising CJPE results in terms of the conciseness of the prediction explanations.",
+}
+@software{Aarsen_SpanMarker,
+    author = {Aarsen, Tom},
+    license = {Apache-2.0},
+    title = {{SpanMarker for Named Entity Recognition}},
+    url = {https://github.com/tomaarsen/SpanMarkerNER}
+}
+
+@misc{au2022ener,
+      title={E-NER -- An Annotated Named Entity Recognition Corpus of Legal Text}, 
+      author={Ting Wai Terence Au and Ingemar J. Cox and Vasileios Lampos},
+      year={2022},
+      eprint={2212.09306},
+      archivePrefix={arXiv},
+      primaryClass={cs.CL}
+}
+```

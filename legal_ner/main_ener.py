@@ -1,19 +1,22 @@
 import os
+import torch
+import re
+import evaluate
 import numpy as np
+
 from argparse import ArgumentParser
 from nervaluate import Evaluator
 from peft import LoraConfig, TaskType, get_peft_model, AdaLoraConfig, IA3Config
 
 from transformers import AutoModelForTokenClassification
-from transformers import Trainer, DefaultDataCollator, TrainingArguments, DataCollatorForTokenClassification
+from transformers import Trainer, DefaultDataCollator, TrainingArguments, DataCollatorForTokenClassification, DataCollatorWithPadding
 
-from utils.dataset import LegalNERTokenDataset, load_legal_ner
+from utils.dataset import LegalNERTokenDataset, load_legal_ner, ENER_Dataset
+
 from span_marker import SpanMarkerModel, Trainer as SpanTrainer
 from span_marker.tokenizer import SpanMarkerTokenizer
-from utils.ener import ENER_DataProcessor
-import torch
 
-
+# SET SEED FOR REPRODUCIBILITY
 seed = 42
 torch.manual_seed(seed)
 torch.cuda.manual_seed(seed)
@@ -24,7 +27,7 @@ torch.backends.cudnn.deterministic = True
 #                                                          #
 ############################################################ 
 if __name__ == "__main__":
-
+    seqeval = evaluate.load("seqeval")
     parser = ArgumentParser(description="Training of LUKE model")
     parser.add_argument(
         "--dataset",
@@ -156,14 +159,14 @@ if __name__ == "__main__":
     parser.add_argument(
         "--lora_rank",
         help="Lora Rank",
-        default=8,
+        default=16,
         required=False,
         type=int,
     )
     parser.add_argument(
         "--lora_alpha",
         help="Lora Alpha",
-        default=32,
+        default=8,
         required=False,
         type=int,
     )
@@ -193,6 +196,23 @@ if __name__ == "__main__":
         default="all"
     )
 
+    parser.add_argument(
+        "--target_modules",
+        help="Which modules to target with Lora",
+        required=False,
+        type=str,
+        choices=["default", "linear"],
+        default="default"
+    )
+
+    parser.add_argument(
+        "--wxe",
+        help="How many words per entity to use with SpanMarker",
+        required=False,
+        type=int,
+        default=6
+    )
+
     args = parser.parse_args()
 
     ## Parameters
@@ -217,6 +237,8 @@ if __name__ == "__main__":
     push_to_hub = args.push_to_hub
     hub_token = args.hub_token
     hub_model_id = args.hub_model_id
+    target_modules = args.target_modules
+    words_per_entity = args.wxe
 
     if use_span:
         print("Span Mode Activated")
@@ -247,7 +269,7 @@ if __name__ == "__main__":
             "PERSON", 
             "GOVERNMENT", 
             "COURT", 
-            "LEGISLATION/ACT", 
+            "LEGACT", 
             "MISCELLANEOUS"
         ]
     
@@ -255,7 +277,28 @@ if __name__ == "__main__":
     labels_list += ["I-" + l for l in original_label_list]
     span_labels = ["O"]+labels_list
     num_labels = len(labels_list) + 1
-        
+
+    def compute_metrics_ener(p):
+        predictions, labels = p
+        predictions = np.argmax(predictions, axis=2)
+
+        # Remove ignored index (special tokens)
+        true_predictions = [
+            [idx_to_labels[p] for (p, l) in zip(prediction, label) if l != -100]
+            for prediction, label in zip(predictions, labels)
+        ]
+        true_labels = [
+            [idx_to_labels[l] for (p, l) in zip(prediction, label) if l != -100]
+            for prediction, label in zip(predictions, labels)
+        ]
+
+        results = seqeval.compute(predictions=true_predictions, references=true_labels)
+        return {
+            "precision": results["overall_precision"],
+            "recall": results["overall_recall"],
+            "f1": results["overall_f1"],
+            "accuracy": results["overall_accuracy"],
+        }
     ## Compute metrics
     def compute_metrics(pred):
 
@@ -270,7 +313,6 @@ if __name__ == "__main__":
         labels_ids = [[idx_to_labels[p] if p != -100 else "O" for p in labels]]
         unique_labels = list(set([l.split("-")[-1] for l in list(set(labels_ids[0]))]))
         unique_labels.remove("O")
-
         # Evaluator
         evaluator = Evaluator(
             labels_ids, prediction_ids, tags=unique_labels, loader="list"
@@ -409,8 +451,7 @@ if __name__ == "__main__":
             use_roberta = True
 
         if dataset == "ener":
-            # TODO: add data path 
-            data_processor = ENER_DataProcessor(model_path)
+            data_processor = ENER_Dataset(ds_train_path, ds_valid_path, labels_list=labels_list, tokenizer=model_path)
             tok_dataset = data_processor.get_ener_dataset()
             idx_to_labels = {v[1]: v[0] for v in data_processor.labels_to_idx.items()}
         else:
@@ -441,7 +482,13 @@ if __name__ == "__main__":
         ## Map the labels
         
     else:
-        model = SpanMarkerModel.from_pretrained(model_path, labels=span_labels)
+        model = SpanMarkerModel.from_pretrained(
+            model_path, 
+            labels=span_labels, 
+            model_max_length=128,
+            marker_max_length=64,
+            entity_max_length=words_per_entity
+        )
         accepted = ["span", "bert"]
         if any([a in model_path for a in accepted]) and ("luke" not in model_path):
             print(f"Using {model_path} as tokenizer")
@@ -452,17 +499,29 @@ if __name__ == "__main__":
             model.set_tokenizer(tokenizer)
 
         if dataset =="legal_ner":
-            span_dataset = load_legal_ner(ds_train_path)
+            span_dataset = load_legal_ner(ds_train_path, ds_valid_path)
         else:
-            data_processor = ENER_DataProcessor()
+            data_processor = ENER_Dataset(ds_train_path, ds_valid_path, labels_list=labels_list)
             span_dataset = data_processor.get_ener_dataset()
 
     print(model)
     
     if peft_mode is not None:
-        if "luke" in model_path:
+        if "luke" in model_path and target_modules=="default":
             target_modules = ['query', 'e2w_query', 'e2e_query', 'value', 'w2e_query']
             print(f"Found target modules: \n{target_modules}")
+        elif target_modules=="linear":
+            print("Applying Lora to all linear layers")
+            model_modules = str(model.modules)
+            pattern = r'\((\w+)\): Linear'
+            linear_layer_names = re.findall(pattern, model_modules)
+
+            names = []
+            # Print the names of the Linear layers
+            for name in linear_layer_names:
+                names.append(name)
+            target_modules = list(set(names))
+            print(target_modules)
         else:
             target_modules = None
         if peft_mode == "lora":
@@ -515,7 +574,7 @@ if __name__ == "__main__":
             save_total_limit=1,
             fp16=False,
             fp16_full_eval=False,
-            metric_for_best_model="f1-strict",
+            metric_for_best_model="f1-strict" if dataset!="ener" else "f1",
             dataloader_num_workers=4,
             dataloader_pin_memory=True,
             report_to="wandb",
@@ -527,7 +586,8 @@ if __name__ == "__main__":
         )
 
         ## Collator
-        data_collator = DefaultDataCollator() if dataset!="ener" else DataCollatorForTokenClassification(data_processor.tokenizer)
+        data_collator = DefaultDataCollator() if dataset != "ener" else DataCollatorForTokenClassification(tokenizer=data_processor.tokenizer)
+
 
         ## Trainer
         trainer = Trainer(
@@ -535,7 +595,7 @@ if __name__ == "__main__":
             args=training_args,
             train_dataset=train_ds if dataset!="ener" else tok_dataset["train"],
             eval_dataset=val_ds if dataset!="ener" else tok_dataset["test"],
-            compute_metrics=compute_metrics,
+            compute_metrics=compute_metrics if dataset!="ener" else compute_metrics_ener,
             data_collator=data_collator,
         )
 
@@ -571,7 +631,7 @@ if __name__ == "__main__":
             args=training_args,
             train_dataset=span_dataset["train"],
             eval_dataset=span_dataset["dev"] if dataset=="legal_ner" else span_dataset["test"],
-            compute_metrics=compute_score_span
+            compute_metrics=compute_score_span,
         )
 
 
@@ -580,6 +640,10 @@ if __name__ == "__main__":
     trainer.save_model(output_folder)
     if push_to_hub:
         trainer.push_to_hub()
+        if use_span:
+            trainer.tokenizer.push_to_hub()
+        else:
+            train_ds.tokenizer.push_to_hub()
 
 
 
