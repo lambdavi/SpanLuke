@@ -2,7 +2,7 @@ import torch
 import json
 from torch.utils.data import Dataset
 import numpy as np
-from transformers import AutoTokenizer, RobertaTokenizerFast
+from transformers import AutoTokenizer, PreTrainedTokenizerFast
 from datasets import DatasetDict, Dataset as DatasetHF
 from utils.utils import match_labels
 
@@ -124,7 +124,7 @@ class ENER_Dataset():
         if tokenizer is not None:
             if "luke" in tokenizer:
                 print("Using roberta as tokenizer..")
-                self.tokenizer = RobertaTokenizerFast.from_pretrained("roberta-base", add_prefix_space=True)
+                self.tokenizer = PreTrainedTokenizerFast.from_pretrained("roberta-base", add_prefix_space=True)
             else:
                 print(f"Using {tokenizer} as tokenizer..")
                 self.tokenizer = AutoTokenizer.from_pretrained(tokenizer) 

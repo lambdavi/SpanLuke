@@ -496,13 +496,15 @@ if __name__ == "__main__":
         else:
             print("Using Roberta as tokenizer")
             tokenizer = SpanMarkerTokenizer.from_pretrained("roberta-base", config=model.tokenizer.config)
-            model.set_tokenizer(tokenizer)
 
         if dataset =="legal_ner":
             span_dataset = load_legal_ner(ds_train_path, ds_valid_path)
+            model.set_tokenizer(tokenizer)
         else:
             data_processor = ENER_Dataset(ds_train_path, ds_valid_path, labels_list=labels_list)
             span_dataset = data_processor.get_ener_dataset()
+            model.set_tokenizer(data_processor.tokenizer)
+
 
     print(model)
     
