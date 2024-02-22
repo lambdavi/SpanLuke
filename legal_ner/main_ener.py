@@ -501,11 +501,11 @@ if __name__ == "__main__":
 
         model.set_tokenizer(tokenizer)
         print(model.tokenizer.tokenizer)
-        
+
         if dataset =="legal_ner":
             span_dataset = load_legal_ner(ds_train_path, ds_valid_path)
         else:
-            data_processor = ENER_Dataset(ds_train_path, ds_valid_path, tokenizer = tokenizer, labels_list=labels_list)
+            data_processor = ENER_Dataset(ds_train_path, ds_valid_path, tokenizer = model.tokenizer, labels_list=labels_list)
             span_dataset = data_processor.get_ener_dataset()
             
 
