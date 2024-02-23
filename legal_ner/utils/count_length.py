@@ -2,7 +2,7 @@ import json
 import numpy as np
 
 print("** INFORMATON ABOUT LEGAL_NER **")
-for split in ["train", "dev"]:
+for split in ["TRAIN", "DEV"]:
     all_data = json.load(open(f"data/NER_{split}/NER_{split}_ALL.json"))
     ent_l = [] 
     for input_data in all_data:
