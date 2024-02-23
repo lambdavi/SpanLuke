@@ -1,31 +1,43 @@
 import os
-import json
+import torch
+import re
+import evaluate
 import numpy as np
+
 from argparse import ArgumentParser
 from nervaluate import Evaluator
-import re
 from peft import LoraConfig, TaskType, get_peft_model, AdaLoraConfig, IA3Config
 
-from transformers import AutoModelForTokenClassification
-from transformers import Trainer, DefaultDataCollator, TrainingArguments
+from transformers import AutoModelForTokenClassification, RobertaTokenizerFast
+from transformers import Trainer, DefaultDataCollator, TrainingArguments, DataCollatorForTokenClassification, DataCollatorWithPadding
 
-from utils.dataset import LegalNERTokenDataset, load_legal_ner
+from utils.dataset import LegalNERTokenDataset, load_legal_ner, ENER_Dataset
+
 from span_marker import SpanMarkerModel, Trainer as SpanTrainer
+from span_marker.configuration import SpanMarkerConfig
 from span_marker.tokenizer import SpanMarkerTokenizer
-import torch
-import spacy
 
-nlp = spacy.load("en_core_web_sm")
-
-
+# SET SEED FOR REPRODUCIBILITY
+seed = 42
+torch.manual_seed(seed)
+torch.cuda.manual_seed(seed)
+torch.backends.cudnn.deterministic = True
 ############################################################
 #                                                          #
 #                           MAIN                           #
 #                                                          #
 ############################################################ 
 if __name__ == "__main__":
-
+    seqeval = evaluate.load("seqeval")
     parser = ArgumentParser(description="Training of LUKE model")
+    parser.add_argument(
+        "--dataset",
+        help="Choose dataset",
+        default="legal_ner",
+        required=False,
+        choices=["legal_ner", "ener"],
+        type=str,
+    )
     parser.add_argument(
         "--ds_train_path",
         help="Path of train dataset file",
@@ -62,6 +74,29 @@ if __name__ == "__main__":
         default=False,
         required=False,
     )
+
+    parser.add_argument(
+        "--push_to_hub",
+        help="Push the model to the hub once the training is finished",
+        default=False,
+        required=False,
+        action="store_true"
+    )
+    parser.add_argument(
+        "--hub_token",
+        help="Huggingface write token",
+        default=None,
+        required=False,
+        type=str
+    )
+    parser.add_argument(
+        "--hub_model_id",
+        help="Huggingface full path",
+        default=None,
+        required=False,
+        type=str
+    )
+
     parser.add_argument(
         "--scheduler",
         help="Scheduler type among: linear, polynomial, reduce_lr_on_plateau, cosine, constant",
@@ -171,6 +206,14 @@ if __name__ == "__main__":
         default="default"
     )
 
+    parser.add_argument(
+        "--wxe",
+        help="How many words per entity to use with SpanMarker",
+        required=False,
+        type=int,
+        default=6
+    )
+
     args = parser.parse_args()
 
     ## Parameters
@@ -191,33 +234,72 @@ if __name__ == "__main__":
     peft_mode = args.peft_mode
     lora_dropout = args.lora_dropout
     bias = args.lora_bias
+    dataset = args.dataset
+    push_to_hub = args.push_to_hub
+    hub_token = args.hub_token
+    hub_model_id = args.hub_model_id
     target_modules = args.target_modules
+    words_per_entity = args.wxe
 
     if use_span:
         print("Span Mode Activated")
     
-    ## Define the labels
-    original_label_list = [
-        "COURT",
-        "PETITIONER",
-        "RESPONDENT",
-        "JUDGE",
-        "DATE",
-        "ORG",
-        "GPE",
-        "STATUTE",
-        "PROVISION",
-        "PRECEDENT",
-        "CASE_NUMBER",
-        "WITNESS",
-        "OTHER_PERSON",
-        "LAWYER"
-    ]
+    if dataset == "legal_ner":
+        ## Define the labels
+        original_label_list = [
+            "COURT",
+            "PETITIONER",
+            "RESPONDENT",
+            "JUDGE",
+            "DATE",
+            "ORG",
+            "GPE",
+            "STATUTE",
+            "PROVISION",
+            "PRECEDENT",
+            "CASE_NUMBER",
+            "WITNESS",
+            "OTHER_PERSON",
+            "LAWYER"
+        ]
+        
+    else:
+        original_label_list = [
+            "BUSINESS", 
+            "LOCATION",
+            "PERSON", 
+            "GOVERNMENT", 
+            "COURT", 
+            "LEGACT", 
+            "MISCELLANEOUS"
+        ]
+    
     labels_list = ["B-" + l for l in original_label_list]
     labels_list += ["I-" + l for l in original_label_list]
     span_labels = ["O"]+labels_list
     num_labels = len(labels_list) + 1
 
+    def compute_metrics_ener(p):
+        predictions, labels = p
+        predictions = np.argmax(predictions, axis=2)
+
+        # Remove ignored index (special tokens)
+        true_predictions = [
+            [idx_to_labels[p] for (p, l) in zip(prediction, label) if l != -100]
+            for prediction, label in zip(predictions, labels)
+        ]
+        true_labels = [
+            [idx_to_labels[l] for (p, l) in zip(prediction, label) if l != -100]
+            for prediction, label in zip(predictions, labels)
+        ]
+
+        results = seqeval.compute(predictions=true_predictions, references=true_labels)
+        return {
+            "precision": results["overall_precision"],
+            "recall": results["overall_recall"],
+            "f1": results["overall_f1"],
+            "accuracy": results["overall_accuracy"],
+        }
     ## Compute metrics
     def compute_metrics(pred):
 
@@ -232,7 +314,6 @@ if __name__ == "__main__":
         labels_ids = [[idx_to_labels[p] if p != -100 else "O" for p in labels]]
         unique_labels = list(set([l.split("-")[-1] for l in list(set(labels_ids[0]))]))
         unique_labels.remove("O")
-
         # Evaluator
         evaluator = Evaluator(
             labels_ids, prediction_ids, tags=unique_labels, loader="list"
@@ -363,28 +444,35 @@ if __name__ == "__main__":
     
 
 
-    print("MODEL:", model_path)
+    print("MODEL: ", model_path)
     if not use_span:
         ## Define the train and test datasets
         use_roberta = False
         if "luke" in model_path or "roberta" in model_path:
             use_roberta = True
 
-        train_ds = LegalNERTokenDataset(
-            ds_train_path, 
-            model_path, 
-            labels_list=labels_list, 
-            split="train", 
-            use_roberta=use_roberta
-        )
+        if dataset == "ener":
+            data_processor = ENER_Dataset(ds_train_path, ds_valid_path, labels_list=labels_list, tokenizer=model_path)
+            tok_dataset = data_processor.get_ener_dataset()
+            idx_to_labels = {v[1]: v[0] for v in data_processor.labels_to_idx.items()}
+        else:
+            train_ds = LegalNERTokenDataset(
+                ds_train_path, 
+                model_path, 
+                labels_list=labels_list, 
+                split="train", 
+                use_roberta=use_roberta
+            )
 
-        val_ds = LegalNERTokenDataset(
-            ds_valid_path, 
-            model_path, 
-            labels_list=labels_list, 
-            split="val", 
-            use_roberta=use_roberta
-        )
+            val_ds = LegalNERTokenDataset(
+                ds_valid_path, 
+                model_path, 
+                labels_list=labels_list, 
+                split="val", 
+                use_roberta=use_roberta
+            )
+            idx_to_labels = {v[1]: v[0] for v in train_ds.labels_to_idx.items()}
+            
 
         ## Define the model
         model = AutoModelForTokenClassification.from_pretrained(
@@ -393,19 +481,34 @@ if __name__ == "__main__":
             ignore_mismatched_sizes=True
         )
         ## Map the labels
-        idx_to_labels = {v[1]: v[0] for v in train_ds.labels_to_idx.items()}
+        
     else:
-        model = SpanMarkerModel.from_pretrained(pretrained_model_name_or_path=model_path, labels=span_labels)
+        
+        model = SpanMarkerModel.from_pretrained(
+            model_path, 
+            labels=span_labels, 
+            model_max_length=128,
+            marker_max_length=64,
+            entity_max_length=words_per_entity
+        )
+
         accepted = ["span", "bert"]
-        if any([a in model_path for a in accepted]) and "luke" not in model_path:
+        if any([a in model_path for a in accepted]) and ("luke" not in model_path):
             print(f"Using {model_path} as tokenizer")
-            tokenizer = SpanMarkerTokenizer.from_pretrained(model_path, config=model.tokenizer.config)
+            tokenizer = SpanMarkerTokenizer.from_pretrained(model_path, config=model.config)
         else:
             print("Using Roberta as tokenizer")
-            tokenizer = SpanMarkerTokenizer.from_pretrained("roberta-base", config=model.tokenizer.config)
-            model.set_tokenizer(tokenizer)
-        span_dataset = load_legal_ner(ds_train_path)
+            t = RobertaTokenizerFast.from_pretrained("roberta-base", add_prefix_space=True)
+            tokenizer = SpanMarkerTokenizer(t, model.config)
 
+        model.set_tokenizer(tokenizer)
+        
+        if dataset =="legal_ner":
+            span_dataset = load_legal_ner(ds_train_path, ds_valid_path)
+        else:
+            data_processor = ENER_Dataset(ds_train_path, ds_valid_path, labels_list=labels_list)
+            span_dataset = data_processor.get_ener_dataset_e()
+            
     print(model)
     
     if peft_mode is not None:
@@ -413,6 +516,7 @@ if __name__ == "__main__":
             target_modules = ['query', 'e2w_query', 'e2e_query', 'value', 'w2e_query']
             print(f"Found target modules: \n{target_modules}")
         elif target_modules=="linear":
+            print("Applying Lora to all linear layers")
             model_modules = str(model.modules)
             pattern = r'\((\w+)\): Linear'
             linear_layer_names = re.findall(pattern, model_modules)
@@ -422,6 +526,7 @@ if __name__ == "__main__":
             for name in linear_layer_names:
                 names.append(name)
             target_modules = list(set(names))
+            print(target_modules)
         else:
             target_modules = None
         if peft_mode == "lora":
@@ -470,28 +575,32 @@ if __name__ == "__main__":
             weight_decay=weight_decay,
             evaluation_strategy="epoch",
             save_strategy="epoch",
-            load_best_model_at_end=False,
-            save_total_limit=2,
+            load_best_model_at_end=True,
+            save_total_limit=1,
             fp16=False,
             fp16_full_eval=False,
-            metric_for_best_model="f1-strict",
+            metric_for_best_model="f1-strict" if dataset!="ener" else "f1",
             dataloader_num_workers=4,
             dataloader_pin_memory=True,
             report_to="wandb",
             logging_steps=50,  # how often to log to W&B
-            lr_scheduler_type=scheduler
+            lr_scheduler_type=scheduler,
+            push_to_hub=push_to_hub,
+            hub_token=hub_token,
+            hub_model_id=hub_model_id
         )
 
         ## Collator
-        data_collator = DefaultDataCollator()
+        data_collator = DefaultDataCollator() if dataset != "ener" else DataCollatorForTokenClassification(tokenizer=data_processor.tokenizer)
+
 
         ## Trainer
         trainer = Trainer(
             model=model,
             args=training_args,
-            train_dataset=train_ds,
-            eval_dataset=val_ds,
-            compute_metrics=compute_metrics,
+            train_dataset=train_ds if dataset!="ener" else tok_dataset["train"],
+            eval_dataset=val_ds if dataset!="ener" else tok_dataset["test"],
+            compute_metrics=compute_metrics if dataset!="ener" else compute_metrics_ener,
             data_collator=data_collator,
         )
 
@@ -507,8 +616,8 @@ if __name__ == "__main__":
             weight_decay=weight_decay,
             evaluation_strategy="epoch",
             save_strategy="epoch",
-            load_best_model_at_end=False,
-            save_total_limit=2,
+            load_best_model_at_end=True,
+            save_total_limit=1,
             fp16=False,
             fp16_full_eval=False,
             metric_for_best_model="f1-strict",
@@ -516,23 +625,28 @@ if __name__ == "__main__":
             dataloader_pin_memory=True,
             report_to="wandb",
             logging_steps=50,  # how often to log to W&B
-            lr_scheduler_type=scheduler
+            lr_scheduler_type=scheduler,
+            push_to_hub=push_to_hub,
+            hub_token=hub_token,
+            hub_model_id=hub_model_id
         )
-
         # Our Trainer subclasses the 🤗 Trainer, and the usage is very similar
         trainer = SpanTrainer(
             model=model,
             args=training_args,
             train_dataset=span_dataset["train"],
-            eval_dataset=span_dataset["dev"],
-            compute_metrics=compute_score_span
+            eval_dataset=span_dataset["dev"] if dataset=="legal_ner" else span_dataset["test"],
+            compute_metrics=compute_score_span,
+            tokenizer=tokenizer
         )
 
 
     ## Train the model and save it
     trainer.train()
     trainer.save_model(output_folder)
-    trainer.evaluate()
+    if push_to_hub:
+        trainer.push_to_hub()
+
 
 
 
