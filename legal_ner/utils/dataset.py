@@ -122,7 +122,7 @@ class ENER_Dataset():
             zip(sorted(self.labels_list)[::-1], range(len(self.labels_list)))
         )
 
-        if tokenizer is not None:
+        if isinstance(tokenizer, str):
             if "luke" in tokenizer:
                 print("Using roberta as tokenizer..")
                 self.tokenizer = RobertaTokenizerFast.from_pretrained("roberta-base", add_prefix_space=True)
@@ -130,7 +130,8 @@ class ENER_Dataset():
                 print(f"Using {tokenizer} as tokenizer..")
                 self.tokenizer = AutoTokenizer.from_pretrained(tokenizer) 
         else:
-            self.tokenizer=None
+            print("Tokenizer already set")
+            self.tokenizer=tokenizer
 
         self.data = self.read_data(train_ds_path, test_ds_path)
 
@@ -159,7 +160,8 @@ class ENER_Dataset():
             for data in ener:
                 f.write(json.dumps(data)+'\n')
 
-    def tokenize_and_align_labels(self, examples, label_all_tokens=True):
+    def tokenize_and_align_labels(self, examples):
+
         tokenized_inputs = self.tokenizer(examples["tokens"], truncation=True, is_split_into_words=True)
 
         labels = []
@@ -178,7 +180,7 @@ class ENER_Dataset():
                 # For the other tokens in a word, we set the label to either the current label or -100, depending on
                 # the label_all_tokens flag.
                 else:
-                    label_ids.append(label[word_idx] if label_all_tokens else -100)
+                    label_ids.append(label[word_idx])
                 previous_word_idx = word_idx
 
             labels.append(label_ids)
@@ -188,6 +190,9 @@ class ENER_Dataset():
     
     def get_ener_dataset(self):
         ener = self.data
-        if self.tokenizer:
-            ener = ener.map(self.tokenize_and_align_labels, batched=True)
+        ener = ener.map(self.tokenize_and_align_labels, batched=True)
+        return ener
+    
+    def get_ener_dataset_e(self):
+        ener = self.data
         return ener
