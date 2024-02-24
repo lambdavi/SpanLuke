@@ -636,8 +636,7 @@ if __name__ == "__main__":
             args=training_args,
             train_dataset=span_dataset["train"],
             eval_dataset=span_dataset["dev"] if dataset=="legal_ner" else span_dataset["test"],
-            compute_metrics=compute_score_span,
-            tokenizer=tokenizer
+            compute_metrics=compute_score_span
         )
 
 

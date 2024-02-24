@@ -1,6 +1,6 @@
 <div align="center">    
  
-# SpanLuke: Enhancing Legal NER using SpanMarker and PEFT
+# SpanLuke: Enhancing Legal NER using SpanMarker and LoRA
 ![](https://github.com/lambdavi/L-NER/blob/main/media/logo_temp.png?raw=True)
 </div>
 
