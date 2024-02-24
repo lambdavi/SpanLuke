@@ -19,19 +19,34 @@ git clone https://github.com/lambdavi/L-NER.git
 cd L-NER 
 pip install -r requirements.txt
 
-# run training script  
+# reproduce best results
 python main.py \
+    --dataset legal_ner \
     --ds_train_path data/NER_TRAIN/NER_TRAIN_ALL.json \
     --ds_valid_path data/NER_DEV/NER_DEV_ALL.json \
     --output_folder results/ \
-    --batch 16 \
-    --acc_step 4 \
+    --batch 8 \
+    --acc_step 2 \
     --num_epochs 5 \
     --lr 1e-4 \
     --weight_decay 0.01 \
     --warmup_ratio 0.06 \
-    --model_path studio-ousia/luke-base \
-    --span
+    --model_path lambdavi/span-marker-luke-legal \
+    --use_span
+
+python main.py \
+  --dataset ener \
+  --ds_train_path data/ener/train.json \
+  --ds_valid_path data/ener/test.json \
+  --output_folder results/ \
+  --batch 8 \
+  --acc_step 2 \
+  --num_epochs 5 \
+  --lr 1e-4 \
+  --weight_decay 0.01 \
+  --warmup_ratio 0.06 \
+  --model_path lambdavi/span-marker-luke-legal \
+  --use_span
 ```
 
 ### Citation   
