@@ -6,7 +6,7 @@
 
 ## Description   
 The goal of this project is to identify entities in legal text.
-
+Read the paper ![here](https://github.com/lambdavi/SpanLuke/blob/main/media/Group12_DNLP.pdf).
 This repository starts from the code of "PoliToHFI at SemEval-2023 Task 6: Leveraging Entity-Aware and Hierarchical Transformers For Legal Entity Recognition and Court Judgement Prediction" submitted to the SemEval-2023, Task 6.
 
 ## How to run   
